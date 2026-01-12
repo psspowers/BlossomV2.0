@@ -257,34 +257,47 @@ export async function seedDatabase(): Promise<void> {
       cycleDay = daysAgo + (cycle3Start - 1) + 1;
     }
 
-    if (daysAgo === cycle1Start || daysAgo === cycle2Start || daysAgo === cycle3Start) {
-      syntheticData.push(generateMenstrualDay(daysAgo, 1));
-    } else if (daysAgo >= cycle3Start && daysAgo < cycle3Start + 5) {
-      syntheticData.push(generateMenstrualDay(daysAgo, cycle3Start - daysAgo + 1));
-    } else if (daysAgo >= cycle2Start && daysAgo < cycle2Start + 5) {
-      syntheticData.push(generateMenstrualDay(daysAgo, cycle2Start - daysAgo + 1));
-    } else if (daysAgo >= cycle1Start && daysAgo < cycle1Start + 5) {
-      syntheticData.push(generateMenstrualDay(daysAgo, cycle1Start - daysAgo + 1));
-    } else if (
-      (daysAgo >= cycle3Start - 13 && daysAgo < cycle3Start) ||
-      (daysAgo >= cycle2Start - 13 && daysAgo < cycle2Start) ||
-      (daysAgo >= cycle1Start - 13 && daysAgo < cycle1Start)
-    ) {
-      const dayInPhase = daysAgo >= cycle3Start - 13 && daysAgo < cycle3Start
-        ? cycle3Start - daysAgo
-        : daysAgo >= cycle2Start - 13 && daysAgo < cycle2Start
-        ? cycle2Start - daysAgo
-        : cycle1Start - daysAgo;
-
-      if (dayInPhase <= 8) {
+    if (daysAgo <= cycle3Start && daysAgo > cycle3Start - 5) {
+      const dayOfPeriod = cycle3Start - daysAgo + 1;
+      syntheticData.push(generateMenstrualDay(daysAgo, dayOfPeriod));
+    } else if (daysAgo <= cycle2Start && daysAgo > cycle2Start - 5) {
+      const dayOfPeriod = cycle2Start - daysAgo + 1;
+      syntheticData.push(generateMenstrualDay(daysAgo, dayOfPeriod));
+    } else if (daysAgo <= cycle1Start && daysAgo > cycle1Start - 5) {
+      const dayOfPeriod = cycle1Start - daysAgo + 1;
+      syntheticData.push(generateMenstrualDay(daysAgo, dayOfPeriod));
+    } else if (daysAgo > cycle3Start && daysAgo <= cycle2Start - 5) {
+      const daysSincePeriod = cycle3Start - daysAgo + 6;
+      if (daysSincePeriod >= 6 && daysSincePeriod <= 13) {
         syntheticData.push(generateFollicularDay(daysAgo));
-      } else if (dayInPhase <= 12) {
+      } else if (daysSincePeriod >= 14 && daysSincePeriod <= 17) {
         syntheticData.push(generateOvulatoryDay(daysAgo));
       } else {
-        syntheticData.push(generateLutealDay(daysAgo, dayInPhase > 10));
+        const isLateLuteal = daysSincePeriod > 24;
+        syntheticData.push(generateLutealDay(daysAgo, isLateLuteal));
+      }
+    } else if (daysAgo > cycle2Start && daysAgo <= cycle1Start - 5) {
+      const daysSincePeriod = cycle2Start - daysAgo + 6;
+      if (daysSincePeriod >= 6 && daysSincePeriod <= 13) {
+        syntheticData.push(generateFollicularDay(daysAgo));
+      } else if (daysSincePeriod >= 14 && daysSincePeriod <= 17) {
+        syntheticData.push(generateOvulatoryDay(daysAgo));
+      } else {
+        const isLateLuteal = daysSincePeriod > 24;
+        syntheticData.push(generateLutealDay(daysAgo, isLateLuteal));
+      }
+    } else if (daysAgo > cycle1Start) {
+      const daysSincePeriod = cycle1Start - daysAgo + 6;
+      if (daysSincePeriod >= 6 && daysSincePeriod <= 13) {
+        syntheticData.push(generateFollicularDay(daysAgo));
+      } else if (daysSincePeriod >= 14 && daysSincePeriod <= 17) {
+        syntheticData.push(generateOvulatoryDay(daysAgo));
+      } else {
+        const isLateLuteal = daysSincePeriod > 24;
+        syntheticData.push(generateLutealDay(daysAgo, isLateLuteal));
       }
     } else {
-      syntheticData.push(generateLutealDay(daysAgo, true));
+      syntheticData.push(generateFollicularDay(daysAgo));
     }
   }
 
