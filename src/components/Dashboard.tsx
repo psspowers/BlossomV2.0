@@ -50,7 +50,7 @@ export function Dashboard() {
             <h1 className="text-2xl font-bold text-white tracking-tight">
               Blossom
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-400 mt-1 whitespace-nowrap">
               Your PCOS wellness companion
             </p>
           </div>
