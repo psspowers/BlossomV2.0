@@ -222,18 +222,17 @@ export function CycleContext() {
 
   return (
     <div className="relative overflow-hidden h-full">
-      <div className="flex items-center justify-between h-full p-6">
+      <div className="flex items-center justify-between h-full px-6 py-4">
 
-        <div className="flex-1 pr-6">
-          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
-            Cycle Context
-          </h3>
-          <div className={`text-2xl font-semibold mb-3 ${phaseConfig.color}`}>
-            {phaseConfig.name}
+        <div className="flex-1 pr-6 space-y-4">
+          <div>
+            <div className={`text-2xl font-semibold mb-3 ${phaseConfig.color}`}>
+              {phaseConfig.name}
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed font-light">
+              {phaseConfig.insight}
+            </p>
           </div>
-          <p className="text-sm text-slate-300 leading-relaxed font-light mb-4">
-            {phaseConfig.insight}
-          </p>
 
           <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-white/10">
             <div>
