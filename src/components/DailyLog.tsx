@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Shield } from 'lucide-react';
 import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 
@@ -169,7 +169,13 @@ export function DailyLog({ onClose }: DailyLogProps) {
           onClick={e => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 p-6 flex items-center justify-between z-10">
-            <h2 className="text-xl font-bold text-white">Daily Check-in</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-white">Daily Check-in</h2>
+              <div className="px-3 py-1 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-1.5">
+                <Shield className="w-3 h-3 text-rose-400" />
+                <span className="text-xs font-medium text-rose-300">100% Private</span>
+              </div>
+            </div>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-white transition-colors"

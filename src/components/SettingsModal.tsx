@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Award, TrendingUp, RefreshCw } from 'lucide-react';
+import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield } from 'lucide-react';
 import { useAchievements, usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
 import { getPhaseDescription } from '../lib/logic/plant';
@@ -123,9 +123,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           onClick={e => e.stopPropagation()}
         >
           <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 p-6 flex items-center justify-between z-10">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Settings & Privacy</h2>
-              <p className="text-sm text-slate-400 mt-1">Your wellness journey dashboard</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Settings & Privacy</h2>
+                <p className="text-sm text-slate-400 mt-1">Your wellness journey dashboard</p>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-1.5">
+                <Shield className="w-3 h-3 text-rose-400" />
+                <span className="text-xs font-medium text-rose-300">100% Private</span>
+              </div>
             </div>
             <button
               onClick={onClose}
