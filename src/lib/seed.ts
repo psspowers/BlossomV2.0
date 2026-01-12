@@ -105,6 +105,131 @@ function generateBaselineDay(daysAgo: number): LogEntry {
   };
 }
 
+function generateMenstrualDay(daysAgo: number, dayOfPeriod: number): LogEntry {
+  const flows: Array<'light' | 'medium' | 'heavy'> =
+    dayOfPeriod === 1 ? ['medium', 'heavy'] :
+    dayOfPeriod <= 3 ? ['medium', 'heavy'] :
+    ['light', 'medium'];
+
+  return {
+    date: format(subDays(new Date(), daysAgo), 'yyyy-MM-dd'),
+    cyclePhase: 'menstrual',
+    flow: flows[Math.floor(Math.random() * flows.length)],
+    symptoms: {
+      acne: randomInRange(5, 7),
+      hirsutism: randomInRange(4, 6),
+      hairLoss: randomInRange(4, 6),
+      bloat: randomInRange(6, 8),
+      cramps: dayOfPeriod <= 2 ? randomInRange(7, 9) : randomInRange(4, 6)
+    },
+    psych: {
+      stress: dayOfPeriod <= 2 ? 'high' : 'medium',
+      bodyImage: 'negative',
+      mood: randomInRange(3, 5),
+      anxiety: dayOfPeriod <= 2 ? 'high' : 'low'
+    },
+    lifestyle: {
+      sleep: dayOfPeriod <= 2 ? '<6h' : '6-7h',
+      waterIntake: randomInRange(4, 6),
+      exercise: 'rest',
+      diet: 'cravings'
+    },
+    customValues: {
+      energy: randomInRange(3, 5)
+    }
+  };
+}
+
+function generateFollicularDay(daysAgo: number): LogEntry {
+  return {
+    date: format(subDays(new Date(), daysAgo), 'yyyy-MM-dd'),
+    cyclePhase: 'follicular',
+    flow: 'none',
+    symptoms: {
+      acne: randomInRange(2, 4),
+      hirsutism: randomInRange(3, 5),
+      hairLoss: randomInRange(2, 4),
+      bloat: randomInRange(2, 4),
+      cramps: randomInRange(0, 2)
+    },
+    psych: {
+      stress: 'low',
+      bodyImage: 'positive',
+      mood: randomInRange(6, 8),
+      anxiety: 'none'
+    },
+    lifestyle: {
+      sleep: '7-8h',
+      waterIntake: randomInRange(7, 9),
+      exercise: 'moderate',
+      diet: 'balanced'
+    },
+    customValues: {
+      energy: randomInRange(7, 9)
+    }
+  };
+}
+
+function generateOvulatoryDay(daysAgo: number): LogEntry {
+  return {
+    date: format(subDays(new Date(), daysAgo), 'yyyy-MM-dd'),
+    cyclePhase: 'ovulatory',
+    flow: 'none',
+    symptoms: {
+      acne: randomInRange(1, 3),
+      hirsutism: randomInRange(3, 5),
+      hairLoss: randomInRange(2, 4),
+      bloat: randomInRange(3, 5),
+      cramps: randomInRange(1, 3)
+    },
+    psych: {
+      stress: 'low',
+      bodyImage: 'positive',
+      mood: randomInRange(7, 9),
+      anxiety: 'none'
+    },
+    lifestyle: {
+      sleep: '7-8h',
+      waterIntake: randomInRange(8, 10),
+      exercise: 'intense',
+      diet: 'balanced'
+    },
+    customValues: {
+      energy: randomInRange(8, 10)
+    }
+  };
+}
+
+function generateLutealDay(daysAgo: number, isLate: boolean): LogEntry {
+  return {
+    date: format(subDays(new Date(), daysAgo), 'yyyy-MM-dd'),
+    cyclePhase: 'luteal',
+    flow: 'spotting',
+    symptoms: {
+      acne: isLate ? randomInRange(5, 7) : randomInRange(3, 5),
+      hirsutism: randomInRange(4, 6),
+      hairLoss: randomInRange(3, 5),
+      bloat: isLate ? randomInRange(6, 8) : randomInRange(4, 6),
+      cramps: isLate ? randomInRange(4, 6) : randomInRange(2, 4)
+    },
+    psych: {
+      stress: isLate ? 'high' : 'medium',
+      bodyImage: isLate ? 'negative' : 'neutral',
+      mood: isLate ? randomInRange(3, 5) : randomInRange(5, 7),
+      anxiety: isLate ? 'high' : 'low'
+    },
+    lifestyle: {
+      sleep: isLate ? '6-7h' : '7-8h',
+      waterIntake: randomInRange(5, 7),
+      exercise: 'light',
+      diet: isLate ? 'cravings' : 'balanced'
+    },
+    customValues: {
+      energy: isLate ? randomInRange(4, 6) : randomInRange(5, 7)
+    }
+  };
+}
+
 export async function seedDatabase(): Promise<void> {
   const existingLogs = await db.logs.count();
 
@@ -115,40 +240,61 @@ export async function seedDatabase(): Promise<void> {
 
   const syntheticData: LogEntry[] = [];
 
-  const pattern = [
-    { type: 'recovery', label: 'Good Day' },
-    { type: 'recovery', label: 'Good Day' },
-    { type: 'baseline', label: 'Mixed Day' },
-    { type: 'crash', label: 'Bad Day' },
-    { type: 'recovery', label: 'Good Day' },
-    { type: 'baseline', label: 'Mixed Day' },
-    { type: 'crash', label: 'Bad Day' },
-    { type: 'crash', label: 'Bad Day' },
-    { type: 'recovery', label: 'Good Day' },
-    { type: 'baseline', label: 'Mixed Day' },
-    { type: 'recovery', label: 'Good Day' },
-    { type: 'crash', label: 'Bad Day' },
-    { type: 'baseline', label: 'Mixed Day' },
-    { type: 'recovery', label: 'Good Day' },
-  ];
+  const cycle1Start = 65;
+  const cycle2Start = 36;
+  const cycle3Start = 9;
 
-  for (let daysAgo = 1; daysAgo <= 30; daysAgo++) {
-    const patternIndex = (daysAgo - 1) % pattern.length;
-    const dayType = pattern[patternIndex].type;
+  for (let daysAgo = 70; daysAgo >= 1; daysAgo--) {
+    let cycleDay: number;
 
-    if (dayType === 'recovery') {
-      syntheticData.push(generateRecoveryDay(daysAgo));
-    } else if (dayType === 'crash') {
-      syntheticData.push(generateCrashDay(daysAgo));
+    if (daysAgo >= cycle1Start) {
+      cycleDay = cycle1Start - daysAgo + 1;
+    } else if (daysAgo >= cycle2Start) {
+      cycleDay = daysAgo - cycle2Start + 1;
+    } else if (daysAgo >= cycle3Start) {
+      cycleDay = daysAgo - cycle3Start + 1;
     } else {
-      syntheticData.push(generateBaselineDay(daysAgo));
+      cycleDay = daysAgo + (cycle3Start - 1) + 1;
+    }
+
+    if (daysAgo === cycle1Start || daysAgo === cycle2Start || daysAgo === cycle3Start) {
+      syntheticData.push(generateMenstrualDay(daysAgo, 1));
+    } else if (daysAgo >= cycle3Start && daysAgo < cycle3Start + 5) {
+      syntheticData.push(generateMenstrualDay(daysAgo, cycle3Start - daysAgo + 1));
+    } else if (daysAgo >= cycle2Start && daysAgo < cycle2Start + 5) {
+      syntheticData.push(generateMenstrualDay(daysAgo, cycle2Start - daysAgo + 1));
+    } else if (daysAgo >= cycle1Start && daysAgo < cycle1Start + 5) {
+      syntheticData.push(generateMenstrualDay(daysAgo, cycle1Start - daysAgo + 1));
+    } else if (
+      (daysAgo >= cycle3Start - 13 && daysAgo < cycle3Start) ||
+      (daysAgo >= cycle2Start - 13 && daysAgo < cycle2Start) ||
+      (daysAgo >= cycle1Start - 13 && daysAgo < cycle1Start)
+    ) {
+      const dayInPhase = daysAgo >= cycle3Start - 13 && daysAgo < cycle3Start
+        ? cycle3Start - daysAgo
+        : daysAgo >= cycle2Start - 13 && daysAgo < cycle2Start
+        ? cycle2Start - daysAgo
+        : cycle1Start - daysAgo;
+
+      if (dayInPhase <= 8) {
+        syntheticData.push(generateFollicularDay(daysAgo));
+      } else if (dayInPhase <= 12) {
+        syntheticData.push(generateOvulatoryDay(daysAgo));
+      } else {
+        syntheticData.push(generateLutealDay(daysAgo, dayInPhase > 10));
+      }
+    } else {
+      syntheticData.push(generateLutealDay(daysAgo, true));
     }
   }
 
   await db.logs.bulkAdd(syntheticData);
 
-  console.log(`✅ Seeded ${syntheticData.length} days of synthetic data`);
+  console.log(`✅ Seeded ${syntheticData.length} days of synthetic cycle data`);
   console.log('📊 Data Narrative:');
-  console.log('  Mixed pattern with recovery, crash, and baseline days');
-  console.log('  Enables meaningful lifestyle factor correlations');
+  console.log('  - 3 complete menstrual cycles');
+  console.log('  - Cycle 1: 29 days (65-36 days ago)');
+  console.log('  - Cycle 2: 27 days (36-9 days ago)');
+  console.log('  - Cycle 3: In progress (started 9 days ago)');
+  console.log('  - Realistic symptom patterns across cycle phases');
 }

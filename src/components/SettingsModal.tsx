@@ -261,7 +261,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                         Reset Demo Data
                       </h4>
                       <p className="text-sm text-slate-400">
-                        Clear current data and reload fresh demo data with 30 days of insights.
+                        Clear current data and reload fresh demo data with 3 complete menstrual cycles and realistic symptom patterns.
                       </p>
                     </div>
                     <button
