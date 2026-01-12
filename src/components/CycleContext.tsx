@@ -278,35 +278,24 @@ export function CycleContext() {
 
   return (
     <div className="relative overflow-hidden h-full flex flex-col p-6">
-      <div className="space-y-2 flex-shrink-0">
+      <div className="flex items-center gap-4 text-xs flex-shrink-0 mb-4">
         <div>
-          <div className={`text-xl font-semibold ${phaseConfig.color}`}>
-            {phaseConfig.name}
-          </div>
-          <p className="text-xs text-slate-400 leading-relaxed mt-1">
-            {phaseConfig.insight}
-          </p>
+          <span className="text-slate-500">Cycles:</span>{' '}
+          <span className="text-white font-medium">{getCycleLengthText() || `${cycleData.lastCycleLength}d`}</span>
         </div>
-
-        <div className="flex items-center gap-4 text-xs pt-2 border-t border-white/10">
-          <div>
-            <span className="text-slate-500">Cycles:</span>{' '}
-            <span className="text-white font-medium">{getCycleLengthText() || `${cycleData.lastCycleLength}d`}</span>
-          </div>
-          <div>
-            <span className="text-slate-500">Avg:</span>{' '}
-            <span className="text-white font-medium">{cycleData.averageCycleLength}d</span>
-          </div>
-          {cycleData.regularity > 0 && (
-            <div>
-              <span className="text-slate-500">±</span>{' '}
-              <span className="text-white font-medium">{cycleData.regularity}d</span>
-            </div>
-          )}
+        <div>
+          <span className="text-slate-500">Avg:</span>{' '}
+          <span className="text-white font-medium">{cycleData.averageCycleLength}d</span>
         </div>
+        {cycleData.regularity > 0 && (
+          <div>
+            <span className="text-slate-500">±</span>{' '}
+            <span className="text-white font-medium">{cycleData.regularity}d</span>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 mt-3 relative flex flex-col">
+      <div className="flex-1 relative flex flex-col">
         <div className="flex items-center gap-3 mb-1.5 text-[9px] text-slate-500">
           <div className="flex items-center gap-1">
             <div className="w-6 h-1 bg-gradient-to-r from-rose-400 via-teal-400 to-purple-400 opacity-40 rounded"></div>
@@ -324,8 +313,8 @@ export function CycleContext() {
 
         <svg
           width="100%"
-          height="80"
-          viewBox={`0 0 ${daysToShow * 10} 80`}
+          height="140"
+          viewBox={`0 0 ${daysToShow * 10} 140`}
           className="w-full"
           preserveAspectRatio="none"
         >
@@ -340,16 +329,16 @@ export function CycleContext() {
 
           <path
             d={`
-              M 0,80
+              M 0,140
               ${dates.map((date, i) => {
                 const x = i * 10 + 5;
                 const phase = getPhaseForDay(date);
-                const heights = [16, 36, 52, 28];
-                const variance = Math.sin(date.getTime() / 100000000) * 4;
-                const y = 80 - (heights[phase] + variance);
+                const heights = [28, 63, 91, 49];
+                const variance = Math.sin(date.getTime() / 100000000) * 7;
+                const y = 140 - (heights[phase] + variance);
                 return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
               }).join(' ')}
-              L ${daysToShow * 10},80
+              L ${daysToShow * 10},140
               Z
             `}
             fill="url(#phaseGradient)"
@@ -360,9 +349,9 @@ export function CycleContext() {
             d={dates.map((date, i) => {
               const x = i * 10 + 5;
               const phase = getPhaseForDay(date);
-              const heights = [16, 36, 52, 28];
-              const variance = Math.sin(date.getTime() / 100000000) * 4;
-              const y = 80 - (heights[phase] + variance);
+              const heights = [28, 63, 91, 49];
+              const variance = Math.sin(date.getTime() / 100000000) * 7;
+              const y = 140 - (heights[phase] + variance);
               return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
             }).join(' ')}
             fill="none"
@@ -376,9 +365,9 @@ export function CycleContext() {
             const isPeriod = isPeriodStartDay(date);
             const x = i * 10 + 5;
             const phase = getPhaseForDay(date);
-            const heights = [16, 36, 52, 28];
-            const variance = Math.sin(date.getTime() / 100000000) * 4;
-            const y = 80 - (heights[phase] + variance);
+            const heights = [28, 63, 91, 49];
+            const variance = Math.sin(date.getTime() / 100000000) * 7;
+            const y = 140 - (heights[phase] + variance);
 
             return (
               <g key={i}>
@@ -386,7 +375,7 @@ export function CycleContext() {
                   x1={x}
                   y1={0}
                   x2={x}
-                  y2={80}
+                  y2={140}
                   stroke={isToday ? '#ffffff' : 'rgba(255,255,255,0.1)'}
                   strokeWidth={isToday ? 1 : 0.3}
                 />
