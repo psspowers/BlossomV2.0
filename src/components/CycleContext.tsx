@@ -37,7 +37,23 @@ export function CycleContext() {
         return;
       }
 
-      const lastPeriod = new Date(menstrualLogs[0].date);
+      const periodStarts: Date[] = [];
+      for (let i = 0; i < menstrualLogs.length; i++) {
+        const currentDate = new Date(menstrualLogs[i].date);
+        const isFirstDay = i === 0 ||
+          differenceInDays(new Date(menstrualLogs[i - 1].date), currentDate) > 1;
+
+        if (isFirstDay) {
+          periodStarts.push(currentDate);
+        }
+      }
+
+      if (periodStarts.length === 0) {
+        setHasEnoughData(false);
+        return;
+      }
+
+      const lastPeriod = periodStarts[0];
       const today = new Date();
       const currentCycleDay = differenceInDays(today, lastPeriod);
 
@@ -46,8 +62,8 @@ export function CycleContext() {
       let regularity = 0;
       let status: 'regular' | 'long' | 'irregular' | 'unknown' = 'unknown';
 
-      if (menstrualLogs.length >= 2) {
-        const secondLastPeriod = new Date(menstrualLogs[1].date);
+      if (periodStarts.length >= 2) {
+        const secondLastPeriod = periodStarts[1];
         lastCycleLength = differenceInDays(lastPeriod, secondLastPeriod);
 
         if (lastCycleLength < 15) {
@@ -55,8 +71,8 @@ export function CycleContext() {
           return;
         }
 
-        if (menstrualLogs.length >= 3) {
-          const thirdLastPeriod = new Date(menstrualLogs[2].date);
+        if (periodStarts.length >= 3) {
+          const thirdLastPeriod = periodStarts[2];
           const secondToLastCycleLength = differenceInDays(secondLastPeriod, thirdLastPeriod);
 
           if (secondToLastCycleLength < 15) {
