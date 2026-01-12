@@ -316,7 +316,24 @@ export function CycleContext() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 pb-4 relative">
+      <div className="flex-1 px-4 pb-2 relative">
+        <div className="flex items-center justify-between mb-2 text-[9px] text-slate-500 px-1">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <div className="w-8 h-1.5 bg-gradient-to-r from-rose-400 via-teal-400 to-purple-400 opacity-40 rounded"></div>
+              <span>Hormone phases</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></div>
+              <span>Period start</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-0.5 h-3 bg-white"></div>
+              <span>Today</span>
+            </div>
+          </div>
+        </div>
+
         <svg
           width="100%"
           height={chartHeight}
@@ -398,10 +415,15 @@ export function CycleContext() {
           ))}
         </div>
 
-        <div className="text-center mt-3 text-xs">
-          <span className="text-slate-500">Current:</span>{' '}
-          <span className="text-white font-semibold">Day {cycleData.currentCycleDay}</span>
-          <span className="text-slate-500 ml-2">of ~{sanitizedCycleLength}</span>
+        <div className="text-center mt-2 space-y-0.5">
+          <div className="text-xs">
+            <span className="text-slate-500">You are on day</span>{' '}
+            <span className="text-white font-semibold">{cycleData.currentCycleDay}</span>
+            <span className="text-slate-500"> since your last period</span>
+          </div>
+          <div className="text-[10px] text-slate-600">
+            Expected cycle length: ~{sanitizedCycleLength} days (based on your history)
+          </div>
         </div>
       </div>
     </div>
