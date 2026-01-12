@@ -56,7 +56,7 @@ export function Dashboard() {
           </div>
 
           <div className="flex justify-center items-start">
-            <div className="px-4 py-2 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-2">
+            <div className="px-6 py-2 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-2.5 whitespace-nowrap">
               <Shield className="w-3.5 h-3.5 text-rose-400" />
               <span className="text-sm font-medium text-rose-300">100% Private</span>
             </div>
