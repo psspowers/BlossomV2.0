@@ -45,34 +45,38 @@ export function Dashboard() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        <header className="mb-8 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                Blossom
-              </h1>
-              <p className="text-sm text-slate-400 mt-1">
-                Your PCOS wellness companion
-              </p>
-              <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Your data is stored locally and never leaves your device
-              </p>
-            </div>
-            <div className="px-4 py-2 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-2">
+        <header className="mb-8 grid grid-cols-3 items-start gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Blossom
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">
+              Your PCOS wellness companion
+            </p>
+            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Your data is stored locally and never leaves your device
+            </p>
+          </div>
+
+          <div className="flex justify-center items-start pt-1">
+            <div className="px-5 py-2.5 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-2">
               <Shield className="w-4 h-4 text-rose-400" />
-              <span className="text-sm font-medium text-rose-300">100% Private</span>
+              <span className="text-base font-medium text-rose-300">100% Private</span>
             </div>
           </div>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-            aria-label="Open settings"
-          >
-            <Settings className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
-          </button>
+
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              aria-label="Open settings"
+            >
+              <Settings className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
+            </button>
+          </div>
         </header>
 
         <BioOrb health={plantState.health} streak={plantState.streak} mode={themeState.mode} />
