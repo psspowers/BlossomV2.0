@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '../lib/db';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, format, addDays } from 'date-fns';
 
 interface CycleData {
   currentCycleDay: number;
@@ -8,6 +8,8 @@ interface CycleData {
   averageCycleLength: number;
   regularity: number;
   status: 'regular' | 'long' | 'irregular' | 'unknown';
+  periodStarts: Date[];
+  cycleLengths: number[];
 }
 
 interface PhaseConfig {
@@ -23,7 +25,9 @@ export function CycleContext() {
     lastCycleLength: 28,
     averageCycleLength: 28,
     regularity: 0,
-    status: 'unknown'
+    status: 'unknown',
+    periodStarts: [],
+    cycleLengths: []
   });
   const [hasEnoughData, setHasEnoughData] = useState(false);
 
@@ -65,6 +69,7 @@ export function CycleContext() {
       let averageCycleLength = 28;
       let regularity = 0;
       let status: 'regular' | 'long' | 'irregular' | 'unknown' = 'unknown';
+      const cycleLengths: number[] = [];
 
       if (periodStarts.length >= 2) {
         const secondLastPeriod = periodStarts[1];
@@ -75,16 +80,27 @@ export function CycleContext() {
           return;
         }
 
+        cycleLengths.push(lastCycleLength);
+
         if (periodStarts.length >= 3) {
           const thirdLastPeriod = periodStarts[2];
           const secondToLastCycleLength = differenceInDays(secondLastPeriod, thirdLastPeriod);
 
-          if (secondToLastCycleLength < 15) {
-            averageCycleLength = lastCycleLength;
-          } else {
+          if (secondToLastCycleLength >= 15) {
+            cycleLengths.push(secondToLastCycleLength);
             regularity = Math.abs(lastCycleLength - secondToLastCycleLength);
-            const cycleLengths = [lastCycleLength, secondToLastCycleLength];
             averageCycleLength = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+          } else {
+            averageCycleLength = lastCycleLength;
+          }
+
+          if (periodStarts.length >= 4) {
+            const fourthLastPeriod = periodStarts[3];
+            const thirdToLastCycleLength = differenceInDays(thirdLastPeriod, fourthLastPeriod);
+            if (thirdToLastCycleLength >= 15) {
+              cycleLengths.push(thirdToLastCycleLength);
+              averageCycleLength = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+            }
           }
 
           if (lastCycleLength > 35) {
@@ -112,7 +128,9 @@ export function CycleContext() {
         lastCycleLength,
         averageCycleLength,
         regularity,
-        status
+        status,
+        periodStarts: periodStarts.slice(0, 4),
+        cycleLengths
       });
     };
 
@@ -220,63 +238,171 @@ export function CycleContext() {
     );
   }
 
+  const daysToShow = 28;
+  const today = new Date();
+  const startDate = addDays(today, -14);
+
+  const dates = Array.from({ length: daysToShow }, (_, i) => addDays(startDate, i));
+
+  const isPeriodStartDay = (date: Date) => {
+    return cycleData.periodStarts.some(periodDate => {
+      const diff = Math.abs(differenceInDays(date, periodDate));
+      return diff === 0;
+    });
+  };
+
+  const getPhaseForDay = (date: Date) => {
+    if (!cycleData.periodStarts[0]) return 3;
+    const daysSinceLastPeriod = differenceInDays(date, cycleData.periodStarts[0]);
+    if (daysSinceLastPeriod < 0) {
+      const cyclesBack = cycleData.periodStarts.findIndex(ps => differenceInDays(date, ps) >= 0);
+      if (cyclesBack === -1) return 3;
+      const relevantPeriod = cycleData.periodStarts[cyclesBack];
+      const daysSince = differenceInDays(date, relevantPeriod);
+      if (daysSince <= 5) return 0;
+      if (daysSince <= 13) return 1;
+      if (daysSince <= 17) return 2;
+      return 3;
+    }
+    if (daysSinceLastPeriod <= 5) return 0;
+    if (daysSinceLastPeriod <= 13) return 1;
+    if (daysSinceLastPeriod <= 17) return 2;
+    return 3;
+  };
+
+  const phaseHeights = dates.map(date => {
+    const phase = getPhaseForDay(date);
+    const heights = [20, 45, 65, 35];
+    const variance = Math.sin(date.getTime() / 100000000) * 5;
+    return heights[phase] + variance;
+  });
+
+  const maxHeight = 70;
+  const chartHeight = 100;
+
+  const getCycleLengthText = () => {
+    if (cycleData.cycleLengths.length === 0) return '';
+    const reversed = [...cycleData.cycleLengths].reverse();
+    return reversed.map(len => `${len}d`).join(' → ');
+  };
+
   return (
-    <div className="relative overflow-hidden h-full">
-      <div className="flex items-center justify-between h-full px-6 py-4">
+    <div className="relative overflow-hidden h-full flex flex-col">
+      <div className="px-6 py-4 space-y-3 flex-shrink-0">
+        <div>
+          <div className={`text-xl font-semibold ${phaseConfig.color}`}>
+            {phaseConfig.name}
+          </div>
+          <p className="text-xs text-slate-400 leading-relaxed mt-1">
+            {phaseConfig.insight}
+          </p>
+        </div>
 
-        <div className="flex-1 pr-6 space-y-4">
+        <div className="flex items-center gap-4 text-xs pt-2 border-t border-white/10">
           <div>
-            <div className={`text-2xl font-semibold mb-3 ${phaseConfig.color}`}>
-              {phaseConfig.name}
-            </div>
-            <p className="text-sm text-slate-300 leading-relaxed font-light">
-              {phaseConfig.insight}
-            </p>
+            <span className="text-slate-500">Cycles:</span>{' '}
+            <span className="text-white font-medium">{getCycleLengthText() || `${cycleData.lastCycleLength}d`}</span>
           </div>
+          <div>
+            <span className="text-slate-500">Avg:</span>{' '}
+            <span className="text-white font-medium">{cycleData.averageCycleLength}d</span>
+          </div>
+          {cycleData.regularity > 0 && (
+            <div>
+              <span className="text-slate-500">±</span>{' '}
+              <span className="text-white font-medium">{cycleData.regularity}d</span>
+            </div>
+          )}
+        </div>
+      </div>
 
-          <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-white/10">
-            <div>
-              <span className="text-slate-500">Previous cycle:</span>{' '}
-              <span className="text-white font-medium">{cycleData.lastCycleLength} days</span>
+      <div className="flex-1 px-4 pb-4 relative">
+        <svg
+          width="100%"
+          height={chartHeight}
+          viewBox={`0 0 ${daysToShow * 10} ${chartHeight}`}
+          className="w-full"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="phaseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#fb7185" stopOpacity="0.3" />
+              <stop offset="33%" stopColor="#2dd4bf" stopOpacity="0.3" />
+              <stop offset="66%" stopColor="#fbbf24" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#c084fc" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
+
+          <path
+            d={`
+              M 0,${chartHeight}
+              ${dates.map((date, i) => {
+                const x = i * 10 + 5;
+                const y = chartHeight - phaseHeights[i];
+                return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+              }).join(' ')}
+              L ${daysToShow * 10},${chartHeight}
+              Z
+            `}
+            fill="url(#phaseGradient)"
+            className="transition-all duration-300"
+          />
+
+          <path
+            d={dates.map((date, i) => {
+              const x = i * 10 + 5;
+              const y = chartHeight - phaseHeights[i];
+              return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
+            }).join(' ')}
+            fill="none"
+            stroke="#2dd4bf"
+            strokeWidth="0.5"
+            className="transition-all duration-300"
+          />
+
+          {dates.map((date, i) => {
+            const isToday = differenceInDays(date, today) === 0;
+            const isPeriod = isPeriodStartDay(date);
+            const x = i * 10 + 5;
+
+            return (
+              <g key={i}>
+                <line
+                  x1={x}
+                  y1={0}
+                  x2={x}
+                  y2={chartHeight}
+                  stroke={isToday ? '#ffffff' : 'rgba(255,255,255,0.1)'}
+                  strokeWidth={isToday ? 1 : 0.3}
+                />
+                {isPeriod && (
+                  <circle
+                    cx={x}
+                    cy={chartHeight - phaseHeights[i]}
+                    r={2}
+                    fill="#fb7185"
+                    className="animate-pulse"
+                  />
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        <div className="flex justify-between text-[8px] text-slate-500 mt-1 px-1">
+          {dates.filter((_, i) => i % 4 === 0).map((date, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <span>{format(date, 'EEE')}</span>
+              <span className="font-medium">{format(date, 'd')}</span>
             </div>
-            <div>
-              <span className="text-slate-500">Average:</span>{' '}
-              <span className="text-white font-medium">{cycleData.averageCycleLength} days</span>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="relative flex items-center justify-center w-32 h-32 flex-shrink-0">
-          <svg className="transform -rotate-90 w-full h-full">
-            <circle
-              cx="50%"
-              cy="50%"
-              r={radius}
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="8"
-              fill="transparent"
-            />
-            <circle
-              cx="50%"
-              cy="50%"
-              r={radius}
-              stroke={phaseConfig.ringColor}
-              strokeWidth="8"
-              fill="transparent"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-
-          <div className="absolute flex flex-col items-center">
-            <span className="text-xs text-slate-500 uppercase tracking-wide">Day</span>
-            <span className="text-3xl font-bold text-white">{cycleData.currentCycleDay}</span>
-            <span className="text-xs text-slate-400 mt-0.5">of ~{sanitizedCycleLength}</span>
-          </div>
+        <div className="text-center mt-3 text-xs">
+          <span className="text-slate-500">Current:</span>{' '}
+          <span className="text-white font-semibold">Day {cycleData.currentCycleDay}</span>
+          <span className="text-slate-500 ml-2">of ~{sanitizedCycleLength}</span>
         </div>
-
       </div>
     </div>
   );
