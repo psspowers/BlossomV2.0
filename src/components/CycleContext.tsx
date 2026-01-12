@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '../lib/db';
 import { differenceInDays } from 'date-fns';
-import { motion } from 'framer-motion';
-import { TrendingUp, AlertCircle } from 'lucide-react';
 
 interface CycleData {
   currentCycleDay: number;
@@ -10,6 +8,13 @@ interface CycleData {
   averageCycleLength: number;
   regularity: number;
   status: 'regular' | 'long' | 'irregular' | 'unknown';
+}
+
+interface PhaseConfig {
+  name: string;
+  insight: string;
+  color: string;
+  ringColor: string;
 }
 
 export function CycleContext() {
@@ -21,7 +26,6 @@ export function CycleContext() {
     status: 'unknown'
   });
   const [hasEnoughData, setHasEnoughData] = useState(false);
-  const [currentPhase, setCurrentPhase] = useState<string>('');
 
   useEffect(() => {
     const loadCycleData = async () => {
@@ -103,12 +107,6 @@ export function CycleContext() {
         setHasEnoughData(false);
       }
 
-      const phase = currentCycleDay <= 5 ? 'Menstrual Phase'
-        : currentCycleDay <= 13 ? 'Follicular Phase'
-        : currentCycleDay <= 17 ? 'Ovulatory Phase'
-        : 'Luteal Phase';
-      setCurrentPhase(phase);
-
       setCycleData({
         currentCycleDay,
         lastCycleLength,
@@ -121,36 +119,45 @@ export function CycleContext() {
     loadCycleData();
   }, []);
 
-  const progress = Math.min((cycleData.currentCycleDay / cycleData.averageCycleLength) * 100, 100);
-
-  const statusConfig = {
-    regular: {
-      color: 'text-teal-400',
-      bgColor: 'bg-teal-500/20',
-      borderColor: 'border-teal-500/30',
-      label: 'Regular Pattern'
-    },
-    long: {
-      color: 'text-amber-400',
-      bgColor: 'bg-amber-500/20',
-      borderColor: 'border-amber-500/30',
-      label: 'Extended Cycle'
-    },
-    irregular: {
-      color: 'text-rose-400',
-      bgColor: 'bg-rose-500/20',
-      borderColor: 'border-rose-500/30',
-      label: 'Varying Pattern'
-    },
-    unknown: {
-      color: 'text-slate-400',
-      bgColor: 'bg-slate-500/20',
-      borderColor: 'border-slate-500/30',
-      label: 'Building Pattern'
+  const getPhaseConfig = (day: number): PhaseConfig => {
+    if (day <= 5) {
+      return {
+        name: 'Menstrual Phase',
+        insight: 'Hormones are at baseline. Your body is resetting.',
+        color: 'text-rose-400',
+        ringColor: '#fb7185'
+      };
+    } else if (day <= 13) {
+      return {
+        name: 'Follicular Phase',
+        insight: 'Estrogen is rising. You may feel a boost in energy and focus.',
+        color: 'text-teal-400',
+        ringColor: '#2dd4bf'
+      };
+    } else if (day === 14) {
+      return {
+        name: 'Ovulation',
+        insight: 'Peak energy. A great time for important conversations.',
+        color: 'text-amber-400',
+        ringColor: '#fbbf24'
+      };
+    } else {
+      return {
+        name: 'Luteal Phase',
+        insight: 'Progesterone is dominant. Prioritize rest and gentle movement.',
+        color: 'text-purple-400',
+        ringColor: '#c084fc'
+      };
     }
   };
 
-  const currentStatus = statusConfig[cycleData.status];
+  const sanitizedCycleLength = cycleData.averageCycleLength < 21 ? 28 : cycleData.averageCycleLength;
+  const progress = Math.min((cycleData.currentCycleDay / sanitizedCycleLength) * 100, 100);
+  const phaseConfig = getPhaseConfig(cycleData.currentCycleDay);
+
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   if (!hasEnoughData) {
     return (
@@ -214,75 +221,63 @@ export function CycleContext() {
   }
 
   return (
-    <div className="flex flex-col justify-center h-full p-6">
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <div className="flex items-baseline gap-3">
-            <div className="text-5xl font-bold text-white">
-              {cycleData.currentCycleDay > 0 ? cycleData.currentCycleDay : '-'}
+    <div className="relative overflow-hidden h-full">
+      <div className="flex items-center justify-between h-full p-6">
+
+        <div className="flex-1 pr-6">
+          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">
+            Cycle Context
+          </h3>
+          <div className={`text-2xl font-semibold mb-3 ${phaseConfig.color}`}>
+            {phaseConfig.name}
+          </div>
+          <p className="text-sm text-slate-300 leading-relaxed font-light mb-4">
+            {phaseConfig.insight}
+          </p>
+
+          <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-white/10">
+            <div>
+              <span className="text-slate-500">Previous cycle:</span>{' '}
+              <span className="text-white font-medium">{cycleData.lastCycleLength} days</span>
             </div>
-            <div className="text-slate-400">
-              <div className="text-sm">day{cycleData.currentCycleDay !== 1 ? 's' : ''} into your cycle</div>
+            <div>
+              <span className="text-slate-500">Average:</span>{' '}
+              <span className="text-white font-medium">{cycleData.averageCycleLength} days</span>
             </div>
           </div>
-
-          {currentPhase && (
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-              <span className="text-sm font-medium text-teal-400">{currentPhase}</span>
-            </div>
-          )}
-
-          {cycleData.status !== 'unknown' && (
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${currentStatus.bgColor} ${currentStatus.borderColor} border`}>
-              <span className={`text-xs font-medium ${currentStatus.color}`}>
-                {currentStatus.label}
-              </span>
-            </div>
-          )}
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center text-xs mb-1">
-            <span className="text-slate-500">Cycle Progress</span>
-            <span className="text-slate-400">
-              {cycleData.currentCycleDay} of ~{cycleData.averageCycleLength} days
-            </span>
-          </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-teal-400 to-teal-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
+        <div className="relative flex items-center justify-center w-32 h-32 flex-shrink-0">
+          <svg className="transform -rotate-90 w-full h-full">
+            <circle
+              cx="50%"
+              cy="50%"
+              r={radius}
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="8"
+              fill="transparent"
             />
+            <circle
+              cx="50%"
+              cy="50%"
+              r={radius}
+              stroke={phaseConfig.ringColor}
+              strokeWidth="8"
+              fill="transparent"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+
+          <div className="absolute flex flex-col items-center">
+            <span className="text-xs text-slate-500 uppercase tracking-wide">Day</span>
+            <span className="text-3xl font-bold text-white">{cycleData.currentCycleDay}</span>
+            <span className="text-xs text-slate-400 mt-0.5">of ~{sanitizedCycleLength}</span>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/10 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-slate-400" />
-              <span className="text-sm text-slate-400">Previous cycle</span>
-            </div>
-            <span className="text-sm font-medium text-white">
-              {cycleData.lastCycleLength} days
-            </span>
-          </div>
-
-          {cycleData.regularity > 0 && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Pattern consistency</span>
-              <span className={cycleData.regularity <= 3 ? 'text-teal-400' : cycleData.regularity <= 7 ? 'text-amber-400' : 'text-rose-400'}>
-                ±{cycleData.regularity} day{cycleData.regularity !== 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
-
-          <div className="text-xs text-slate-500 italic pt-2">
-            Average cycle length: {cycleData.averageCycleLength} days
-          </div>
-        </div>
       </div>
     </div>
   );
