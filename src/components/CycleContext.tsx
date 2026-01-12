@@ -270,16 +270,6 @@ export function CycleContext() {
     return 3;
   };
 
-  const phaseHeights = dates.map(date => {
-    const phase = getPhaseForDay(date);
-    const heights = [20, 45, 65, 35];
-    const variance = Math.sin(date.getTime() / 100000000) * 5;
-    return heights[phase] + variance;
-  });
-
-  const maxHeight = 70;
-  const chartHeight = 100;
-
   const getCycleLengthText = () => {
     if (cycleData.cycleLengths.length === 0) return '';
     const reversed = [...cycleData.cycleLengths].reverse();
@@ -287,8 +277,8 @@ export function CycleContext() {
   };
 
   return (
-    <div className="relative overflow-hidden h-full flex flex-col">
-      <div className="px-6 py-4 space-y-3 flex-shrink-0">
+    <div className="relative overflow-hidden h-full flex flex-col p-6">
+      <div className="space-y-2 flex-shrink-0">
         <div>
           <div className={`text-xl font-semibold ${phaseConfig.color}`}>
             {phaseConfig.name}
@@ -316,28 +306,26 @@ export function CycleContext() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 pb-2 relative">
-        <div className="flex items-center justify-between mb-2 text-[9px] text-slate-500 px-1">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <div className="w-8 h-1.5 bg-gradient-to-r from-rose-400 via-teal-400 to-purple-400 opacity-40 rounded"></div>
-              <span>Hormone phases</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></div>
-              <span>Period start</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-0.5 h-3 bg-white"></div>
-              <span>Today</span>
-            </div>
+      <div className="flex-1 mt-3 relative flex flex-col">
+        <div className="flex items-center gap-3 mb-1.5 text-[9px] text-slate-500">
+          <div className="flex items-center gap-1">
+            <div className="w-6 h-1 bg-gradient-to-r from-rose-400 via-teal-400 to-purple-400 opacity-40 rounded"></div>
+            <span>Hormone phases</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></div>
+            <span>Period start</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-0.5 h-2.5 bg-white"></div>
+            <span>Today</span>
           </div>
         </div>
 
         <svg
           width="100%"
-          height={chartHeight}
-          viewBox={`0 0 ${daysToShow * 10} ${chartHeight}`}
+          height="80"
+          viewBox={`0 0 ${daysToShow * 10} 80`}
           className="w-full"
           preserveAspectRatio="none"
         >
@@ -352,13 +340,16 @@ export function CycleContext() {
 
           <path
             d={`
-              M 0,${chartHeight}
+              M 0,80
               ${dates.map((date, i) => {
                 const x = i * 10 + 5;
-                const y = chartHeight - phaseHeights[i];
+                const phase = getPhaseForDay(date);
+                const heights = [16, 36, 52, 28];
+                const variance = Math.sin(date.getTime() / 100000000) * 4;
+                const y = 80 - (heights[phase] + variance);
                 return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
               }).join(' ')}
-              L ${daysToShow * 10},${chartHeight}
+              L ${daysToShow * 10},80
               Z
             `}
             fill="url(#phaseGradient)"
@@ -368,7 +359,10 @@ export function CycleContext() {
           <path
             d={dates.map((date, i) => {
               const x = i * 10 + 5;
-              const y = chartHeight - phaseHeights[i];
+              const phase = getPhaseForDay(date);
+              const heights = [16, 36, 52, 28];
+              const variance = Math.sin(date.getTime() / 100000000) * 4;
+              const y = 80 - (heights[phase] + variance);
               return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
             }).join(' ')}
             fill="none"
@@ -381,6 +375,10 @@ export function CycleContext() {
             const isToday = differenceInDays(date, today) === 0;
             const isPeriod = isPeriodStartDay(date);
             const x = i * 10 + 5;
+            const phase = getPhaseForDay(date);
+            const heights = [16, 36, 52, 28];
+            const variance = Math.sin(date.getTime() / 100000000) * 4;
+            const y = 80 - (heights[phase] + variance);
 
             return (
               <g key={i}>
@@ -388,14 +386,14 @@ export function CycleContext() {
                   x1={x}
                   y1={0}
                   x2={x}
-                  y2={chartHeight}
+                  y2={80}
                   stroke={isToday ? '#ffffff' : 'rgba(255,255,255,0.1)'}
                   strokeWidth={isToday ? 1 : 0.3}
                 />
                 {isPeriod && (
                   <circle
                     cx={x}
-                    cy={chartHeight - phaseHeights[i]}
+                    cy={y}
                     r={2}
                     fill="#fb7185"
                     className="animate-pulse"
@@ -406,7 +404,7 @@ export function CycleContext() {
           })}
         </svg>
 
-        <div className="flex justify-between text-[8px] text-slate-500 mt-1 px-1">
+        <div className="flex justify-between text-[8px] text-slate-500 mt-1">
           {dates.filter((_, i) => i % 4 === 0).map((date, i) => (
             <div key={i} className="flex flex-col items-center">
               <span>{format(date, 'EEE')}</span>
@@ -415,15 +413,8 @@ export function CycleContext() {
           ))}
         </div>
 
-        <div className="text-center mt-2 space-y-0.5">
-          <div className="text-xs">
-            <span className="text-slate-500">You are on day</span>{' '}
-            <span className="text-white font-semibold">{cycleData.currentCycleDay}</span>
-            <span className="text-slate-500"> since your last period</span>
-          </div>
-          <div className="text-[10px] text-slate-600">
-            Expected cycle length: ~{sanitizedCycleLength} days (based on your history)
-          </div>
+        <div className="text-center mt-2.5 text-xs text-slate-400">
+          You are on day <span className="text-white font-semibold">{cycleData.currentCycleDay}</span> since your last period
         </div>
       </div>
     </div>
