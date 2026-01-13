@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield } from 'lucide-react';
+import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette } from 'lucide-react';
 import { useAchievements, usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
 import { getPhaseDescription } from '../lib/logic/plant';
 import { resetDatabase } from '../lib/resetData';
 import { useState } from 'react';
+import { useTheme } from '../lib/themes/ThemeContext';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ interface SettingsModalProps {
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const { achievements, loading: achievementsLoading } = useAchievements();
   const { plantState, loading: plantLoading } = usePlantState();
+  const { designTheme, themeConfig, setDesignTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -142,6 +144,53 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
 
           <div className="overflow-y-auto p-6 pb-8" style={{ maxHeight: 'calc(85vh - 88px)' }}>
+            <section className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Palette className="w-5 h-5 text-pink-400" />
+                <h3 className="text-lg font-semibold text-white">Design Theme</h3>
+              </div>
+              <div className="glass-card p-6">
+                <p className="text-sm text-slate-400 mb-4">Choose your preferred aesthetic experience</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setDesignTheme('default')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      designTheme === 'default'
+                        ? 'border-teal-400 bg-teal-400/10'
+                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-400 to-purple-400 mb-2" />
+                      <h4 className="text-white font-semibold">Tesla-Apple</h4>
+                      <p className="text-xs text-slate-400">Modern, sleek, precise</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setDesignTheme('lotus')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      designTheme === 'lotus'
+                        ? 'border-pink-400 bg-pink-400/10'
+                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-400 to-green-400 mb-2" />
+                      <h4 className="text-white font-semibold">Lotus Garden</h4>
+                      <p className="text-xs text-slate-400">Organic, elegant, serene</p>
+                    </div>
+                  </button>
+                </div>
+                <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
+                  <p className="text-xs text-slate-400">
+                    <strong className="text-white">Current: </strong>
+                    {themeConfig.name}
+                  </p>
+                </div>
+              </div>
+            </section>
+
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-teal-400" />

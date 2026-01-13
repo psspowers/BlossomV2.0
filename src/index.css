@@ -73,6 +73,21 @@ a:focus-visible,
 @layer base {
   :root {
     --ring: 107 143 78;
+    --theme-primary: rgb(45, 212, 191);
+    --theme-primary-hover: rgb(94, 234, 212);
+    --theme-secondary: rgb(192, 132, 252);
+    --theme-secondary-hover: rgb(216, 180, 254);
+    --theme-accent: rgb(251, 191, 36);
+    --theme-accent-hover: rgb(252, 211, 77);
+    --theme-background: rgb(2, 6, 23);
+    --theme-surface: rgba(15, 23, 42, 0.8);
+    --theme-text: rgb(255, 255, 255);
+    --theme-text-secondary: rgb(148, 163, 184);
+    --theme-border: rgba(255, 255, 255, 0.1);
+    --theme-glow: rgba(45, 212, 191, 0.5);
+    --theme-font-heading: system-ui, -apple-system, sans-serif;
+    --theme-font-body: system-ui, -apple-system, sans-serif;
+    --theme-animation-duration: 200ms;
   }
 }
 
@@ -142,6 +157,32 @@ a:focus-visible,
   }
 }
 
+@keyframes lotus-bloom {
+  0% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes lotus-float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) translateX(4px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-4px) translateX(-4px) rotate(-1deg);
+  }
+}
+
 @keyframes slide-up {
   from {
     opacity: 0;
@@ -176,4 +217,22 @@ a:focus-visible,
 
 .animate-slide-up {
   animation: slide-up 0.5s ease-out;
+}
+
+[data-theme="lotus"] .animate-float {
+  animation: lotus-float 10s ease-in-out infinite;
+}
+
+[data-theme="lotus"] .animate-breathe {
+  animation: breathe 6s ease-in-out infinite;
+}
+
+[data-theme="lotus"] .glass-card {
+  @apply border-pink-500/20 bg-zinc-900/80;
+}
+
+[data-theme="lotus"] h1,
+[data-theme="lotus"] h2,
+[data-theme="lotus"] h3 {
+  font-family: var(--theme-font-heading);
 }

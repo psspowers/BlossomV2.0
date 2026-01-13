@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
+import { ThemeProvider } from "./lib/themes/ThemeContext";
 
 const queryClient = new QueryClient();
 
@@ -32,11 +33,13 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

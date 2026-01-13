@@ -35,6 +35,7 @@ export interface CustomSymptom {
 export interface Settings {
   id?: number;
   theme: 'dark' | 'light' | 'auto';
+  designTheme: 'default' | 'lotus';
   notifications: boolean;
   customSymptomDefinitions: CustomSymptom[];
 }
@@ -62,6 +63,7 @@ export async function getOrCreateSettings(): Promise<Settings> {
 
   const defaultSettings: Settings = {
     theme: 'dark',
+    designTheme: 'default',
     notifications: true,
     customSymptomDefinitions: []
   };

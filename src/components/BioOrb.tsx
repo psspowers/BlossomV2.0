@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../lib/themes/ThemeContext';
 
 interface BioOrbProps {
   health: number;
@@ -9,11 +10,24 @@ interface BioOrbProps {
 }
 
 export const BioOrb: React.FC<BioOrbProps> = ({ health, streak, name = 'Your Companion' }) => {
-  const colors = health >= 80
-    ? { primary: '#14b8a6', secondary: '#06b6d4', glow: '#2dd4bf' }
-    : health >= 50
-    ? { primary: '#f97316', secondary: '#fb923c', glow: '#fb923c' }
-    : { primary: '#ef4444', secondary: '#f87171', glow: '#f87171' };
+  const { designTheme } = useTheme();
+
+  const getColors = () => {
+    if (designTheme === 'lotus') {
+      return health >= 80
+        ? { primary: '#ec4899', secondary: '#86efac', glow: '#ec4899' }
+        : health >= 50
+        ? { primary: '#fde047', secondary: '#f472b6', glow: '#fde047' }
+        : { primary: '#fb7185', secondary: '#fda4af', glow: '#fb7185' };
+    }
+    return health >= 80
+      ? { primary: '#14b8a6', secondary: '#06b6d4', glow: '#2dd4bf' }
+      : health >= 50
+      ? { primary: '#f97316', secondary: '#fb923c', glow: '#fb923c' }
+      : { primary: '#ef4444', secondary: '#f87171', glow: '#f87171' };
+  };
+
+  const colors = getColors();
 
   return (
     <div className="relative z-10 flex flex-col items-center gap-8">
