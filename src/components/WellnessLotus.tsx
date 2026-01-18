@@ -130,6 +130,21 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
         <h2 className="text-3xl font-serif text-slate-800 tracking-wide italic">
           {name}
         </h2>
+
+        <div className="flex items-center justify-center">
+          <div className="px-8 py-4 rounded-2xl bg-white/80 border-2 border-sage-300 shadow-lg backdrop-blur-sm">
+            <div className="text-xs text-sage-600 font-medium uppercase tracking-wider mb-1">
+              Blossom Score
+            </div>
+            <div className="text-5xl font-serif font-bold text-slate-800">
+              {health}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              out of 100
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center justify-center gap-3">
           <div className="px-5 py-2 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-2">
             <span className="text-sm text-slate-500 font-medium">Season</span>
