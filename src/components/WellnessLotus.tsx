@@ -77,47 +77,43 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
           <g filter="url(#softGlow)">
             {outerPetals.map((angle, i) => (
-              <motion.g
-                key={`outer-${i}`}
-                transform={`rotate(${angle})`}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 0.9, scale: 1 }}
-                transition={{
-                  duration: 1.5,
-                  delay: i * 0.1,
-                  ease: "easeOut"
-                }}
-              >
-                <path
+              <g key={`outer-${i}`} transform={`rotate(${angle} 0 0)`}>
+                <motion.path
                   d={createPetalPath(bloomFactor)}
                   fill="url(#petalGradientOuter)"
                   stroke={colors.tip}
                   strokeWidth="1"
                   opacity="0.95"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 0.9, scale: 1 }}
+                  style={{ transformOrigin: 'center' }}
+                  transition={{
+                    duration: 1.5,
+                    delay: i * 0.1,
+                    ease: "easeOut"
+                  }}
                 />
-              </motion.g>
+              </g>
             ))}
 
             {innerPetals.map((angle, i) => (
-              <motion.g
-                key={`inner-${i}`}
-                transform={`rotate(${angle})`}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 0.95, scale: 1 }}
-                transition={{
-                  duration: 1.5,
-                  delay: 0.4 + (i * 0.1),
-                  ease: "easeOut"
-                }}
-              >
-                <path
+              <g key={`inner-${i}`} transform={`rotate(${angle} 0 0)`}>
+                <motion.path
                   d={createPetalPath(bloomFactor * 0.75)}
                   fill="url(#petalGradientInner)"
                   stroke={colors.tip}
                   strokeWidth="0.8"
                   opacity="0.9"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 0.95, scale: 1 }}
+                  style={{ transformOrigin: 'center' }}
+                  transition={{
+                    duration: 1.5,
+                    delay: 0.4 + (i * 0.1),
+                    ease: "easeOut"
+                  }}
                 />
-              </motion.g>
+              </g>
             ))}
           </g>
 
@@ -129,6 +125,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             initial={{ scale: 0 }}
             animate={{ scale: [0.9, 1.05, 0.9] }}
             transition={{ duration: 3, repeat: Infinity, delay: 1.2 }}
+            style={{ transformOrigin: 'center' }}
           />
 
           {[0, 60, 120, 180, 240, 300].map((angle) => {
@@ -144,6 +141,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 1.8 }}
+                style={{ transformOrigin: 'center' }}
               />
             );
           })}
