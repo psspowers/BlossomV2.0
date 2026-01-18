@@ -1,5 +1,5 @@
 import { usePlantState, useInterfaceMode } from '../lib/hooks/useInsights';
-import { BioOrb } from './BioOrb';
+import { WellnessLotus } from './WellnessLotus';
 import { WellnessRadar } from './WellnessRadar';
 import { CycleContext } from './CycleContext';
 import { Insights } from './Insights';
@@ -73,7 +73,7 @@ export function Dashboard() {
           </div>
         </header>
 
-        <BioOrb health={plantState.health} streak={plantState.streak} mode={themeState.mode} />
+        <WellnessLotus health={plantState.health} streak={plantState.streak} mode={themeState.mode} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           <div className="glass-card h-80">
