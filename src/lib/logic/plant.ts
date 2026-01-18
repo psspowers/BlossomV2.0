@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { differenceInDays } from 'date-fns';
+import { calculateBlossomScore } from './score';
 
 export type PlantPhase = 'seed' | 'sprout' | 'bloom' | 'flourish';
 
@@ -51,14 +52,15 @@ export async function calculatePlantHealth(): Promise<PlantState> {
     }
   }
 
-  const health = Math.min(100, (streak / 30) * 100);
+  const blossomScore = await calculateBlossomScore(logs);
+  const health = blossomScore;
 
   let phase: PlantPhase;
-  if (streak < 3) {
+  if (health < 30) {
     phase = 'seed';
-  } else if (streak < 7) {
+  } else if (health < 50) {
     phase = 'sprout';
-  } else if (streak < 21) {
+  } else if (health < 75) {
     phase = 'bloom';
   } else {
     phase = 'flourish';

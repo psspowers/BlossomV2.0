@@ -5,15 +5,25 @@ import { CycleContext } from './CycleContext';
 import { Insights } from './Insights';
 import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
-import { Plus, Settings, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Settings, Shield, Lightbulb } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
+import { generatePrimaryStory } from '../lib/logic/stories';
 
 export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [bodyStory, setBodyStory] = useState<string>('');
+
+  useEffect(() => {
+    const loadStory = async () => {
+      const story = await generatePrimaryStory();
+      setBodyStory(story);
+    };
+    loadStory();
+  }, []);
 
   if (plantLoading || themeLoading) {
     return (
@@ -68,7 +78,7 @@ export function Dashboard() {
 
         <WellnessLotus health={plantState.health} streak={plantState.streak} mode={themeState.mode} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12">
           <div className="glass-card h-80">
             <div className="p-4 border-b border-slate-100">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
@@ -85,6 +95,24 @@ export function Dashboard() {
               </h2>
             </div>
             <WellnessRadar />
+          </div>
+
+          <div className="glass-card h-80 bg-[#FFF9F0] border-2 border-sage-200">
+            <div className="p-4 border-b border-sage-100 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-sage-600" />
+              <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
+                Whispers from your Body
+              </h2>
+            </div>
+            <div className="p-6 flex items-center justify-center h-[calc(100%-56px)]">
+              {bodyStory ? (
+                <p className="text-slate-700 text-base leading-relaxed text-center italic font-serif">
+                  "{bodyStory}"
+                </p>
+              ) : (
+                <p className="text-slate-500 text-sm animate-pulse">Listening...</p>
+              )}
+            </div>
           </div>
 
           <DailyWisdom />

@@ -451,19 +451,7 @@ export function Insights() {
         <div
           className={`absolute inset-0 -inset-x-12 -inset-y-12 ${currentConfig.glowClass} blur-[100px] rounded-full transition-all duration-700 pointer-events-none opacity-50`}
         />
-        <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="glass-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-              Velocity Trend
-            </h3>
-            <VelocityBadge />
-          </div>
-          <div style={{ height: '300px' }}>
-            <Line data={lineData} options={lineOptions} />
-          </div>
-        </div>
-
+        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="glass-card p-4">
           <div className="mb-3">
             <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
