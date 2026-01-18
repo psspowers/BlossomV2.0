@@ -66,32 +66,32 @@ export function DailyWisdom() {
   }, []);
 
   return (
-    <div className="glass-card h-80 flex flex-col">
-      <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+    <div className="paper-card h-80 flex flex-col p-0">
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
           Daily Wisdom
         </h2>
-        <Lightbulb className="w-4 h-4 text-amber-400" />
+        <Lightbulb className="w-4 h-4 text-sage-600" />
       </div>
 
       <div className="flex-1 p-6 flex flex-col justify-center">
         <div className="mb-4">
-          <span className="inline-block px-3 py-1 bg-amber-400/10 border border-amber-400/20 rounded-full text-xs font-medium text-amber-300">
+          <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
             {currentTip.category}
           </span>
         </div>
 
-        <p className="text-base text-white/90 leading-relaxed mb-4 font-medium">
+        <p className="text-base text-text-main leading-relaxed mb-4 font-medium">
           {currentTip.tip}
         </p>
 
-        <p className="text-xs text-slate-500 italic">
+        <p className="text-xs text-sage-600 italic">
           Source: {currentTip.source}
         </p>
       </div>
 
-      <div className="p-4 border-t border-white/10">
-        <p className="text-xs text-slate-400 text-center">
+      <div className="p-4 border-t border-border">
+        <p className="text-xs text-sage-600 text-center">
           Evidence-based insight • Rotates daily
         </p>
       </div>
