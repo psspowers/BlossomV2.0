@@ -30,17 +30,20 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const colors = getColors();
 
   const createPetalPath = (scale: number = 1) => {
-    const width = 40 * scale;
-    const height = 80 * scale;
-    return `M 0,-${height}
-            C -${width * 0.8},-${height * 0.7} -${width},-${height * 0.3} -${width * 0.6},0
-            C -${width * 0.3},${height * 0.15} 0,${height * 0.2} 0,${height * 0.2}
-            C 0,${height * 0.2} ${width * 0.3},${height * 0.15} ${width * 0.6},0
-            C ${width},-${height * 0.3} ${width * 0.8},-${height * 0.7} 0,-${height} Z`;
+    const width = 35 * scale;
+    const height = 70 * scale;
+    return `
+      M 0,-10
+      Q -${width * 0.3},-${height * 0.5} -${width},-${height}
+      Q -${width * 0.5},-${height * 1.05} 0,-${height * 1.1}
+      Q ${width * 0.5},-${height * 1.05} ${width},-${height}
+      Q ${width * 0.3},-${height * 0.5} 0,-10
+      Z
+    `;
   };
 
-  const outerPetalPath = createPetalPath(bloomFactor);
-  const innerPetalPath = createPetalPath(bloomFactor * 0.8);
+  const outerPetals = [0, 45, 90, 135, 180, 225, 270, 315];
+  const innerPetals = [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5];
 
   return (
     <div className="relative flex flex-col items-center justify-center py-12">
@@ -64,7 +67,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
               <stop offset="100%" stopColor={colors.tip} stopOpacity="0.3" />
             </linearGradient>
             <filter id="softGlow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
               <feMerge>
                 <feMergeNode in="coloredBlur"/>
                 <feMergeNode in="SourceGraphic"/>
@@ -73,46 +76,48 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           </defs>
 
           <g filter="url(#softGlow)">
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
-              <motion.path
+            {outerPetals.map((angle, i) => (
+              <motion.g
                 key={`outer-${i}`}
-                d={outerPetalPath}
-                fill="url(#petalGradientOuter)"
-                stroke={colors.tip}
-                strokeWidth="0.5"
-                opacity={0.9}
-                initial={{ rotate: angle, scale: 0 }}
-                animate={{
-                  rotate: angle,
-                  scale: 1,
-                }}
+                transform={`rotate(${angle})`}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 0.9, scale: 1 }}
                 transition={{
                   duration: 1.5,
                   delay: i * 0.1,
                   ease: "easeOut"
                 }}
-              />
+              >
+                <path
+                  d={createPetalPath(bloomFactor)}
+                  fill="url(#petalGradientOuter)"
+                  stroke={colors.tip}
+                  strokeWidth="1"
+                  opacity="0.95"
+                />
+              </motion.g>
             ))}
 
-            {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
-              <motion.path
+            {innerPetals.map((angle, i) => (
+              <motion.g
                 key={`inner-${i}`}
-                d={innerPetalPath}
-                fill="url(#petalGradientInner)"
-                stroke={colors.tip}
-                strokeWidth="0.5"
-                opacity={0.95}
-                initial={{ rotate: angle, scale: 0 }}
-                animate={{
-                  rotate: angle,
-                  scale: 1,
-                }}
+                transform={`rotate(${angle})`}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 0.95, scale: 1 }}
                 transition={{
                   duration: 1.5,
                   delay: 0.4 + (i * 0.1),
                   ease: "easeOut"
                 }}
-              />
+              >
+                <path
+                  d={createPetalPath(bloomFactor * 0.75)}
+                  fill="url(#petalGradientInner)"
+                  stroke={colors.tip}
+                  strokeWidth="0.8"
+                  opacity="0.9"
+                />
+              </motion.g>
             ))}
           </g>
 
@@ -123,7 +128,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             fill={colors.center}
             initial={{ scale: 0 }}
             animate={{ scale: [0.9, 1.05, 0.9] }}
-            transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+            transition={{ duration: 3, repeat: Infinity, delay: 1.2 }}
           />
 
           {[0, 60, 120, 180, 240, 300].map((angle) => {
@@ -134,11 +139,11 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 key={`seed-${angle}`}
                 cx={Math.cos(rad) * distance}
                 cy={Math.sin(rad) * distance}
-                r="2"
+                r="2.5"
                 fill="#5D4037"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 1.5 }}
+                transition={{ delay: 1.8 }}
               />
             );
           })}
