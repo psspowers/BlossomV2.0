@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '../lib/themes/ThemeContext';
 
 interface WellnessLotusProps {
   health: number;
@@ -14,375 +13,128 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   streak,
   name = 'Your Journey'
 }) => {
-  const { designTheme } = useTheme();
 
-  const getBloomState = () => {
-    if (health >= 75) {
-      return {
-        state: 'bloomed',
-        petalScale: 1,
-        petalRotation: 0,
-        centerScale: 1,
-        opacity: 1,
-        colors: {
-          outerPetal: ['#FF69B4', '#FF1493'],
-          middlePetal: ['#FFB6C1', '#FF69B4'],
-          innerPetal: ['#FFC0CB', '#FFB6C1'],
-          center: ['#FFD700', '#FFA500'],
-          glow: '#FF69B4',
-          water: '#4DD0E1'
-        }
-      };
-    } else if (health >= 40) {
-      return {
-        state: 'partial',
-        petalScale: 0.85,
-        petalRotation: 10,
-        centerScale: 0.9,
-        opacity: 0.85,
-        colors: {
-          outerPetal: ['#DDA0A0', '#C9A0A0'],
-          middlePetal: ['#E8B4B8', '#DDA0A0'],
-          innerPetal: ['#F5D5D8', '#E8B4B8'],
-          center: ['#E8C872', '#D4A574'],
-          glow: '#DDA0A0',
-          water: '#80DEEA'
-        }
-      };
-    } else {
-      return {
-        state: 'wilted',
-        petalScale: 0.7,
-        petalRotation: 25,
-        centerScale: 0.75,
-        opacity: 0.7,
-        colors: {
-          outerPetal: ['#A0826D', '#8B7355'],
-          middlePetal: ['#B8988C', '#A0826D'],
-          innerPetal: ['#D3C5B0', '#B8988C'],
-          center: ['#BFA780', '#A89968'],
-          glow: '#8B7355',
-          water: '#B0BEC5'
-        }
-      };
-    }
+  const bloomFactor = Math.max(0.3, health / 100);
+
+  const getColors = () => {
+    if (health >= 80) return {
+      tip: '#FF69B4', base: '#FFF0F5', center: '#FFD700', aura: 'rgba(255, 105, 180, 0.4)'
+    };
+    if (health >= 50) return {
+      tip: '#F48FB1', base: '#FFF5F7', center: '#FFE082', aura: 'rgba(244, 143, 177, 0.3)'
+    };
+    return {
+      tip: '#D7CCC8', base: '#EFEBE9', center: '#A1887F', aura: 'rgba(161, 136, 127, 0.2)'
+    };
   };
+  const colors = getColors();
 
-  const bloomState = getBloomState();
-  const { colors, petalScale, petalRotation, centerScale, opacity } = bloomState;
+  const petalPath = "M10,100 C10,50 50,0 100,0 C150,0 190,50 190,100 C190,160 100,200 100,200 C100,200 10,160 10,100 Z";
 
   return (
-    <div className="relative z-10 flex flex-col items-center gap-8">
-      <div className="relative flex items-center justify-center w-80 h-80">
+    <div className="relative flex flex-col items-center justify-center py-12">
+      <div className="relative w-80 h-80 flex items-center justify-center">
 
-        {/* Water Ripples Base */}
         <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.1, 0.25, 0.1]
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute w-56 h-16 rounded-full blur-xl"
-          style={{
-            backgroundColor: colors.water,
-            bottom: '20%'
-          }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-64 h-64 rounded-full blur-[60px]"
+          style={{ backgroundColor: colors.aura }}
         />
 
-        {/* Glow Effect */}
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute w-48 h-48 rounded-full blur-3xl"
-          style={{ backgroundColor: colors.glow }}
-        />
-
-        {/* Lotus SVG Container */}
-        <motion.svg
-          viewBox="0 0 200 200"
-          className="w-64 h-64 relative z-10"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: opacity, scale: 1 }}
-          transition={{ duration: 1 }}
-        >
+        <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
           <defs>
-            {/* Gradients for each petal layer */}
-            <radialGradient id="outerPetalGrad" cx="50%" cy="30%">
-              <stop offset="0%" stopColor={colors.outerPetal[0]} />
-              <stop offset="100%" stopColor={colors.outerPetal[1]} />
-            </radialGradient>
-            <radialGradient id="middlePetalGrad" cx="50%" cy="30%">
-              <stop offset="0%" stopColor={colors.middlePetal[0]} />
-              <stop offset="100%" stopColor={colors.middlePetal[1]} />
-            </radialGradient>
-            <radialGradient id="innerPetalGrad" cx="50%" cy="30%">
-              <stop offset="0%" stopColor={colors.innerPetal[0]} />
-              <stop offset="100%" stopColor={colors.innerPetal[1]} />
-            </radialGradient>
-            <radialGradient id="centerGrad" cx="50%" cy="50%">
-              <stop offset="0%" stopColor={colors.center[0]} />
-              <stop offset="70%" stopColor={colors.center[1]} />
-            </radialGradient>
-
-            {/* Shadow filter */}
-            <filter id="petalShadow">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-              <feOffset dx="0" dy="2" result="offsetblur"/>
-              <feComponentTransfer>
-                <feFuncA type="linear" slope="0.3"/>
-              </feComponentTransfer>
-              <feMerge>
-                <feMergeNode/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
+            <linearGradient id="petalGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={colors.tip} />
+              <stop offset="100%" stopColor={colors.base} />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
 
-          {/* Outer Petals (8 petals) */}
-          {[...Array(8)].map((_, i) => {
-            const angle = (i * 45);
-            const distance = 45 * petalScale;
-            const radians = (angle * Math.PI) / 180;
-            const petalX = 100 + distance * Math.cos(radians);
-            const petalY = 100 + distance * Math.sin(radians);
-
-            return (
-              <motion.g
-                key={`outer-${i}`}
-                animate={{
-                  scale: [1, 1.02, 1]
-                }}
-                transition={{
-                  duration: 4 + i * 0.3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.2
-                }}
-                style={{ transformOrigin: '100px 100px' }}
-              >
-                <ellipse
-                  cx={petalX}
-                  cy={petalY}
-                  rx="16"
-                  ry="32"
-                  fill="url(#outerPetalGrad)"
-                  filter="url(#petalShadow)"
-                  transform={`rotate(${angle + 90 + petalRotation}, ${petalX}, ${petalY})`}
-                  opacity={0.95}
-                />
-              </motion.g>
-            );
-          })}
-
-          {/* Middle Petals (8 petals, offset) */}
-          {[...Array(8)].map((_, i) => {
-            const angle = (i * 45) + 22.5;
-            const distance = 32 * petalScale;
-            const radians = (angle * Math.PI) / 180;
-            const petalX = 100 + distance * Math.cos(radians);
-            const petalY = 100 + distance * Math.sin(radians);
-
-            return (
-              <motion.g
-                key={`middle-${i}`}
-                animate={{
-                  scale: [1, 1.02, 1]
-                }}
-                transition={{
-                  duration: 3.5 + i * 0.25,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.15
-                }}
-                style={{ transformOrigin: '100px 100px' }}
-              >
-                <ellipse
-                  cx={petalX}
-                  cy={petalY}
-                  rx="13"
-                  ry="26"
-                  fill="url(#middlePetalGrad)"
-                  filter="url(#petalShadow)"
-                  transform={`rotate(${angle + 90 + petalRotation * 0.5}, ${petalX}, ${petalY})`}
-                  opacity={0.9}
-                />
-              </motion.g>
-            );
-          })}
-
-          {/* Inner Petals (6 petals) */}
-          {[...Array(6)].map((_, i) => {
-            const angle = (i * 60);
-            const distance = 20 * petalScale;
-            const radians = (angle * Math.PI) / 180;
-            const petalX = 100 + distance * Math.cos(radians);
-            const petalY = 100 + distance * Math.sin(radians);
-
-            return (
-              <motion.g
-                key={`inner-${i}`}
-                animate={{
-                  scale: [1, 1.03, 1]
-                }}
-                transition={{
-                  duration: 3 + i * 0.2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.1
-                }}
-                style={{ transformOrigin: '100px 100px' }}
-              >
-                <ellipse
-                  cx={petalX}
-                  cy={petalY}
-                  rx="10"
-                  ry="20"
-                  fill="url(#innerPetalGrad)"
-                  filter="url(#petalShadow)"
-                  transform={`rotate(${angle + 90}, ${petalX}, ${petalY})`}
-                  opacity={0.85}
-                />
-              </motion.g>
-            );
-          })}
-
-          {/* Center of Lotus */}
-          <motion.g
-            animate={{
-              scale: [centerScale, centerScale * 1.05, centerScale]
-            }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            style={{ transformOrigin: '100px 100px' }}
-          >
-            <circle
-              cx="100"
-              cy="100"
-              r="20"
-              fill="url(#centerGrad)"
-              filter="url(#petalShadow)"
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+            <motion.path
+              key={`outer-${i}`}
+              d={petalPath}
+              fill="url(#petalGradient)"
+              filter="url(#glow)"
+              style={{ transformOrigin: "200px 200px", opacity: 0.9 }}
+              animate={{
+                rotate: angle,
+                scaleY: bloomFactor,
+                scaleX: 0.8,
+                translateY: bloomFactor * -20
+              }}
+              transition={{ duration: 2, delay: i * 0.1 }}
             />
+          ))}
 
-            {/* Center Details - Seed pods */}
-            {[...Array(12)].map((_, i) => {
-              const angle = (i * 30) * (Math.PI / 180);
-              const radius = 8;
-              const x = 100 + radius * Math.cos(angle);
-              const y = 100 + radius * Math.sin(angle);
+          {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
+            <motion.path
+              key={`inner-${i}`}
+              d={petalPath}
+              fill={colors.base}
+              stroke={colors.tip}
+              strokeWidth="1"
+              style={{ transformOrigin: "200px 200px", opacity: 0.95 }}
+              animate={{
+                rotate: angle,
+                scaleY: bloomFactor * 0.8,
+                scaleX: 0.6,
+                translateY: bloomFactor * -10
+              }}
+              transition={{ duration: 2, delay: 0.5 + (i * 0.1) }}
+            />
+          ))}
 
-              return (
-                <motion.circle
-                  key={`seed-${i}`}
-                  cx={x}
-                  cy={y}
-                  r="2"
-                  fill={colors.center[1]}
-                  opacity={0.6}
-                  animate={{
-                    scale: [1, 1.2, 1]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.1
-                  }}
-                  style={{ transformOrigin: `${x}px ${y}px` }}
-                />
-              );
-            })}
-          </motion.g>
-        </motion.svg>
+          <motion.circle
+            cx="200"
+            cy="200"
+            r={20 * bloomFactor}
+            fill={colors.center}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+             <motion.circle
+               key={`seed-${i}`}
+               cx="200"
+               cy="200"
+               r="3"
+               fill="#5D4037"
+               animate={{
+                 transform: `rotate(${angle}deg) translate(${10 * bloomFactor}px)`
+               }}
+             />
+          ))}
 
-        {/* Streak Sparkles */}
-        {streak > 0 && (
-          <>
-            {[...Array(Math.min(streak, 8))].map((_, i) => {
-              const angle = (i * 45) * (Math.PI / 180);
-              const radius = 45;
+        </svg>
 
-              return (
-                <motion.div
-                  key={`sparkle-${i}`}
-                  className="absolute w-2 h-2 rounded-full"
-                  style={{
-                    left: `calc(50% + ${radius * Math.cos(angle)}%)`,
-                    top: `calc(50% + ${radius * Math.sin(angle)}%)`,
-                    backgroundColor: colors.center[0],
-                    boxShadow: `0 0 10px ${colors.center[0]}`
-                  }}
-                  animate={{
-                    opacity: [0.3, 0.9, 0.3],
-                    scale: [0.8, 1.2, 0.8]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.25,
-                    ease: "easeInOut"
-                  }}
-                />
-              );
-            })}
-          </>
-        )}
       </div>
 
-      {/* Info Display */}
-      <div className="text-center space-y-3">
-        <motion.h2
-          className="text-2xl font-light text-white/90 tracking-wide"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+      <div className="text-center space-y-3 relative z-10">
+        <h2 className="text-2xl font-serif text-slate-700 dark:text-slate-200">
           {name}
-        </motion.h2>
+        </h2>
 
-        <motion.p
-          className="text-sm text-white/60 italic"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          {health >= 75 && "Blooming beautifully"}
-          {health >= 40 && health < 75 && "Growing with grace"}
-          {health < 40 && "Nurturing your roots"}
-        </motion.p>
-
-        <motion.div
-          className="flex items-center justify-center gap-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-            <div className="relative flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-lg">
-              <span className="text-sm text-white/60 font-light">Streak</span>
-              <span className="text-xl font-semibold text-white/95">{streak}</span>
-              <span className="text-base">🔥</span>
-            </div>
+        <div className="flex items-center justify-center gap-3">
+          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
+            <span className="text-sm text-slate-500">Season</span>
+            <span className="text-slate-800 font-medium">
+              {streak > 14 ? 'Blooming' : streak > 3 ? 'Growing' : 'Resting'}
+            </span>
+            <span className="text-lg">
+              {streak > 14 ? '🌸' : streak > 3 ? '🌱' : '🍂'}
+            </span>
           </div>
 
-          <div className="relative group">
-            <div
-              className="absolute inset-0 rounded-2xl blur-xl group-hover:blur-2xl transition-all"
-              style={{
-                background: `linear-gradient(135deg, ${colors.glow}30, ${colors.center[0]}30)`
-              }}
-            />
-            <div className="relative flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-lg">
-              <span className="text-sm text-white/60 font-light">Wellness</span>
-              <span className="text-xl font-semibold text-white/95">{health}%</span>
-            </div>
+          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
+            <span className="text-sm text-slate-500">Score</span>
+            <span className="text-slate-800 font-bold">{health}</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
