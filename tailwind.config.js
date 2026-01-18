@@ -8,6 +8,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        background: '#FDFBF7',
+        surface: '#FFFFFF',
+        primary: '#86A873',
+        secondary: '#E8AEB2',
+        'text-main': '#4A4A4A',
+        border: '#E5E0D8',
         sage: {
           50: '#f6f7f4',
           100: '#e3e7dc',

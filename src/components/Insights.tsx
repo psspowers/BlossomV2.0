@@ -54,41 +54,41 @@ export function Insights() {
     hyperandrogenism: {
       label: 'Physical',
       icon: Activity,
-      color: 'rgba(251, 113, 133, 0.8)',
-      bgColor: 'rgba(251, 113, 133, 0.1)',
-      borderColor: 'rgb(251, 113, 133)',
-      hex: '#fb7185',
-      glowClass: 'bg-rose-500/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(251,113,133,0.3)]',
-      borderClass: 'border-rose-500',
-      textClass: 'text-rose-400',
-      badgeBgClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+      color: 'rgba(232, 174, 178, 0.8)',
+      bgColor: 'rgba(232, 174, 178, 0.1)',
+      borderColor: 'rgb(232, 174, 178)',
+      hex: '#E8AEB2',
+      glowClass: 'bg-secondary/10',
+      shadowClass: 'shadow-[0_4px_20px_rgba(232,174,178,0.3)]',
+      borderClass: 'border-secondary',
+      textClass: 'text-secondary',
+      badgeBgClass: 'bg-secondary/20 text-secondary border-secondary/30'
     },
     metabolic: {
       label: 'Metabolic',
       icon: Heart,
-      color: 'rgba(251, 191, 36, 0.8)',
-      bgColor: 'rgba(251, 191, 36, 0.1)',
-      borderColor: 'rgb(251, 191, 36)',
-      hex: '#fbbf24',
-      glowClass: 'bg-amber-500/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(251,191,36,0.3)]',
-      borderClass: 'border-amber-500',
-      textClass: 'text-amber-400',
-      badgeBgClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+      color: 'rgba(134, 168, 115, 0.8)',
+      bgColor: 'rgba(134, 168, 115, 0.1)',
+      borderColor: 'rgb(134, 168, 115)',
+      hex: '#86A873',
+      glowClass: 'bg-primary/10',
+      shadowClass: 'shadow-[0_4px_20px_rgba(134,168,115,0.3)]',
+      borderClass: 'border-primary',
+      textClass: 'text-primary',
+      badgeBgClass: 'bg-primary/20 text-primary border-primary/30'
     },
     psych: {
       label: 'Emotional',
       icon: Brain,
-      color: 'rgba(167, 139, 250, 0.8)',
-      bgColor: 'rgba(167, 139, 250, 0.1)',
-      borderColor: 'rgb(167, 139, 250)',
-      hex: '#a78bfa',
-      glowClass: 'bg-violet-500/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(167,139,250,0.3)]',
-      borderClass: 'border-violet-500',
-      textClass: 'text-violet-400',
-      badgeBgClass: 'bg-violet-500/20 text-violet-300 border-violet-500/30'
+      color: 'rgba(107, 143, 78, 0.8)',
+      bgColor: 'rgba(107, 143, 78, 0.1)',
+      borderColor: 'rgb(107, 143, 78)',
+      hex: '#6b8f4e',
+      glowClass: 'bg-sage-600/10',
+      shadowClass: 'shadow-[0_4px_20px_rgba(107,143,78,0.3)]',
+      borderClass: 'border-sage-600',
+      textClass: 'text-sage-600',
+      badgeBgClass: 'bg-sage-600/20 text-sage-600 border-sage-600/30'
     }
   };
 
@@ -130,21 +130,21 @@ export function Insights() {
           const ctx = context.chart.ctx;
           const gradient = ctx.createLinearGradient(0, 0, 0, 300);
           gradient.addColorStop(0, `${currentConfig.color.replace('0.8', String(velocityIntensity))}`);
-          gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
+          gradient.addColorStop(1, 'rgba(253, 251, 247, 0)');
           return gradient;
         },
         tension: 0.4,
         pointRadius: 4,
         pointBackgroundColor: currentConfig.borderColor,
         pointBorderWidth: 2,
-        pointBorderColor: 'rgba(15, 23, 42, 1)',
+        pointBorderColor: 'rgba(255, 255, 255, 1)',
         order: 1
       },
       {
         label: 'Previous Period',
         data: paddedBaselineData,
         fill: false,
-        borderColor: 'rgb(148, 163, 184)',
+        borderColor: 'rgb(197, 206, 186)',
         borderDash: [5, 5],
         tension: 0.4,
         pointRadius: 3,
@@ -213,8 +213,8 @@ export function Insights() {
       {
         label: 'Baseline (Ghost)',
         data: insights.radarBaseline.data,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: 'rgba(255, 255, 255, 0.3)',
+        backgroundColor: 'rgba(134, 168, 115, 0.05)',
+        borderColor: 'rgba(134, 168, 115, 0.3)',
         borderWidth: 1,
         borderDash: [5, 5],
         pointBackgroundColor: 'rgba(255, 255, 255, 0.3)',

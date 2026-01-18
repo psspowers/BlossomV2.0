@@ -127,10 +127,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center"
         onClick={onClose}
       >
-        <div className="text-slate-400 animate-pulse">Loading...</div>
+        <div className="text-sage-600 animate-pulse">Loading...</div>
       </motion.div>
     );
   }
@@ -144,7 +144,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
@@ -152,49 +152,49 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="w-full max-w-4xl max-h-[85vh] bg-slate-900/95 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+          className="w-full max-w-4xl max-h-[85vh] bg-surface rounded-3xl border-2 border-border overflow-hidden shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 p-6 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-surface/95 backdrop-blur-xl border-b-2 border-border p-6 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
               <div>
-                <h2 className="text-2xl font-bold text-white">Settings & Privacy</h2>
-                <p className="text-sm text-slate-400 mt-1">Your wellness journey dashboard</p>
+                <h2 className="text-2xl font-serif font-bold text-text-main">Settings & Privacy</h2>
+                <p className="text-sm text-sage-600 mt-1">Your wellness journey dashboard</p>
               </div>
-              <div className="px-3 py-1 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-rose-400" />
-                <span className="text-xs font-medium text-rose-300">100% Private</span>
+              <div className="px-3 py-1 rounded-full bg-sage-50 border border-sage-200 flex items-center gap-1.5">
+                <Shield className="w-3 h-3 text-sage-600" />
+                <span className="text-xs font-medium text-sage-700">100% Private</span>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-lg"
+              className="text-sage-500 hover:text-text-main transition-colors p-2 hover:bg-sage-50 rounded-lg"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="overflow-y-auto p-6 pb-8" style={{ maxHeight: 'calc(85vh - 88px)' }}>
+          <div className="overflow-y-auto p-6 pb-8 bg-background" style={{ maxHeight: 'calc(85vh - 88px)' }}>
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Palette className="w-5 h-5 text-pink-400" />
-                <h3 className="text-lg font-semibold text-white">Design Theme</h3>
+                <Palette className="w-5 h-5 text-secondary" />
+                <h3 className="text-lg font-serif font-semibold text-text-main">Design Theme</h3>
               </div>
-              <div className="glass-card p-6">
-                <p className="text-sm text-slate-400 mb-4">Choose your preferred aesthetic experience</p>
+              <div className="paper-card">
+                <p className="text-sm text-sage-600 mb-4">Choose your preferred aesthetic experience</p>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setDesignTheme('default')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       designTheme === 'default'
-                        ? 'border-teal-400 bg-teal-400/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                        ? 'border-primary bg-sage-50'
+                        : 'border-border bg-surface hover:bg-sage-50'
                     }`}
                   >
                     <div className="flex flex-col items-center text-center gap-2">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-400 to-purple-400 mb-2" />
-                      <h4 className="text-white font-semibold">Tesla-Apple</h4>
-                      <p className="text-xs text-slate-400">Modern, sleek, precise</p>
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary mb-2" />
+                      <h4 className="text-text-main font-serif font-semibold">Tesla-Apple</h4>
+                      <p className="text-xs text-sage-600">Modern, sleek, precise</p>
                     </div>
                   </button>
 
@@ -202,20 +202,20 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     onClick={() => setDesignTheme('lotus')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       designTheme === 'lotus'
-                        ? 'border-pink-400 bg-pink-400/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
+                        ? 'border-secondary bg-pink-50'
+                        : 'border-border bg-surface hover:bg-sage-50'
                     }`}
                   >
                     <div className="flex flex-col items-center text-center gap-2">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-400 to-green-400 mb-2" />
-                      <h4 className="text-white font-semibold">Lotus Garden</h4>
-                      <p className="text-xs text-slate-400">Organic, elegant, serene</p>
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-secondary to-primary mb-2" />
+                      <h4 className="text-text-main font-serif font-semibold">Lotus Garden</h4>
+                      <p className="text-xs text-sage-600">Organic, elegant, serene</p>
                     </div>
                   </button>
                 </div>
-                <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
-                  <p className="text-xs text-slate-400">
-                    <strong className="text-white">Current: </strong>
+                <div className="mt-4 p-3 bg-sage-50 rounded-lg border border-border">
+                  <p className="text-xs text-sage-600">
+                    <strong className="text-text-main">Current: </strong>
                     {themeConfig.name}
                   </p>
                 </div>
@@ -224,27 +224,27 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-teal-400" />
-                <h3 className="text-lg font-semibold text-white">Your Plant Profile</h3>
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-serif font-semibold text-text-main">Your Plant Profile</h3>
               </div>
-              <div className="glass-card p-6">
+              <div className="paper-card">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Current Phase</p>
-                    <p className="text-xl font-bold text-teal-400 capitalize">{plantState.phase}</p>
-                    <p className="text-xs text-slate-400 mt-1">{getPhaseDescription(plantState.phase)}</p>
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Current Phase</p>
+                    <p className="text-xl font-serif font-bold text-primary capitalize">{plantState.phase}</p>
+                    <p className="text-xs text-sage-600 mt-1">{getPhaseDescription(plantState.phase)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Health Score</p>
-                    <p className="text-xl font-bold text-white">{plantState.health}%</p>
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Health Score</p>
+                    <p className="text-xl font-serif font-bold text-text-main">{plantState.health}%</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Current Streak</p>
-                    <p className="text-xl font-bold text-amber-400">{achievements.totalStreak} days</p>
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Current Streak</p>
+                    <p className="text-xl font-serif font-bold text-sage-600">{achievements.totalStreak} days</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Total Logs</p>
-                    <p className="text-xl font-bold text-white">{achievements.totalLogs}</p>
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Total Logs</p>
+                    <p className="text-xl font-serif font-bold text-text-main">{achievements.totalLogs}</p>
                   </div>
                 </div>
               </div>
@@ -253,10 +253,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <section className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-lg font-semibold text-white">Achievements</h3>
+                  <Award className="w-5 h-5 text-sage-600" />
+                  <h3 className="text-lg font-serif font-semibold text-text-main">Achievements</h3>
                 </div>
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-sage-600 font-medium">
                   {unlockedCount} / {totalBadges} unlocked
                 </div>
               </div>
@@ -265,44 +265,44 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 {achievements.badges.map(badge => (
                   <div
                     key={badge.id}
-                    className={`glass-card p-4 flex flex-col items-center text-center transition-all ${
+                    className={`paper-card p-4 flex flex-col items-center text-center transition-all ${
                       badge.unlocked
-                        ? 'border-teal-400/30 bg-teal-400/5'
+                        ? 'border-2 border-primary bg-sage-50'
                         : 'opacity-50 grayscale'
                     }`}
                   >
                     <div className="text-4xl mb-2">{badge.icon}</div>
-                    <h4 className="text-sm font-semibold text-white mb-1">{badge.name}</h4>
-                    <p className="text-xs text-slate-400 mb-2">{badge.description}</p>
+                    <h4 className="text-sm font-semibold text-text-main mb-1">{badge.name}</h4>
+                    <p className="text-xs text-sage-600 mb-2">{badge.description}</p>
                     {!badge.unlocked && (
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
+                      <div className="w-full bg-sage-100 rounded-full h-1.5 mt-2">
                         <div
-                          className="bg-teal-400 h-1.5 rounded-full transition-all"
+                          className="bg-primary h-1.5 rounded-full transition-all"
                           style={{ width: `${badge.progress}%` }}
                         />
                       </div>
                     )}
                     {badge.unlocked && (
-                      <div className="text-xs text-teal-400 font-medium mt-1">✓ Unlocked</div>
+                      <div className="text-xs text-primary font-medium mt-1">✓ Unlocked</div>
                     )}
                   </div>
                 ))}
               </div>
 
               {achievements.nextBadge && (
-                <div className="mt-4 p-4 bg-amber-400/10 border border-amber-400/20 rounded-xl">
-                  <p className="text-sm text-amber-300 font-medium mb-1">Next Achievement</p>
+                <div className="mt-4 p-4 bg-sage-50 border-2 border-sage-200 rounded-xl">
+                  <p className="text-sm text-sage-700 font-semibold mb-1">Next Achievement</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{achievements.nextBadge.icon}</span>
                       <div>
-                        <p className="text-white font-medium text-sm">{achievements.nextBadge.name}</p>
-                        <p className="text-xs text-slate-400">{achievements.nextBadge.description}</p>
+                        <p className="text-text-main font-medium text-sm">{achievements.nextBadge.name}</p>
+                        <p className="text-xs text-sage-600">{achievements.nextBadge.description}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-amber-400">{Math.round(achievements.nextBadge.progress)}%</p>
-                      <p className="text-xs text-slate-500">Complete</p>
+                      <p className="text-lg font-serif font-bold text-primary">{Math.round(achievements.nextBadge.progress)}%</p>
+                      <p className="text-xs text-sage-600">Complete</p>
                     </div>
                   </div>
                 </div>
@@ -312,69 +312,69 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-5 h-5 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-rose-400 rounded-full" />
+                  <div className="w-2 h-2 bg-secondary rounded-full" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Privacy Vault</h3>
+                <h3 className="text-lg font-serif font-semibold text-text-main">Privacy Vault</h3>
               </div>
 
               <div className="space-y-3">
-                <div className="glass-card p-4">
+                <div className="paper-card p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
-                        <Download className="w-4 h-4 text-teal-400" />
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        <Download className="w-4 h-4 text-primary" />
                         Export Your Data
                       </h4>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-sage-600">
                         Download all your health logs as a JSON file. Share with your healthcare provider or keep for your records.
                       </p>
                     </div>
                     <button
                       onClick={handleExportData}
                       disabled={isExporting}
-                      className="px-4 py-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
                     >
                       {isExporting ? 'Exporting...' : 'Download Report'}
                     </button>
                   </div>
                 </div>
 
-                <div className="glass-card p-4 border-amber-500/20">
+                <div className="paper-card p-4 border-2 border-sage-200">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 text-amber-400" />
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 text-sage-600" />
                         Reset Demo Data
                       </h4>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-sage-600">
                         Clear current data and reload fresh demo data with 3 complete menstrual cycles and realistic symptom patterns.
                       </p>
                     </div>
                     <button
                       onClick={handleResetDemoData}
                       disabled={isResetting}
-                      className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-medium rounded-lg transition-all border border-amber-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isResetting ? 'Resetting...' : 'Reset Data'}
                     </button>
                   </div>
                 </div>
 
-                <div className="glass-card p-4 border-rose-500/20">
+                <div className="paper-card p-4 border-2 border-red-200">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
-                        <Trash2 className="w-4 h-4 text-rose-400" />
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        <Trash2 className="w-4 h-4 text-red-600" />
                         Delete All Data
                       </h4>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-sage-600">
                         Permanently delete all your health logs. This action cannot be undone.
                       </p>
                     </div>
                     {!showDeleteConfirm ? (
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-medium rounded-lg transition-all border border-rose-500/30 whitespace-nowrap"
+                        className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-full transition-all border border-red-200 whitespace-nowrap"
                       >
                         Delete Data
                       </button>
@@ -382,14 +382,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setShowDeleteConfirm(false)}
-                          className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-all"
+                          className="px-3 py-2 bg-sage-100 hover:bg-sage-200 text-text-main text-sm rounded-full transition-all"
                         >
                           Cancel
                         </button>
                         <button
                           onClick={handleDeleteAllData}
                           disabled={isDeleting}
-                          className="px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white font-medium text-sm rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isDeleting ? 'Deleting...' : 'Confirm'}
                         </button>
@@ -398,9 +398,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   </div>
                 </div>
 
-                <div className="p-4 bg-slate-800/50 rounded-xl">
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-300">Privacy Notice:</strong> All your data is stored locally in your browser.
+                <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
+                  <p className="text-xs text-sage-700 leading-relaxed">
+                    <strong className="text-text-main">Privacy Notice:</strong> All your data is stored locally in your browser.
                     We do not collect, transmit, or store any of your health information on external servers.
                     Your data is completely private and under your control.
                   </p>
@@ -410,21 +410,21 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
             <section className="mt-8">
               <div className="flex items-center gap-2 mb-4">
-                <Beaker className="w-5 h-5 text-purple-400" />
-                <h3 className="text-lg font-semibold text-white">Developer / Clinical Tools</h3>
+                <Beaker className="w-5 h-5 text-sage-700" />
+                <h3 className="text-lg font-serif font-semibold text-text-main">Developer / Clinical Tools</h3>
               </div>
 
               <div className="space-y-3">
-                <div className="glass-card p-4 border-purple-500/20">
+                <div className="paper-card p-4 border-2 border-sage-300">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
                         Persona: Sarah - The Spotter
                       </h4>
-                      <p className="text-sm text-slate-400 mb-2">
+                      <p className="text-sm text-sage-600 mb-2">
                         High variance cycle with spotting trap. Tests if engine correctly ignores single-day light flow.
                       </p>
-                      <div className="text-xs text-purple-300 space-y-1">
+                      <div className="text-xs text-sage-700 space-y-1">
                         <p><strong>Cycle History:</strong> 32 days ago (TRUE), 78 days ago (TRUE)</p>
                         <p><strong>Trap:</strong> 5 days ago (single light flow - should be ignored)</p>
                         <p><strong>Expected:</strong> Current Day ~32, NOT 5</p>
@@ -433,23 +433,23 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     <button
                       onClick={handleLoadSarah}
                       disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-medium rounded-lg transition-all border border-purple-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoadingPersona ? 'Loading...' : 'Load Sarah'}
                     </button>
                   </div>
                 </div>
 
-                <div className="glass-card p-4 border-purple-500/20">
+                <div className="paper-card p-4 border-2 border-sage-300">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
                         Persona: Alex - The Long Cycle
                       </h4>
-                      <p className="text-sm text-slate-400 mb-2">
+                      <p className="text-sm text-sage-600 mb-2">
                         Extended 65-day cycle with consistent lifestyle tracking. Tests maintenance mode detection.
                       </p>
-                      <div className="text-xs text-purple-300 space-y-1">
+                      <div className="text-xs text-sage-700 space-y-1">
                         <p><strong>Cycle History:</strong> 65 days ago (TRUE period)</p>
                         <p><strong>Tracking:</strong> 60 consecutive days of lifestyle logs</p>
                         <p><strong>Expected:</strong> Current Day 65, Maintenance Mode status</p>
@@ -458,16 +458,16 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     <button
                       onClick={handleLoadAlex}
                       disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-medium rounded-lg transition-all border border-purple-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoadingPersona ? 'Loading...' : 'Load Alex'}
                     </button>
                   </div>
                 </div>
 
-                <div className="p-4 bg-purple-900/20 rounded-xl border border-purple-500/20">
-                  <p className="text-xs text-purple-300 leading-relaxed">
-                    <strong className="text-purple-200">Clinical Testing:</strong> These personas inject PCOS-specific test scenarios
+                <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
+                  <p className="text-xs text-sage-700 leading-relaxed">
+                    <strong className="text-text-main">Clinical Testing:</strong> These personas inject PCOS-specific test scenarios
                     to validate the Blossom Logic Constitution. Use them to verify cycle analysis handles edge cases like spotting,
                     long cycles, and high variability correctly.
                   </p>

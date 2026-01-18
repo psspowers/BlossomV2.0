@@ -97,6 +97,14 @@ a:focus-visible,
   .glass-card {
     @apply bg-white border border-slate-200 rounded-3xl shadow-sm;
   }
+
+  .paper-card {
+    @apply bg-surface rounded-3xl border border-border shadow-sm p-6;
+  }
+
+  .btn-sage {
+    @apply bg-primary text-white px-6 py-3 rounded-full font-medium hover:opacity-90 transition-all shadow-sm;
+  }
 }
 
 @keyframes float {
