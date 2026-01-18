@@ -164,7 +164,7 @@ export function Insights() {
         display: true,
         position: 'top' as const,
         labels: {
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(74, 74, 74, 0.8)',
           padding: 12,
           font: { size: 11 },
           usePointStyle: true,
@@ -172,10 +172,10 @@ export function Insights() {
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        titleColor: 'white',
-        bodyColor: 'white',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        titleColor: '#4A4A4A',
+        bodyColor: '#4A4A4A',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
         padding: 12,
         displayColors: true
@@ -184,12 +184,12 @@ export function Insights() {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+        ticks: { color: 'rgba(74, 74, 74, 0.6)' }
       },
       x: {
         grid: { display: false },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)', maxRotation: 45 }
+        ticks: { color: 'rgba(74, 74, 74, 0.6)', maxRotation: 45 }
       }
     }
   };
@@ -243,16 +243,16 @@ export function Insights() {
         display: true,
         position: 'top' as const,
         labels: {
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(74, 74, 74, 0.8)',
           padding: 15,
           font: { size: 11 }
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        titleColor: 'white',
-        bodyColor: 'white',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        titleColor: '#4A4A4A',
+        bodyColor: '#4A4A4A',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
         padding: 12,
         callbacks: {
@@ -264,12 +264,12 @@ export function Insights() {
       r: {
         beginAtZero: true,
         max: 10,
-        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+        grid: { color: 'rgba(0, 0, 0, 0.08)' },
+        angleLines: { color: 'rgba(0, 0, 0, 0.08)' },
         pointLabels: {
           color: (context: any) => {
             const metric = insights.radarMetrics[context.index];
-            return selectedMetric === metric ? currentConfig.borderColor : 'rgba(255, 255, 255, 0.7)';
+            return selectedMetric === metric ? currentConfig.borderColor : 'rgba(74, 74, 74, 0.8)';
           },
           font: (context: any) => {
             const metric = insights.radarMetrics[context.index];
@@ -313,10 +313,10 @@ export function Insights() {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        titleColor: 'white',
-        bodyColor: 'white',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        titleColor: '#4A4A4A',
+        bodyColor: '#4A4A4A',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
         padding: 12,
         displayColors: false,
@@ -331,15 +331,15 @@ export function Insights() {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        grid: { color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
-          color: 'rgba(255, 255, 255, 0.5)',
+          color: 'rgba(74, 74, 74, 0.6)',
           callback: (value: any) => `${value}%`
         }
       },
       y: {
         grid: { display: false },
-        ticks: { color: 'rgba(255, 255, 255, 0.7)' }
+        ticks: { color: 'rgba(74, 74, 74, 0.8)' }
       }
     }
   };
@@ -378,7 +378,7 @@ export function Insights() {
     return (
       <div className="mt-6 glass-card p-6">
         <div className="flex items-center justify-center">
-          <div className="text-slate-400 animate-pulse">Loading insights...</div>
+          <div className="text-slate-600 animate-pulse">Loading insights...</div>
         </div>
       </div>
     );
@@ -390,8 +390,8 @@ export function Insights() {
     return (
       <div className="mt-6 glass-card p-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-white mb-2">No Data Yet</h3>
-          <p className="text-slate-400 text-sm">
+          <h3 className="text-lg font-serif font-semibold text-slate-800 mb-2">No Data Yet</h3>
+          <p className="text-slate-600 text-sm">
             Start logging your daily data to see personalized insights and trends.
           </p>
         </div>
@@ -403,20 +403,20 @@ export function Insights() {
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Insights Engine</h2>
-          <p className="text-sm text-slate-400 mt-1">Evidence-based pattern analysis</p>
+          <h2 className="text-xl font-serif font-bold text-slate-800">Insights Engine</h2>
+          <p className="text-sm text-slate-600 mt-1">Evidence-based pattern analysis</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex bg-white/5 rounded-lg p-1 gap-1">
+          <div className="flex bg-white rounded-lg border border-slate-200 p-1 gap-1">
             {[7, 30].map(days => (
               <button
                 key={days}
                 onClick={() => setTimeframe(days as 7 | 30)}
                 className={`px-4 py-1.5 rounded text-xs font-medium transition-all ${
                   timeframe === days
-                    ? 'bg-teal-400 text-slate-950'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-sage-500 text-white'
+                    : 'text-slate-600 hover:text-slate-800'
                 }`}
               >
                 {days}D
@@ -436,8 +436,8 @@ export function Insights() {
               onClick={() => handleCategoryChange(key as InsightCategory)}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                 isActive
-                  ? `bg-white/10 ${config.textClass} border-b-2 ${config.borderClass} ${config.shadowClass} border-t border-x border-white/10`
-                  : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                  ? `bg-white ${config.textClass} border-b-2 ${config.borderClass} ${config.shadowClass} border-t border-x border-slate-200`
+                  : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 border border-slate-200'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -454,7 +454,7 @@ export function Insights() {
         <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="glass-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+            <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
               Velocity Trend
             </h3>
             <VelocityBadge />
@@ -466,12 +466,12 @@ export function Insights() {
 
         <div className="glass-card p-4">
           <div className="mb-3">
-            <h3 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+            <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
               Holistic Balance
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 mt-1">
               Current vs Baseline comparison
-              <span className="text-teal-400 ml-1">• Click labels to filter</span>
+              <span className="text-sage-600 ml-1">• Click labels to filter</span>
             </p>
           </div>
           <div className="relative" style={{ height: '300px' }}>
@@ -513,10 +513,10 @@ export function Insights() {
           <div className="mb-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+                <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                   {insights.targetSymptomLabel ? `Factors Affecting ${insights.targetSymptomLabel}` : 'Factor Analysis'}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-600 mt-1">
                   {selectedMetric
                     ? `How lifestyle choices impact ${insights.targetSymptomLabel.toLowerCase()}`
                     : `How lifestyle choices impact overall ${insights.targetSymptomLabel.toLowerCase()}`}
@@ -525,15 +525,15 @@ export function Insights() {
               {selectedMetric && (
                 <button
                   onClick={handleResetFilter}
-                  className="text-xs px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all"
+                  className="text-xs px-2 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-lg transition-all"
                 >
                   Show All
                 </button>
               )}
             </div>
             {selectedMetric && (
-              <div className="mt-2 px-2 py-1 bg-teal-500/20 border border-teal-500/30 rounded-lg inline-block">
-                <span className="text-xs text-teal-300 font-medium">
+              <div className="mt-2 px-2 py-1 bg-sage-100 border border-sage-200 rounded-lg inline-block">
+                <span className="text-xs text-sage-700 font-medium">
                   Filtered by: {insights.targetSymptomLabel}
                 </span>
               </div>
@@ -545,16 +545,16 @@ export function Insights() {
                 <Bar data={barData} options={barOptions} />
               </div>
               {insights.fastestPositiveFactor && (
-                <div className="mt-3 pt-3 border-t border-white/10">
-                  <p className="text-xs text-teal-400 font-medium">
-                    Fastest positive shift: <span className="text-white">{insights.fastestPositiveFactor.factor}</span> linked to <span className="text-teal-300">{insights.fastestPositiveFactor.impact}%</span> improvement
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <p className="text-xs text-sage-700 font-medium">
+                    Fastest positive shift: <span className="text-slate-800">{insights.fastestPositiveFactor.factor}</span> linked to <span className="text-sage-600">{insights.fastestPositiveFactor.impact}%</span> improvement
                   </p>
                 </div>
               )}
             </>
           ) : (
             <div className="flex items-center justify-center h-[300px]">
-              <p className="text-slate-500 text-sm">Not enough data for correlations</p>
+              <p className="text-slate-600 text-sm">Not enough data for correlations</p>
             </div>
           )}
         </div>

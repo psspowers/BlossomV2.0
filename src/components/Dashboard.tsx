@@ -17,58 +17,51 @@ export function Dashboard() {
 
   if (plantLoading || themeLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-slate-400 animate-pulse">Loading...</div>
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+        <div className="text-slate-600 animate-pulse">Loading...</div>
       </div>
     );
   }
 
   const fabColors = {
-    nurture: 'bg-purple-400 hover:bg-purple-300',
-    steady: 'bg-teal-400 hover:bg-teal-300',
-    thrive: 'bg-amber-400 hover:bg-amber-300'
+    nurture: 'bg-lavender-400 hover:bg-lavender-300',
+    steady: 'bg-sage-500 hover:bg-sage-400',
+    thrive: 'bg-terracotta-400 hover:bg-terracotta-300'
   };
 
   const fabGlow = {
-    nurture: '0 0 30px rgba(192, 132, 252, 0.5)',
-    steady: '0 0 30px rgba(45, 212, 191, 0.5)',
-    thrive: '0 0 30px rgba(251, 191, 36, 0.5)'
+    nurture: '0 4px 12px rgba(197, 179, 223, 0.4)',
+    steady: '0 4px 12px rgba(107, 143, 78, 0.4)',
+    thrive: '0 4px 12px rgba(232, 167, 155, 0.4)'
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-50"
-        style={{
-          background: 'radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.1), transparent 50%)'
-        }}
-      />
-
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
         <header className="mb-8 grid grid-cols-3 items-start gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">
               Blossom
             </h1>
-            <p className="text-sm text-slate-400 mt-1 whitespace-nowrap">
+            <p className="text-sm text-slate-600 mt-1 whitespace-nowrap">
               Your PCOS wellness companion
             </p>
           </div>
 
           <div className="flex justify-center items-start">
-            <div className="px-6 py-2 rounded-full bg-rose-950/40 border border-rose-800/30 flex items-center gap-2.5 whitespace-nowrap">
-              <Shield className="w-3.5 h-3.5 text-rose-400" />
-              <span className="text-sm font-medium text-rose-300">100% Private</span>
+            <div className="px-6 py-2 rounded-full bg-sage-50 border border-sage-200 flex items-center gap-2.5 whitespace-nowrap">
+              <Shield className="w-3.5 h-3.5 text-sage-600" />
+              <span className="text-sm font-medium text-sage-700">100% Private</span>
             </div>
           </div>
 
           <div className="flex justify-end">
             <button
               onClick={() => setShowSettings(true)}
-              className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm"
               aria-label="Open settings"
             >
-              <Settings className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
+              <Settings className="w-5 h-5 text-slate-600 group-hover:text-slate-800 group-hover:rotate-90 transition-all duration-300" />
             </button>
           </div>
         </header>
@@ -77,8 +70,8 @@ export function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           <div className="glass-card h-80">
-            <div className="p-4 border-b border-white/10">
-              <h2 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+            <div className="p-4 border-b border-slate-100">
+              <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                 Cycle Context
               </h2>
             </div>
@@ -86,8 +79,8 @@ export function Dashboard() {
           </div>
 
           <div className="glass-card h-80">
-            <div className="p-4 border-b border-white/10">
-              <h2 className="text-sm font-medium text-white/90 uppercase tracking-wide">
+            <div className="p-4 border-b border-slate-100">
+              <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                 Wellness Balance
               </h2>
             </div>

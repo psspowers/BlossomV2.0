@@ -67,23 +67,23 @@ export function WellnessRadar() {
           {
             label: 'Current',
             data: currentValues,
-            backgroundColor: 'rgba(45, 212, 191, 0.2)',
-            borderColor: 'rgba(45, 212, 191, 1)',
+            backgroundColor: 'rgba(107, 143, 78, 0.2)',
+            borderColor: 'rgba(107, 143, 78, 1)',
             borderWidth: 2,
-            pointBackgroundColor: 'rgba(45, 212, 191, 1)',
+            pointBackgroundColor: 'rgba(107, 143, 78, 1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(45, 212, 191, 1)'
+            pointHoverBorderColor: 'rgba(107, 143, 78, 1)'
           },
           {
             label: 'Baseline',
             data: baselineValues,
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderColor: 'rgba(255, 255, 255, 0.3)',
+            backgroundColor: 'rgba(100, 116, 139, 0.05)',
+            borderColor: 'rgba(100, 116, 139, 0.4)',
             borderWidth: 1,
             borderDash: [5, 5],
-            pointBackgroundColor: 'rgba(255, 255, 255, 0.3)',
-            pointBorderColor: 'rgba(255, 255, 255, 0.3)',
+            pointBackgroundColor: 'rgba(100, 116, 139, 0.4)',
+            pointBorderColor: 'rgba(100, 116, 139, 0.4)',
             pointRadius: 2
           }
         ]
@@ -105,13 +105,13 @@ export function WellnessRadar() {
           stepSize: 2
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(0, 0, 0, 0.08)'
         },
         angleLines: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: 'rgba(0, 0, 0, 0.08)'
         },
         pointLabels: {
-          color: 'rgba(255, 255, 255, 0.7)',
+          color: 'rgba(74, 74, 74, 0.8)',
           font: {
             size: 12,
             family: 'Inter, system-ui, sans-serif'
@@ -124,10 +124,10 @@ export function WellnessRadar() {
         display: false
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        titleColor: '#fff',
-        bodyColor: '#cbd5e1',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+        titleColor: '#4A4A4A',
+        bodyColor: '#64748b',
+        borderColor: 'rgba(0, 0, 0, 0.1)',
         borderWidth: 1,
         padding: 12,
         displayColors: false
@@ -137,7 +137,7 @@ export function WellnessRadar() {
 
   if (!chartData) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-400">
+      <div className="flex items-center justify-center h-full text-slate-600">
         No data yet
       </div>
     );
