@@ -1,183 +1,54 @@
 import { useEffect, useState } from 'react';
-import { db } from '../lib/db';
-import { differenceInDays, format, addDays } from 'date-fns';
-
-interface CycleData {
-  currentCycleDay: number;
-  lastCycleLength: number;
-  averageCycleLength: number;
-  regularity: number;
-  status: 'regular' | 'long' | 'irregular' | 'unknown';
-  periodStarts: Date[];
-  cycleLengths: number[];
-}
-
-interface PhaseConfig {
-  name: string;
-  insight: string;
-  color: string;
-  ringColor: string;
-}
+import { db, LogEntry } from '../lib/db';
+import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
+import { Activity, TrendingUp } from 'lucide-react';
 
 export function CycleContext() {
-  const [cycleData, setCycleData] = useState<CycleData>({
-    currentCycleDay: 0,
-    lastCycleLength: 28,
-    averageCycleLength: 28,
-    regularity: 0,
-    status: 'unknown',
-    periodStarts: [],
-    cycleLengths: []
-  });
-  const [hasEnoughData, setHasEnoughData] = useState(false);
+  const [analysis, setAnalysis] = useState<CycleAnalysis | null>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [recentSpotting, setRecentSpotting] = useState<{ date: string; daysAgo: number } | null>(null);
 
   useEffect(() => {
     const loadCycleData = async () => {
-      const logs = await db.logs
+      const allLogs = await db.logs
         .orderBy('date')
-        .reverse()
         .toArray();
 
-      const menstrualLogs = logs.filter(log => log.cyclePhase === 'menstrual');
+      setLogs(allLogs);
 
-      if (menstrualLogs.length === 0) {
-        setHasEnoughData(false);
+      if (allLogs.length === 0) {
         return;
       }
 
-      const periodStarts: Date[] = [];
-      for (let i = 0; i < menstrualLogs.length; i++) {
-        const currentDate = new Date(menstrualLogs[i].date);
-        const isFirstDay = i === 0 ||
-          differenceInDays(new Date(menstrualLogs[i - 1].date), currentDate) > 1;
+      const cycleAnalysis = analyzeHistory(allLogs);
+      setAnalysis(cycleAnalysis);
 
-        if (isFirstDay) {
-          periodStarts.push(currentDate);
+      const sortedLogs = [...allLogs].sort((a, b) => b.date.localeCompare(a.date));
+
+      const spottingLog = sortedLogs.find(log =>
+        log.flow === 'light' || log.flow === 'spotting'
+      );
+
+      if (spottingLog && cycleAnalysis.lastTruePeriod) {
+        const spottingDate = new Date(spottingLog.date);
+        const lastPeriodDate = new Date(cycleAnalysis.lastTruePeriod.startDate);
+        const today = new Date();
+
+        const daysAgoSpotting = Math.floor((today.getTime() - spottingDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (spottingDate > lastPeriodDate && daysAgoSpotting < 30) {
+          setRecentSpotting({
+            date: spottingLog.date,
+            daysAgo: daysAgoSpotting
+          });
         }
       }
-
-      if (periodStarts.length === 0) {
-        setHasEnoughData(false);
-        return;
-      }
-
-      const lastPeriod = periodStarts[0];
-      const today = new Date();
-      const currentCycleDay = differenceInDays(today, lastPeriod);
-
-      let lastCycleLength = 28;
-      let averageCycleLength = 28;
-      let regularity = 0;
-      let status: 'regular' | 'long' | 'irregular' | 'unknown' = 'unknown';
-      const cycleLengths: number[] = [];
-
-      if (periodStarts.length >= 2) {
-        const secondLastPeriod = periodStarts[1];
-        lastCycleLength = differenceInDays(lastPeriod, secondLastPeriod);
-
-        if (lastCycleLength < 15) {
-          setHasEnoughData(false);
-          return;
-        }
-
-        cycleLengths.push(lastCycleLength);
-
-        if (periodStarts.length >= 3) {
-          const thirdLastPeriod = periodStarts[2];
-          const secondToLastCycleLength = differenceInDays(secondLastPeriod, thirdLastPeriod);
-
-          if (secondToLastCycleLength >= 15) {
-            cycleLengths.push(secondToLastCycleLength);
-            regularity = Math.abs(lastCycleLength - secondToLastCycleLength);
-            averageCycleLength = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
-          } else {
-            averageCycleLength = lastCycleLength;
-          }
-
-          if (periodStarts.length >= 4) {
-            const fourthLastPeriod = periodStarts[3];
-            const thirdToLastCycleLength = differenceInDays(thirdLastPeriod, fourthLastPeriod);
-            if (thirdToLastCycleLength >= 15) {
-              cycleLengths.push(thirdToLastCycleLength);
-              averageCycleLength = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
-            }
-          }
-
-          if (lastCycleLength > 35) {
-            status = 'long';
-          } else if (regularity > 7) {
-            status = 'irregular';
-          } else {
-            status = 'regular';
-          }
-        } else {
-          if (lastCycleLength > 35) {
-            status = 'long';
-          } else {
-            status = 'regular';
-          }
-          averageCycleLength = lastCycleLength;
-        }
-        setHasEnoughData(true);
-      } else {
-        setHasEnoughData(false);
-      }
-
-      setCycleData({
-        currentCycleDay,
-        lastCycleLength,
-        averageCycleLength,
-        regularity,
-        status,
-        periodStarts: periodStarts.slice(0, 4),
-        cycleLengths
-      });
     };
 
     loadCycleData();
   }, []);
 
-  const getPhaseConfig = (day: number): PhaseConfig => {
-    if (day <= 5) {
-      return {
-        name: 'Menstrual Phase',
-        insight: 'Hormones are at baseline. Your body is resetting.',
-        color: 'text-rose-400',
-        ringColor: '#fb7185'
-      };
-    } else if (day <= 13) {
-      return {
-        name: 'Follicular Phase',
-        insight: 'Estrogen is rising. You may feel a boost in energy and focus.',
-        color: 'text-teal-400',
-        ringColor: '#2dd4bf'
-      };
-    } else if (day === 14) {
-      return {
-        name: 'Ovulation',
-        insight: 'Peak energy. A great time for important conversations.',
-        color: 'text-amber-400',
-        ringColor: '#fbbf24'
-      };
-    } else {
-      return {
-        name: 'Luteal Phase',
-        insight: 'Progesterone is dominant. Prioritize rest and gentle movement.',
-        color: 'text-purple-400',
-        ringColor: '#c084fc'
-      };
-    }
-  };
-
-  const sanitizedCycleLength = cycleData.averageCycleLength < 21 ? 28 : cycleData.averageCycleLength;
-  const progress = Math.min((cycleData.currentCycleDay / sanitizedCycleLength) * 100, 100);
-  const phaseConfig = getPhaseConfig(cycleData.currentCycleDay);
-
-  const radius = 50;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  if (!hasEnoughData) {
+  if (!analysis || analysis.isUntracked) {
     return (
       <div className="flex flex-col justify-center h-full p-6">
         <div className="space-y-6">
@@ -198,7 +69,7 @@ export function CycleContext() {
               <div>
                 <div className="text-sm font-medium text-white">Log Your Period</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Mark the first day of your menstrual cycle
+                  Mark the first day with medium or heavy flow
                 </div>
               </div>
             </div>
@@ -220,9 +91,9 @@ export function CycleContext() {
                 <span className="text-xs font-bold text-teal-400">3</span>
               </div>
               <div>
-                <div className="text-sm font-medium text-white">Get Insights</div>
+                <div className="text-sm font-medium text-white">Get PCOS Insights</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Discover patterns and personalized wellness tips
+                  Discover patterns with PCOS-aware cycle logic
                 </div>
               </div>
             </div>
@@ -238,172 +109,157 @@ export function CycleContext() {
     );
   }
 
-  const daysToShow = 28;
-  const today = new Date();
-  const startDate = addDays(today, -14);
+  const { currentDay, isLongCycle, variability } = analysis;
 
-  const dates = Array.from({ length: daysToShow }, (_, i) => addDays(startDate, i));
-
-  const isPeriodStartDay = (date: Date) => {
-    return cycleData.periodStarts.some(periodDate => {
-      const diff = Math.abs(differenceInDays(date, periodDate));
-      return diff === 0;
-    });
-  };
-
-  const getPhaseForDay = (date: Date) => {
-    if (!cycleData.periodStarts[0]) return 3;
-    const daysSinceLastPeriod = differenceInDays(date, cycleData.periodStarts[0]);
-    if (daysSinceLastPeriod < 0) {
-      const cyclesBack = cycleData.periodStarts.findIndex(ps => differenceInDays(date, ps) >= 0);
-      if (cyclesBack === -1) return 3;
-      const relevantPeriod = cycleData.periodStarts[cyclesBack];
-      const daysSince = differenceInDays(date, relevantPeriod);
-      if (daysSince <= 5) return 0;
-      if (daysSince <= 13) return 1;
-      if (daysSince <= 17) return 2;
-      return 3;
+  const getPhaseInsight = () => {
+    if (isLongCycle) {
+      return 'We are in an extended cycle. Focus on consistency and metabolic support.';
     }
-    if (daysSinceLastPeriod <= 5) return 0;
-    if (daysSinceLastPeriod <= 13) return 1;
-    if (daysSinceLastPeriod <= 17) return 2;
-    return 3;
+
+    if (currentDay <= 5) {
+      return 'Menstrual phase. Hormones are at baseline. Rest and replenish.';
+    } else if (currentDay <= 14) {
+      return 'Follicular phase. Estrogen levels are likely rising.';
+    } else if (currentDay <= 21) {
+      return 'Luteal phase. Progesterone is becoming dominant.';
+    } else {
+      return 'Late luteal phase. Listen to your body\'s rhythm.';
+    }
   };
 
-  const getCycleLengthText = () => {
-    if (cycleData.cycleLengths.length === 0) return '';
-    const reversed = [...cycleData.cycleLengths].reverse();
-    return reversed.map(len => `${len}d`).join(' → ');
-  };
+  const radius = 50;
+  const circumference = 2 * Math.PI * radius;
+  const normalizedProgress = isLongCycle ? 100 : Math.min((currentDay / 35) * 100, 100);
+  const strokeDashoffset = circumference - (normalizedProgress / 100) * circumference;
+
+  const metabolicScore = isLongCycle ? Math.max(40, 100 - (currentDay - 35)) : 85;
 
   return (
     <div className="relative overflow-hidden h-full flex flex-col p-6">
-      <div className="flex items-center gap-4 text-xs flex-shrink-0 mb-4">
-        <div>
-          <span className="text-slate-500">Cycles:</span>{' '}
-          <span className="text-white font-medium">{getCycleLengthText() || `${cycleData.lastCycleLength}d`}</span>
-        </div>
-        <div>
-          <span className="text-slate-500">Avg:</span>{' '}
-          <span className="text-white font-medium">{cycleData.averageCycleLength}d</span>
-        </div>
-        {cycleData.regularity > 0 && (
-          <div>
-            <span className="text-slate-500">±</span>{' '}
-            <span className="text-white font-medium">{cycleData.regularity}d</span>
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+            {isLongCycle ? 'Metabolic Maintenance' : 'Cycle Context'}
+          </h3>
+
+          <div className="flex items-baseline gap-3 mb-3">
+            <span className={`text-5xl font-bold ${isLongCycle ? 'text-blue-400' : 'text-teal-400'}`}>
+              Day {currentDay}
+            </span>
+
+            {variability > 10 && (
+              <span className="px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-300 border border-slate-700 font-medium">
+                Dynamic Pattern
+              </span>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="flex-1 relative flex flex-col">
-        <div className="flex items-center gap-3 mb-1.5 text-[9px] text-slate-500">
-          <div className="flex items-center gap-1">
-            <div className="w-6 h-1 bg-gradient-to-r from-rose-400 via-teal-400 to-purple-400 opacity-40 rounded"></div>
-            <span>Hormone phases</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></div>
-            <span>Period start</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-0.5 h-2.5 bg-white"></div>
-            <span>Today</span>
-          </div>
-        </div>
+          <p className="text-sm text-slate-300 leading-relaxed max-w-md">
+            {getPhaseInsight()}
+          </p>
 
-        <svg
-          width="100%"
-          height="140"
-          viewBox={`0 0 ${daysToShow * 10} 140`}
-          className="w-full"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="phaseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#fb7185" stopOpacity="0.3" />
-              <stop offset="33%" stopColor="#2dd4bf" stopOpacity="0.3" />
-              <stop offset="66%" stopColor="#fbbf24" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#c084fc" stopOpacity="0.3" />
-            </linearGradient>
-          </defs>
+          {analysis.cycleHistory.length > 1 && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="flex items-center gap-4 text-xs">
+                <div>
+                  <span className="text-slate-500">Recent Cycles:</span>{' '}
+                  <span className="text-white font-medium">
+                    {analysis.cycleHistory
+                      .slice(-3)
+                      .reverse()
+                      .map(c => c.daysFromPrevious)
+                      .filter(d => d !== undefined)
+                      .map(d => `${d}d`)
+                      .join(' → ')}
+                  </span>
+                </div>
 
-          <path
-            d={`
-              M 0,140
-              ${dates.map((date, i) => {
-                const x = i * 10 + 5;
-                const phase = getPhaseForDay(date);
-                const heights = [28, 63, 91, 49];
-                const variance = Math.sin(date.getTime() / 100000000) * 7;
-                const y = 140 - (heights[phase] + variance);
-                return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-              }).join(' ')}
-              L ${daysToShow * 10},140
-              Z
-            `}
-            fill="url(#phaseGradient)"
-            className="transition-all duration-300"
-          />
-
-          <path
-            d={dates.map((date, i) => {
-              const x = i * 10 + 5;
-              const phase = getPhaseForDay(date);
-              const heights = [28, 63, 91, 49];
-              const variance = Math.sin(date.getTime() / 100000000) * 7;
-              const y = 140 - (heights[phase] + variance);
-              return i === 0 ? `M ${x},${y}` : `L ${x},${y}`;
-            }).join(' ')}
-            fill="none"
-            stroke="#2dd4bf"
-            strokeWidth="0.5"
-            className="transition-all duration-300"
-          />
-
-          {dates.map((date, i) => {
-            const isToday = differenceInDays(date, today) === 0;
-            const isPeriod = isPeriodStartDay(date);
-            const x = i * 10 + 5;
-            const phase = getPhaseForDay(date);
-            const heights = [28, 63, 91, 49];
-            const variance = Math.sin(date.getTime() / 100000000) * 7;
-            const y = 140 - (heights[phase] + variance);
-
-            return (
-              <g key={i}>
-                <line
-                  x1={x}
-                  y1={0}
-                  x2={x}
-                  y2={140}
-                  stroke={isToday ? '#ffffff' : 'rgba(255,255,255,0.1)'}
-                  strokeWidth={isToday ? 1 : 0.3}
-                />
-                {isPeriod && (
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={2}
-                    fill="#fb7185"
-                    className="animate-pulse"
-                  />
+                {variability > 0 && (
+                  <div>
+                    <span className="text-slate-500">Variability:</span>{' '}
+                    <span className={`font-medium ${variability > 10 ? 'text-amber-400' : 'text-teal-400'}`}>
+                      ±{Math.round(variability)}d
+                    </span>
+                  </div>
                 )}
-              </g>
-            );
-          })}
-        </svg>
-
-        <div className="flex justify-between text-[8px] text-slate-500 mt-1">
-          {dates.filter((_, i) => i % 4 === 0).map((date, i) => (
-            <div key={i} className="flex flex-col items-center">
-              <span>{format(date, 'EEE')}</span>
-              <span className="font-medium">{format(date, 'd')}</span>
+              </div>
             </div>
-          ))}
+          )}
+
+          {recentSpotting && (
+            <div className="mt-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+              <div className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-500 mt-1.5 flex-shrink-0" />
+                <p className="text-xs text-slate-400">
+                  <span className="text-slate-300 font-medium">Spotting detected</span> {recentSpotting.daysAgo} days ago (No Reset)
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="text-center mt-2.5 text-xs text-slate-400">
-          You are on day <span className="text-white font-semibold">{cycleData.currentCycleDay}</span> since your last period
+        <div className="ml-6 flex-shrink-0">
+          {isLongCycle ? (
+            <div className="w-32 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">Stability</span>
+                <span className="text-blue-400 font-semibold">{metabolicScore}%</span>
+              </div>
+
+              <div className="relative h-3 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500"
+                  style={{ width: `${metabolicScore}%` }}
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <Activity className="w-4 h-4 text-blue-400" />
+                <span>Maintenance Mode</span>
+              </div>
+
+              <div className="pt-3 mt-3 border-t border-white/10">
+                <div className="text-[10px] text-slate-500 space-y-1">
+                  <p>Focus Areas:</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Sleep</span>
+                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Nutrition</span>
+                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Movement</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-32 h-32 relative">
+              <svg className="w-32 h-32 transform -rotate-90">
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={radius}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.1)"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={radius}
+                  fill="none"
+                  stroke="#2dd4bf"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  className="transition-all duration-500"
+                />
+              </svg>
+
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-teal-400 mb-1" />
+                <div className="text-xs text-slate-400">Tracking</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
