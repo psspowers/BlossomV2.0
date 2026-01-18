@@ -29,7 +29,18 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   };
   const colors = getColors();
 
-  const petalPath = "M10,100 C10,50 50,0 100,0 C150,0 190,50 190,100 C190,160 100,200 100,200 C100,200 10,160 10,100 Z";
+  const createPetalPath = (scale: number = 1) => {
+    const width = 40 * scale;
+    const height = 80 * scale;
+    return `M 0,-${height}
+            C -${width * 0.8},-${height * 0.7} -${width},-${height * 0.3} -${width * 0.6},0
+            C -${width * 0.3},${height * 0.15} 0,${height * 0.2} 0,${height * 0.2}
+            C 0,${height * 0.2} ${width * 0.3},${height * 0.15} ${width * 0.6},0
+            C ${width},-${height * 0.3} ${width * 0.8},-${height * 0.7} 0,-${height} Z`;
+  };
+
+  const outerPetalPath = createPetalPath(bloomFactor);
+  const innerPetalPath = createPetalPath(bloomFactor * 0.8);
 
   return (
     <div className="relative flex flex-col items-center justify-center py-12">
@@ -42,73 +53,95 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           style={{ backgroundColor: colors.aura }}
         />
 
-        <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
+        <svg viewBox="-150 -150 300 300" className="w-full h-full drop-shadow-2xl">
           <defs>
-            <linearGradient id="petalGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="petalGradientOuter" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor={colors.tip} />
               <stop offset="100%" stopColor={colors.base} />
             </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            <linearGradient id="petalGradientInner" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={colors.base} />
+              <stop offset="100%" stopColor={colors.tip} stopOpacity="0.3" />
+            </linearGradient>
+            <filter id="softGlow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
             </filter>
           </defs>
 
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
-            <motion.path
-              key={`outer-${i}`}
-              d={petalPath}
-              fill="url(#petalGradient)"
-              filter="url(#glow)"
-              style={{ transformOrigin: "200px 200px", opacity: 0.9 }}
-              animate={{
-                rotate: angle,
-                scaleY: bloomFactor,
-                scaleX: 0.8,
-                translateY: bloomFactor * -20
-              }}
-              transition={{ duration: 2, delay: i * 0.1 }}
-            />
-          ))}
+          <g filter="url(#softGlow)">
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+              <motion.path
+                key={`outer-${i}`}
+                d={outerPetalPath}
+                fill="url(#petalGradientOuter)"
+                stroke={colors.tip}
+                strokeWidth="0.5"
+                opacity={0.9}
+                initial={{ rotate: angle, scale: 0 }}
+                animate={{
+                  rotate: angle,
+                  scale: 1,
+                }}
+                transition={{
+                  duration: 1.5,
+                  delay: i * 0.1,
+                  ease: "easeOut"
+                }}
+              />
+            ))}
 
-          {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
-            <motion.path
-              key={`inner-${i}`}
-              d={petalPath}
-              fill={colors.base}
-              stroke={colors.tip}
-              strokeWidth="1"
-              style={{ transformOrigin: "200px 200px", opacity: 0.95 }}
-              animate={{
-                rotate: angle,
-                scaleY: bloomFactor * 0.8,
-                scaleX: 0.6,
-                translateY: bloomFactor * -10
-              }}
-              transition={{ duration: 2, delay: 0.5 + (i * 0.1) }}
-            />
-          ))}
+            {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
+              <motion.path
+                key={`inner-${i}`}
+                d={innerPetalPath}
+                fill="url(#petalGradientInner)"
+                stroke={colors.tip}
+                strokeWidth="0.5"
+                opacity={0.95}
+                initial={{ rotate: angle, scale: 0 }}
+                animate={{
+                  rotate: angle,
+                  scale: 1,
+                }}
+                transition={{
+                  duration: 1.5,
+                  delay: 0.4 + (i * 0.1),
+                  ease: "easeOut"
+                }}
+              />
+            ))}
+          </g>
 
           <motion.circle
-            cx="200"
-            cy="200"
-            r={20 * bloomFactor}
+            cx="0"
+            cy="0"
+            r={15 * bloomFactor}
             fill={colors.center}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
+            initial={{ scale: 0 }}
+            animate={{ scale: [0.9, 1.05, 0.9] }}
+            transition={{ duration: 3, repeat: Infinity, delay: 1 }}
           />
-          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
-             <motion.circle
-               key={`seed-${i}`}
-               cx="200"
-               cy="200"
-               r="3"
-               fill="#5D4037"
-               animate={{
-                 transform: `rotate(${angle}deg) translate(${10 * bloomFactor}px)`
-               }}
-             />
-          ))}
+
+          {[0, 60, 120, 180, 240, 300].map((angle) => {
+            const rad = (angle * Math.PI) / 180;
+            const distance = 8 * bloomFactor;
+            return (
+              <motion.circle
+                key={`seed-${angle}`}
+                cx={Math.cos(rad) * distance}
+                cy={Math.sin(rad) * distance}
+                r="2"
+                fill="#5D4037"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.5 }}
+              />
+            );
+          })}
 
         </svg>
 
