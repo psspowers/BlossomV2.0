@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette } from 'lucide-react';
+import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette, Beaker } from 'lucide-react';
 import { useAchievements, usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
 import { getPhaseDescription } from '../lib/logic/plant';
 import { resetDatabase } from '../lib/resetData';
 import { useState } from 'react';
 import { useTheme } from '../lib/themes/ThemeContext';
+import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -19,6 +20,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isLoadingPersona, setIsLoadingPersona] = useState(false);
+  const { loadSarahPersona, loadAlexPersona } = usePCOSSeeder();
 
   const handleExportData = async () => {
     try {
@@ -87,6 +90,34 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       alert('Failed to reset demo data. Please try again.');
     } finally {
       setIsResetting(false);
+    }
+  };
+
+  const handleLoadSarah = async () => {
+    try {
+      setIsLoadingPersona(true);
+      const result = await loadSarahPersona();
+      alert(`Loaded: ${result.persona}\n\n${result.description}\n\nExpected Current Day: ${result.expectedCurrentDay}\n\n${result.trapDescription}`);
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to load Sarah persona:', error);
+      alert('Failed to load persona. Please try again.');
+    } finally {
+      setIsLoadingPersona(false);
+    }
+  };
+
+  const handleLoadAlex = async () => {
+    try {
+      setIsLoadingPersona(true);
+      const result = await loadAlexPersona();
+      alert(`Loaded: ${result.persona}\n\n${result.description}\n\nExpected Current Day: ${result.expectedCurrentDay}\n\n${result.note}`);
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to load Alex persona:', error);
+      alert('Failed to load persona. Please try again.');
+    } finally {
+      setIsLoadingPersona(false);
     }
   };
 
@@ -372,6 +403,73 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     <strong className="text-slate-300">Privacy Notice:</strong> All your data is stored locally in your browser.
                     We do not collect, transmit, or store any of your health information on external servers.
                     Your data is completely private and under your control.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <Beaker className="w-5 h-5 text-purple-400" />
+                <h3 className="text-lg font-semibold text-white">Developer / Clinical Tools</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="glass-card p-4 border-purple-500/20">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
+                        Persona: Sarah - The Spotter
+                      </h4>
+                      <p className="text-sm text-slate-400 mb-2">
+                        High variance cycle with spotting trap. Tests if engine correctly ignores single-day light flow.
+                      </p>
+                      <div className="text-xs text-purple-300 space-y-1">
+                        <p><strong>Cycle History:</strong> 32 days ago (TRUE), 78 days ago (TRUE)</p>
+                        <p><strong>Trap:</strong> 5 days ago (single light flow - should be ignored)</p>
+                        <p><strong>Expected:</strong> Current Day ~32, NOT 5</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleLoadSarah}
+                      disabled={isLoadingPersona}
+                      className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-medium rounded-lg transition-all border border-purple-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingPersona ? 'Loading...' : 'Load Sarah'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="glass-card p-4 border-purple-500/20">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-white font-medium mb-1 flex items-center gap-2">
+                        Persona: Alex - The Long Cycle
+                      </h4>
+                      <p className="text-sm text-slate-400 mb-2">
+                        Extended 65-day cycle with consistent lifestyle tracking. Tests maintenance mode detection.
+                      </p>
+                      <div className="text-xs text-purple-300 space-y-1">
+                        <p><strong>Cycle History:</strong> 65 days ago (TRUE period)</p>
+                        <p><strong>Tracking:</strong> 60 consecutive days of lifestyle logs</p>
+                        <p><strong>Expected:</strong> Current Day 65, Maintenance Mode status</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleLoadAlex}
+                      disabled={isLoadingPersona}
+                      className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-medium rounded-lg transition-all border border-purple-500/30 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingPersona ? 'Loading...' : 'Load Alex'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-purple-900/20 rounded-xl border border-purple-500/20">
+                  <p className="text-xs text-purple-300 leading-relaxed">
+                    <strong className="text-purple-200">Clinical Testing:</strong> These personas inject PCOS-specific test scenarios
+                    to validate the Blossom Logic Constitution. Use them to verify cycle analysis handles edge cases like spotting,
+                    long cycles, and high variability correctly.
                   </p>
                 </div>
               </div>
