@@ -183,6 +183,19 @@ Blossom is a companion tool for tracking and understanding your PCOS journey. It
 Typical storage usage: 0.5-2 KB per day of logs
 Browser LocalStorage limit: 5-10 MB (enough for years of data)
 
+## Developer & Operations Documentation
+
+For developers, operators, and technical teams, comprehensive documentation is available:
+
+- **[Documentation Index](./DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
+- **[Technical Manual](./TECHNICAL_MANUAL.md)** - Architecture, development, and API reference
+- **[Operations Manual](./OPERATIONS_MANUAL.md)** - Deployment, monitoring, and maintenance
+- **[Quick Reference](./QUICK_REFERENCE.md)** - One-page cheat sheet for common tasks
+- **[Theme System Guide](./THEME_SYSTEM_GUIDE.md)** - Complete theme customization guide
+
+Additional feature-specific guides:
+- Chart troubleshooting, filter implementation, PCOS insights, and more
+
 ## Support & Feedback
 
 For issues, suggestions, or questions about features, please refer to the app's built-in help sections or consult the educational content within the Learn tab.
