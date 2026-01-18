@@ -95,6 +95,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter var', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Merriweather', 'Georgia', 'serif'],
       },
       backdropBlur: {
         xs: '2px',

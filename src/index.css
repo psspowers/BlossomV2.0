@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap');
 @supports (font-variation-settings: normal) {
   @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap');
 }
@@ -14,7 +15,8 @@
 body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  @apply bg-slate-950 text-slate-100;
+  background-color: #FDFBF7;
+  color: #4A4A4A;
 }
 
 .safe-area-inset-bottom {
@@ -73,27 +75,27 @@ a:focus-visible,
 @layer base {
   :root {
     --ring: 107 143 78;
-    --theme-primary: rgb(45, 212, 191);
-    --theme-primary-hover: rgb(94, 234, 212);
-    --theme-secondary: rgb(192, 132, 252);
-    --theme-secondary-hover: rgb(216, 180, 254);
-    --theme-accent: rgb(251, 191, 36);
-    --theme-accent-hover: rgb(252, 211, 77);
-    --theme-background: rgb(2, 6, 23);
-    --theme-surface: rgba(15, 23, 42, 0.8);
-    --theme-text: rgb(255, 255, 255);
-    --theme-text-secondary: rgb(148, 163, 184);
-    --theme-border: rgba(255, 255, 255, 0.1);
-    --theme-glow: rgba(45, 212, 191, 0.5);
-    --theme-font-heading: system-ui, -apple-system, sans-serif;
-    --theme-font-body: system-ui, -apple-system, sans-serif;
-    --theme-animation-duration: 200ms;
+    --theme-primary: rgb(107, 143, 78);
+    --theme-primary-hover: rgb(134, 169, 107);
+    --theme-secondary: rgb(255, 105, 180);
+    --theme-secondary-hover: rgb(255, 182, 193);
+    --theme-accent: rgb(93, 64, 55);
+    --theme-accent-hover: rgb(121, 85, 72);
+    --theme-background: rgb(253, 251, 247);
+    --theme-surface: rgb(255, 255, 255);
+    --theme-text: rgb(74, 74, 74);
+    --theme-text-secondary: rgb(93, 64, 55);
+    --theme-border: rgba(0, 0, 0, 0.1);
+    --theme-glow: rgba(255, 105, 180, 0.3);
+    --theme-font-heading: 'Merriweather', Georgia, serif;
+    --theme-font-body: 'Inter', system-ui, sans-serif;
+    --theme-animation-duration: 300ms;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl;
+    @apply bg-white border border-slate-200 rounded-3xl shadow-sm;
   }
 }
 
@@ -228,7 +230,7 @@ a:focus-visible,
 }
 
 [data-theme="lotus"] .glass-card {
-  @apply border-pink-500/20 bg-zinc-900/80;
+  @apply border-pink-200 bg-white shadow-md;
 }
 
 [data-theme="lotus"] h1,

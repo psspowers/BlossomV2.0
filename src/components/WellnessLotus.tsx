@@ -13,33 +13,27 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   streak,
   name = 'Your Journey'
 }) => {
-
   const bloomFactor = Math.max(0.3, health / 100);
 
   const getColors = () => {
     if (health >= 80) return {
-      tip: '#FF69B4', base: '#FFF0F5', center: '#FFD700', aura: 'rgba(255, 105, 180, 0.4)'
+      tip: '#FF69B4', base: '#FFF0F5', center: '#FFD700',
+      waterBase: '#4DD0E1', waterRipple: 'rgba(77, 208, 225, 0.3)'
     };
     if (health >= 50) return {
-      tip: '#F48FB1', base: '#FFF5F7', center: '#FFE082', aura: 'rgba(244, 143, 177, 0.3)'
+      tip: '#F48FB1', base: '#FFF5F7', center: '#FFE082',
+      waterBase: '#80DEEA', waterRipple: 'rgba(128, 222, 234, 0.25)'
     };
     return {
-      tip: '#D7CCC8', base: '#EFEBE9', center: '#A1887F', aura: 'rgba(161, 136, 127, 0.2)'
+      tip: '#D7CCC8', base: '#EFEBE9', center: '#A1887F',
+      waterBase: '#B0BEC5', waterRipple: 'rgba(176, 190, 197, 0.2)'
     };
   };
+
   const colors = getColors();
 
   const createPetalPath = (scale: number = 1) => {
-    const width = 35 * scale;
-    const height = 70 * scale;
-    return `
-      M 0,-10
-      Q -${width * 0.3},-${height * 0.5} -${width},-${height}
-      Q -${width * 0.5},-${height * 1.05} 0,-${height * 1.1}
-      Q ${width * 0.5},-${height * 1.05} ${width},-${height}
-      Q ${width * 0.3},-${height * 0.5} 0,-10
-      Z
-    `;
+    return `M0,0 C10,-20 30,-50 0,-100 C-30,-50 -10,-20 0,0`;
   };
 
   const outerPetals = [0, 45, 90, 135, 180, 225, 270, 315];
@@ -49,126 +43,102 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
     <div className="relative flex flex-col items-center justify-center py-12">
       <div className="relative w-80 h-80 flex items-center justify-center">
 
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute w-64 h-64 rounded-full blur-[60px]"
-          style={{ backgroundColor: colors.aura }}
-        />
+        <div className="absolute w-full h-1/2 bottom-0 rounded-b-full opacity-60"
+             style={{ background: `linear-gradient(to bottom, transparent, ${colors.waterBase})` }} />
 
-        <svg viewBox="-150 -150 300 300" className="w-full h-full drop-shadow-2xl">
+        {[0.8, 1.0, 1.2].map((scale, i) => (
+          <motion.div
+            key={`ripple-${i}`}
+            className="absolute w-64 h-16 rounded-[100%] blur-xl"
+            style={{ background: colors.waterRipple, bottom: '5%' }}
+            animate={{
+              scale: [scale, scale * 1.4, scale],
+              opacity: [0.2, 0.5, 0.2]
+            }}
+            transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+          />
+        ))}
+
+        <div className="absolute w-full h-full bottom-[-20%] opacity-30 blur-[4px]" style={{ transform: 'scaleY(-0.5)' }}>
+           <svg viewBox="-150 -150 300 300" className="w-full h-full">
+             <g fill={colors.tip}>
+                {outerPetals.map((angle, i) => (
+                  <path key={`ref-${i}`} d={createPetalPath()} transform={`rotate(${angle}) scale(${bloomFactor})`} />
+                ))}
+             </g>
+           </svg>
+        </div>
+
+        <svg viewBox="-150 -150 300 300" className="w-full h-full drop-shadow-xl relative z-10">
           <defs>
-            <linearGradient id="petalGradientOuter" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={colors.tip} />
-              <stop offset="100%" stopColor={colors.base} />
-            </linearGradient>
-            <linearGradient id="petalGradientInner" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="petalGradientOuter" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0%" stopColor={colors.base} />
-              <stop offset="100%" stopColor={colors.tip} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={colors.tip} />
+            </linearGradient>
+            <linearGradient id="petalGradientInner" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor={colors.base} />
+              <stop offset="100%" stopColor={colors.tip} />
             </linearGradient>
             <filter id="softGlow">
               <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
 
           <g filter="url(#softGlow)">
             {outerPetals.map((angle, i) => (
-              <g key={`outer-${i}`} transform={`rotate(${angle} 0 0)`}>
+              <motion.g key={`outer-${i}`} transform={`rotate(${angle})`}>
                 <motion.path
-                  d={createPetalPath(bloomFactor)}
+                  d={createPetalPath()}
                   fill="url(#petalGradientOuter)"
                   stroke={colors.tip}
-                  strokeWidth="1"
+                  strokeWidth="0.5"
                   opacity="0.95"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 0.9, scale: 1 }}
-                  style={{ transformOrigin: 'center' }}
-                  transition={{
-                    duration: 1.5,
-                    delay: i * 0.1,
-                    ease: "easeOut"
+                  animate={{
+                    scaleY: bloomFactor,
+                    scaleX: 0.8 + (bloomFactor * 0.2),
+                    translateY: bloomFactor * -10
                   }}
+                  transition={{ duration: 2, delay: i * 0.1 }}
                 />
-              </g>
+              </motion.g>
             ))}
-
             {innerPetals.map((angle, i) => (
-              <g key={`inner-${i}`} transform={`rotate(${angle} 0 0)`}>
+              <motion.g key={`inner-${i}`} transform={`rotate(${angle})`}>
                 <motion.path
-                  d={createPetalPath(bloomFactor * 0.75)}
+                  d={createPetalPath()}
                   fill="url(#petalGradientInner)"
                   stroke={colors.tip}
-                  strokeWidth="0.8"
+                  strokeWidth="0.5"
                   opacity="0.9"
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 0.95, scale: 1 }}
-                  style={{ transformOrigin: 'center' }}
-                  transition={{
-                    duration: 1.5,
-                    delay: 0.4 + (i * 0.1),
-                    ease: "easeOut"
+                  animate={{
+                    scaleY: bloomFactor * 0.75,
+                    scaleX: 0.6,
+                    translateY: bloomFactor * -5
                   }}
+                  transition={{ duration: 2.2, delay: 0.2 + (i * 0.1) }}
                 />
-              </g>
+              </motion.g>
             ))}
           </g>
 
-          <motion.circle
-            cx="0"
-            cy="0"
-            r={15 * bloomFactor}
-            fill={colors.center}
-            initial={{ scale: 0 }}
-            animate={{ scale: [0.9, 1.05, 0.9] }}
-            transition={{ duration: 3, repeat: Infinity, delay: 1.2 }}
-            style={{ transformOrigin: 'center' }}
-          />
-
-          {[0, 60, 120, 180, 240, 300].map((angle) => {
-            const rad = (angle * Math.PI) / 180;
-            const distance = 8 * bloomFactor;
-            return (
-              <motion.circle
-                key={`seed-${angle}`}
-                cx={Math.cos(rad) * distance}
-                cy={Math.sin(rad) * distance}
-                r="2.5"
-                fill="#5D4037"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 1.8 }}
-                style={{ transformOrigin: 'center' }}
-              />
-            );
-          })}
-
+          <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} />
         </svg>
-
       </div>
 
       <div className="text-center space-y-3 relative z-10">
-        <h2 className="text-2xl font-serif text-slate-700 dark:text-slate-200">
+        <h2 className="text-3xl font-serif text-slate-800 tracking-wide italic">
           {name}
         </h2>
-
         <div className="flex items-center justify-center gap-3">
-          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
-            <span className="text-sm text-slate-500">Season</span>
-            <span className="text-slate-800 font-medium">
+          <div className="px-5 py-2 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-2">
+            <span className="text-sm text-slate-500 font-medium">Season</span>
+            <span className="text-lg font-serif text-slate-800">
               {streak > 14 ? 'Blooming' : streak > 3 ? 'Growing' : 'Resting'}
             </span>
-            <span className="text-lg">
-              {streak > 14 ? '🌸' : streak > 3 ? '🌱' : '🍂'}
+            <span className="text-xl">
+              {streak > 14 ? '🌸' : streak > 3 ? '🌿' : '🍂'}
             </span>
-          </div>
-
-          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
-            <span className="text-sm text-slate-500">Score</span>
-            <span className="text-slate-800 font-bold">{health}</span>
           </div>
         </div>
       </div>
