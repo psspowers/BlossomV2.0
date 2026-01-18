@@ -13,132 +13,126 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   streak,
   name = 'Your Journey'
 }) => {
+
   const bloomFactor = Math.max(0.3, health / 100);
 
   const getColors = () => {
     if (health >= 80) return {
-      tip: '#FF69B4', base: '#FFF0F5', center: '#FFD700',
-      waterBase: '#4DD0E1', waterRipple: 'rgba(77, 208, 225, 0.3)'
+      tip: '#FF69B4', base: '#FFF0F5', center: '#FFD700', aura: 'rgba(255, 105, 180, 0.4)'
     };
     if (health >= 50) return {
-      tip: '#F48FB1', base: '#FFF5F7', center: '#FFE082',
-      waterBase: '#80DEEA', waterRipple: 'rgba(128, 222, 234, 0.25)'
+      tip: '#F48FB1', base: '#FFF5F7', center: '#FFE082', aura: 'rgba(244, 143, 177, 0.3)'
     };
     return {
-      tip: '#D7CCC8', base: '#EFEBE9', center: '#A1887F',
-      waterBase: '#B0BEC5', waterRipple: 'rgba(176, 190, 197, 0.2)'
+      tip: '#D7CCC8', base: '#EFEBE9', center: '#A1887F', aura: 'rgba(161, 136, 127, 0.2)'
     };
   };
-
   const colors = getColors();
 
-  const createPetalPath = (scale: number = 1) => {
-    return `M0,0 C10,-20 30,-50 0,-100 C-30,-50 -10,-20 0,0`;
-  };
-
-  const outerPetals = [0, 45, 90, 135, 180, 225, 270, 315];
-  const innerPetals = [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5];
+  const petalPath = "M10,100 C10,50 50,0 100,0 C150,0 190,50 190,100 C190,160 100,200 100,200 C100,200 10,160 10,100 Z";
 
   return (
     <div className="relative flex flex-col items-center justify-center py-12">
       <div className="relative w-80 h-80 flex items-center justify-center">
 
-        <div className="absolute w-full h-1/2 bottom-0 rounded-b-full opacity-60"
-             style={{ background: `linear-gradient(to bottom, transparent, ${colors.waterBase})` }} />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-64 h-64 rounded-full blur-[60px]"
+          style={{ backgroundColor: colors.aura }}
+        />
 
-        {[0.8, 1.0, 1.2].map((scale, i) => (
-          <motion.div
-            key={`ripple-${i}`}
-            className="absolute w-64 h-16 rounded-[100%] blur-xl"
-            style={{ background: colors.waterRipple, bottom: '5%' }}
-            animate={{
-              scale: [scale, scale * 1.4, scale],
-              opacity: [0.2, 0.5, 0.2]
-            }}
-            transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
-          />
-        ))}
-
-        <div className="absolute w-full h-full bottom-[-20%] opacity-30 blur-[4px]" style={{ transform: 'scaleY(-0.5)' }}>
-           <svg viewBox="-150 -150 300 300" className="w-full h-full">
-             <g fill={colors.tip}>
-                {outerPetals.map((angle, i) => (
-                  <path key={`ref-${i}`} d={createPetalPath()} transform={`rotate(${angle}) scale(${bloomFactor})`} />
-                ))}
-             </g>
-           </svg>
-        </div>
-
-        <svg viewBox="-150 -150 300 300" className="w-full h-full drop-shadow-xl relative z-10">
+        <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
           <defs>
-            <linearGradient id="petalGradientOuter" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor={colors.base} />
-              <stop offset="100%" stopColor={colors.tip} />
+            <linearGradient id="petalGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={colors.tip} />
+              <stop offset="100%" stopColor={colors.base} />
             </linearGradient>
-            <linearGradient id="petalGradientInner" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor={colors.base} />
-              <stop offset="100%" stopColor={colors.tip} />
-            </linearGradient>
-            <filter id="softGlow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
               <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
 
-          <g filter="url(#softGlow)">
-            {outerPetals.map((angle, i) => (
-              <motion.g key={`outer-${i}`} transform={`rotate(${angle})`}>
-                <motion.path
-                  d={createPetalPath()}
-                  fill="url(#petalGradientOuter)"
-                  stroke={colors.tip}
-                  strokeWidth="0.5"
-                  opacity="0.95"
-                  animate={{
-                    scaleY: bloomFactor,
-                    scaleX: 0.8 + (bloomFactor * 0.2),
-                    translateY: bloomFactor * -10
-                  }}
-                  transition={{ duration: 2, delay: i * 0.1 }}
-                />
-              </motion.g>
-            ))}
-            {innerPetals.map((angle, i) => (
-              <motion.g key={`inner-${i}`} transform={`rotate(${angle})`}>
-                <motion.path
-                  d={createPetalPath()}
-                  fill="url(#petalGradientInner)"
-                  stroke={colors.tip}
-                  strokeWidth="0.5"
-                  opacity="0.9"
-                  animate={{
-                    scaleY: bloomFactor * 0.75,
-                    scaleX: 0.6,
-                    translateY: bloomFactor * -5
-                  }}
-                  transition={{ duration: 2.2, delay: 0.2 + (i * 0.1) }}
-                />
-              </motion.g>
-            ))}
-          </g>
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+            <motion.path
+              key={`outer-${i}`}
+              d={petalPath}
+              fill="url(#petalGradient)"
+              filter="url(#glow)"
+              style={{ transformOrigin: "200px 200px", opacity: 0.9 }}
+              animate={{
+                rotate: angle,
+                scaleY: bloomFactor,
+                scaleX: 0.8,
+                translateY: bloomFactor * -20
+              }}
+              transition={{ duration: 2, delay: i * 0.1 }}
+            />
+          ))}
 
-          <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} />
+          {[22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].map((angle, i) => (
+            <motion.path
+              key={`inner-${i}`}
+              d={petalPath}
+              fill={colors.base}
+              stroke={colors.tip}
+              strokeWidth="1"
+              style={{ transformOrigin: "200px 200px", opacity: 0.95 }}
+              animate={{
+                rotate: angle,
+                scaleY: bloomFactor * 0.8,
+                scaleX: 0.6,
+                translateY: bloomFactor * -10
+              }}
+              transition={{ duration: 2, delay: 0.5 + (i * 0.1) }}
+            />
+          ))}
+
+          <motion.circle
+            cx="200"
+            cy="200"
+            r={20 * bloomFactor}
+            fill={colors.center}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+             <motion.circle
+               key={`seed-${i}`}
+               cx="200"
+               cy="200"
+               r="3"
+               fill="#5D4037"
+               animate={{
+                 transform: `rotate(${angle}deg) translate(${10 * bloomFactor}px)`
+               }}
+             />
+          ))}
+
         </svg>
+
       </div>
 
       <div className="text-center space-y-3 relative z-10">
-        <h2 className="text-3xl font-serif text-slate-800 tracking-wide italic">
+        <h2 className="text-2xl font-serif text-slate-700 dark:text-slate-200">
           {name}
         </h2>
+
         <div className="flex items-center justify-center gap-3">
-          <div className="px-5 py-2 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-2">
-            <span className="text-sm text-slate-500 font-medium">Season</span>
-            <span className="text-lg font-serif text-slate-800">
+          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
+            <span className="text-sm text-slate-500">Season</span>
+            <span className="text-slate-800 font-medium">
               {streak > 14 ? 'Blooming' : streak > 3 ? 'Growing' : 'Resting'}
             </span>
-            <span className="text-xl">
-              {streak > 14 ? '🌸' : streak > 3 ? '🌿' : '🍂'}
+            <span className="text-lg">
+              {streak > 14 ? '🌸' : streak > 3 ? '🌱' : '🍂'}
             </span>
+          </div>
+
+          <div className="px-4 py-2 rounded-full bg-white/50 border border-slate-200 backdrop-blur-sm flex items-center gap-2 shadow-sm">
+            <span className="text-sm text-slate-500">Score</span>
+            <span className="text-slate-800 font-bold">{health}</span>
           </div>
         </div>
       </div>
