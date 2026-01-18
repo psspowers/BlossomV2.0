@@ -143,13 +143,17 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
           {/* Outer Petals (8 petals) */}
           {[...Array(8)].map((_, i) => {
-            const angle = (i * 45) - 90;
+            const angle = (i * 45);
+            const distance = 45 * petalScale;
+            const radians = (angle * Math.PI) / 180;
+            const petalX = 100 + distance * Math.cos(radians);
+            const petalY = 100 + distance * Math.sin(radians);
+
             return (
               <motion.g
                 key={`outer-${i}`}
                 animate={{
-                  rotate: [0, 2, -2, 0],
-                  scale: [petalScale, petalScale * 1.02, petalScale]
+                  scale: [1, 1.02, 1]
                 }}
                 transition={{
                   duration: 4 + i * 0.3,
@@ -159,16 +163,14 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 }}
                 style={{ transformOrigin: '100px 100px' }}
               >
-                <motion.ellipse
-                  cx="100"
-                  cy="45"
-                  rx="18"
-                  ry="38"
+                <ellipse
+                  cx={petalX}
+                  cy={petalY}
+                  rx="16"
+                  ry="32"
                   fill="url(#outerPetalGrad)"
                   filter="url(#petalShadow)"
-                  initial={{ rotate: angle + petalRotation }}
-                  animate={{ rotate: angle + petalRotation }}
-                  style={{ transformOrigin: '100px 100px' }}
+                  transform={`rotate(${angle + 90 + petalRotation}, ${petalX}, ${petalY})`}
                   opacity={0.95}
                 />
               </motion.g>
@@ -177,13 +179,17 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
           {/* Middle Petals (8 petals, offset) */}
           {[...Array(8)].map((_, i) => {
-            const angle = (i * 45) - 67.5;
+            const angle = (i * 45) + 22.5;
+            const distance = 32 * petalScale;
+            const radians = (angle * Math.PI) / 180;
+            const petalX = 100 + distance * Math.cos(radians);
+            const petalY = 100 + distance * Math.sin(radians);
+
             return (
               <motion.g
                 key={`middle-${i}`}
                 animate={{
-                  rotate: [0, -2, 2, 0],
-                  scale: [petalScale * 0.85, petalScale * 0.87, petalScale * 0.85]
+                  scale: [1, 1.02, 1]
                 }}
                 transition={{
                   duration: 3.5 + i * 0.25,
@@ -193,16 +199,14 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 }}
                 style={{ transformOrigin: '100px 100px' }}
               >
-                <motion.ellipse
-                  cx="100"
-                  cy="60"
-                  rx="15"
-                  ry="32"
+                <ellipse
+                  cx={petalX}
+                  cy={petalY}
+                  rx="13"
+                  ry="26"
                   fill="url(#middlePetalGrad)"
                   filter="url(#petalShadow)"
-                  initial={{ rotate: angle + petalRotation * 0.5 }}
-                  animate={{ rotate: angle + petalRotation * 0.5 }}
-                  style={{ transformOrigin: '100px 100px' }}
+                  transform={`rotate(${angle + 90 + petalRotation * 0.5}, ${petalX}, ${petalY})`}
                   opacity={0.9}
                 />
               </motion.g>
@@ -211,13 +215,17 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
           {/* Inner Petals (6 petals) */}
           {[...Array(6)].map((_, i) => {
-            const angle = (i * 60) - 90;
+            const angle = (i * 60);
+            const distance = 20 * petalScale;
+            const radians = (angle * Math.PI) / 180;
+            const petalX = 100 + distance * Math.cos(radians);
+            const petalY = 100 + distance * Math.sin(radians);
+
             return (
               <motion.g
                 key={`inner-${i}`}
                 animate={{
-                  rotate: [0, 1.5, -1.5, 0],
-                  scale: [petalScale * 0.7, petalScale * 0.72, petalScale * 0.7]
+                  scale: [1, 1.03, 1]
                 }}
                 transition={{
                   duration: 3 + i * 0.2,
@@ -227,16 +235,14 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 }}
                 style={{ transformOrigin: '100px 100px' }}
               >
-                <motion.ellipse
-                  cx="100"
-                  cy="75"
-                  rx="12"
-                  ry="25"
+                <ellipse
+                  cx={petalX}
+                  cy={petalY}
+                  rx="10"
+                  ry="20"
                   fill="url(#innerPetalGrad)"
                   filter="url(#petalShadow)"
-                  initial={{ rotate: angle }}
-                  animate={{ rotate: angle }}
-                  style={{ transformOrigin: '100px 100px' }}
+                  transform={`rotate(${angle + 90}, ${petalX}, ${petalY})`}
                   opacity={0.85}
                 />
               </motion.g>
