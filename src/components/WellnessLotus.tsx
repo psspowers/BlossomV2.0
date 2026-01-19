@@ -103,7 +103,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
       <motion.h2
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.6 }}
-        className="absolute top-6 left-0 w-full text-center text-xs font-sans font-medium text-slate-500 tracking-[0.2em] uppercase drop-shadow-sm"
+        className="absolute top-4 left-0 w-full text-center text-xs font-sans font-medium text-slate-400 tracking-[0.2em] uppercase"
       >
         {name}
       </motion.h2>
@@ -140,30 +140,39 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             playsInline
             disablePictureInPicture
           />
+
+          {/* Score Dewdrop - Floating on lotus */}
+          {isReady && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="absolute bottom-[12%] z-20"
+            >
+              <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg">
+                <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
+                <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
 
-      {/* GLASS PILL HUD - Bottom Center */}
+      {/* NARRATIVE BELOW LOTUS */}
       {isReady && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30"
+          transition={{ delay: 0.7, duration: 0.8 }}
+          className="mt-6 text-center"
         >
-          <div className="backdrop-blur-xl bg-white/30 border border-white/50 shadow-lg rounded-full px-6 py-3 flex items-center gap-4">
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-serif font-bold text-slate-800">{health}</span>
-              <span className="text-xs uppercase tracking-wider text-slate-600">Score</span>
-            </div>
-
-            <div className="w-px h-6 bg-slate-300/50" />
-
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{season.icon}</span>
-              <span className="text-sm font-medium text-slate-600">Season of {season.currentSeason}</span>
-            </div>
+          <div className="flex items-center justify-center gap-2 text-slate-500 text-sm font-medium uppercase tracking-widest mb-2">
+            <span className="text-lg">{season.icon}</span>
+            <span>Season of {season.currentSeason}</span>
           </div>
+          <p className="font-serif italic text-slate-600 text-base max-w-md mx-auto leading-relaxed px-4">
+            {season.message}
+          </p>
         </motion.div>
       )}
     </div>
