@@ -75,15 +75,69 @@ export function usePCOSSeeder() {
     });
 
     logs.push({
-      date: formatDate(daysAgo(5)),
-      cyclePhase: 'unknown',
-      flow: 'light',
-      symptoms: { bloat: 2 },
-      psych: { mood: 7, stress: 'low' },
-      lifestyle: { sleep: 'good', waterIntake: 7, exercise: 'moderate', diet: 'good' }
+      date: formatDate(daysAgo(7)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 3, bloat: 3 },
+      psych: { mood: 5, stress: 'moderate' },
+      lifestyle: { sleep: '6-7h', waterIntake: 5, exercise: 'light', diet: 'fair' }
     });
 
-    for (let i = 25; i >= 6; i--) {
+    logs.push({
+      date: formatDate(daysAgo(6)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 4, bloat: 2 },
+      psych: { mood: 6, stress: 'moderate' },
+      lifestyle: { sleep: '6-7h', waterIntake: 4, exercise: 'none', diet: 'fair' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(5)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 1 },
+      psych: { mood: 4, stress: 'high' },
+      lifestyle: { sleep: '<6h', waterIntake: 3, exercise: 'none', diet: 'poor' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(4)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 3, bloat: 2 },
+      psych: { mood: 5, stress: 'high' },
+      lifestyle: { sleep: '<6h', waterIntake: 4, exercise: 'none', diet: 'poor' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(3)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 7, stress: 'low' },
+      lifestyle: { sleep: '7-8h', waterIntake: 7, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(2)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 1, bloat: 1 },
+      psych: { mood: 8, stress: 'low' },
+      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(1)),
+      cyclePhase: 'follicular',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 6, stress: 'moderate' },
+      lifestyle: { sleep: '6-7h', waterIntake: 5, exercise: 'light', diet: 'fair' }
+    });
+
+    for (let i = 25; i >= 8; i--) {
       if (i % 3 === 0) {
         logs.push({
           date: formatDate(daysAgo(i)),
@@ -143,7 +197,7 @@ export function usePCOSSeeder() {
       lifestyle: { sleep: 'good', waterIntake: 7, exercise: 'light', diet: 'good' }
     });
 
-    for (let i = 60; i >= 1; i--) {
+    for (let i = 60; i >= 8; i--) {
       const sleepQuality = i % 7 === 0 ? 'fair' : 'good';
       const waterIntake = Math.floor(Math.random() * 2) + 7;
       const exercise = i % 5 === 0 ? 'light' : i % 3 === 0 ? 'moderate' : 'vigorous';
@@ -167,6 +221,69 @@ export function usePCOSSeeder() {
         }
       });
     }
+
+    logs.push({
+      date: formatDate(daysAgo(7)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(6)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(5)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 3 },
+      psych: { mood: 7, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 7, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(4)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '>8h', waterIntake: 8, exercise: 'light', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(3)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 9, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(2)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 1, bloat: 2 },
+      psych: { mood: 9, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
+    });
+
+    logs.push({
+      date: formatDate(daysAgo(1)),
+      cyclePhase: 'luteal',
+      flow: 'none',
+      symptoms: { acne: 2, bloat: 2 },
+      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
+      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
+    });
 
     await db.logs.bulkAdd(logs);
 

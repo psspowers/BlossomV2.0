@@ -1,4 +1,5 @@
-import { LogEntry, getLastNDays } from '../db';
+import { LogEntry, getLastNDays, db } from '../db';
+import { analyzeCycleState } from './cycle';
 
 function convertLifestyleToNumber(value: string | undefined, field: string): number {
   if (!value) return 0;
@@ -39,6 +40,7 @@ export interface BlossomScoreResult {
   symptomFactor: number;
   selfCareFactor: number;
   emotionalFactor: number;
+  stabilityFactor: number;
 }
 
 export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
@@ -49,7 +51,8 @@ export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
       score: 50,
       symptomFactor: 50,
       selfCareFactor: 0,
-      emotionalFactor: 50
+      emotionalFactor: 50,
+      stabilityFactor: 50
     };
   }
 
@@ -105,14 +108,19 @@ export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
     ? calculateAverage(moodScores)
     : 50;
 
+  const allLogsForCycle = await db.logs.toArray();
+  const cycleState = analyzeCycleState(allLogsForCycle);
+  const stabilityFactor = cycleState.stabilityScore > 0 ? cycleState.stabilityScore : 50;
+
   const score = Math.round(
-    (symptomFactor * 0.4) + (selfCareFactor * 0.3) + (emotionalFactor * 0.3)
+    (symptomFactor * 0.35) + (selfCareFactor * 0.25) + (emotionalFactor * 0.25) + (stabilityFactor * 0.15)
   );
 
   return {
     score: Math.max(0, Math.min(100, score)),
     symptomFactor,
     selfCareFactor,
-    emotionalFactor
+    emotionalFactor,
+    stabilityFactor
   };
 }
