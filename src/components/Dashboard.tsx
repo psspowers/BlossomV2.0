@@ -6,7 +6,8 @@ import { Insights } from './Insights';
 import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
 import { Learn } from './Learn';
-import { Plus, Settings, Shield, Lightbulb, BookOpen } from 'lucide-react';
+import { Navbar } from './Navbar';
+import { Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -90,42 +91,9 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        <header className="mb-8 grid grid-cols-3 items-start gap-4">
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-slate-800 tracking-tight">
-              Blossom
-            </h1>
-            <p className="text-sm text-slate-600 mt-1 whitespace-nowrap">
-              Your PCOS wellness companion
-            </p>
-          </div>
+      <Navbar onOpenSettings={() => setShowSettings(true)} />
 
-          <div className="flex justify-center items-start">
-            <div className="px-6 py-2 rounded-full bg-sage-50 border border-sage-200 flex items-center gap-2.5 whitespace-nowrap">
-              <Shield className="w-3.5 h-3.5 text-sage-600" />
-              <span className="text-sm font-medium text-sage-700">100% Private</span>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setShowLearn(true)}
-              className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm"
-              aria-label="Open education library"
-            >
-              <BookOpen className="w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-300" />
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm"
-              aria-label="Open settings"
-            >
-              <Settings className="w-5 h-5 text-slate-600 group-hover:text-slate-800 group-hover:rotate-90 transition-all duration-300" />
-            </button>
-          </div>
-        </header>
-
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12 mb-8">
