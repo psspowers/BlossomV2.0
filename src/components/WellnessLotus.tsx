@@ -43,8 +43,11 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
     <div className="relative flex flex-col items-center justify-center py-12">
       <div className="relative w-80 h-80 flex items-center justify-center">
 
-        <div className="absolute w-full h-1/2 bottom-0 rounded-b-full opacity-60"
-             style={{ background: `linear-gradient(to bottom, transparent, ${colors.waterBase})` }} />
+        <div className="absolute w-full h-1/2 bottom-0 rounded-b-full overflow-hidden">
+          <div className="absolute inset-0" style={{
+            background: `linear-gradient(to bottom, transparent 0%, ${colors.waterBase}15 30%, ${colors.waterBase}40 100%)`
+          }} />
+        </div>
 
         {[0.8, 1.0, 1.2].map((scale, i) => (
           <motion.div
@@ -59,14 +62,76 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           />
         ))}
 
-        <div className="absolute w-full h-full bottom-[-20%] opacity-30 blur-[4px]" style={{ transform: 'scaleY(-0.5)' }}>
-           <svg viewBox="-150 -150 300 300" className="w-full h-full">
-             <g fill={colors.tip}>
-                {outerPetals.map((angle, i) => (
-                  <path key={`ref-${i}`} d={createPetalPath()} transform={`rotate(${angle}) scale(${bloomFactor})`} />
-                ))}
-             </g>
-           </svg>
+        <div className="absolute w-full h-full overflow-hidden pointer-events-none">
+          <div
+            className="absolute w-full h-full"
+            style={{
+              top: '50%',
+              transform: 'scaleY(-1)',
+              transformOrigin: 'top',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.2) 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.2) 60%, transparent 100%)'
+            }}
+          >
+            <motion.div
+              className="w-full h-full"
+              animate={{
+                scaleX: [1, 1.02, 1],
+                translateY: [0, -2, 0]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <svg viewBox="-150 -150 300 300" className="w-full h-full" style={{ filter: 'blur(1.5px)' }}>
+                <defs>
+                  <linearGradient id="reflectionGradientOuter" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stopColor={colors.base} stopOpacity="0.5" />
+                    <stop offset="100%" stopColor={colors.tip} stopOpacity="0.6" />
+                  </linearGradient>
+                  <linearGradient id="reflectionGradientInner" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stopColor={colors.base} stopOpacity="0.4" />
+                    <stop offset="100%" stopColor={colors.tip} stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                <g opacity="0.85">
+                  {outerPetals.map((angle, i) => (
+                    <motion.g key={`reflect-outer-${i}`} transform={`rotate(${angle})`}>
+                      <motion.path
+                        d={createPetalPath()}
+                        fill="url(#reflectionGradientOuter)"
+                        stroke={colors.tip}
+                        strokeWidth="0.3"
+                        strokeOpacity="0.3"
+                        animate={{
+                          scaleY: bloomFactor,
+                          scaleX: 0.8 + (bloomFactor * 0.2),
+                          translateY: bloomFactor * -10
+                        }}
+                        transition={{ duration: 2, delay: i * 0.1 }}
+                      />
+                    </motion.g>
+                  ))}
+                  {innerPetals.map((angle, i) => (
+                    <motion.g key={`reflect-inner-${i}`} transform={`rotate(${angle})`}>
+                      <motion.path
+                        d={createPetalPath()}
+                        fill="url(#reflectionGradientInner)"
+                        stroke={colors.tip}
+                        strokeWidth="0.3"
+                        strokeOpacity="0.25"
+                        animate={{
+                          scaleY: bloomFactor * 0.75,
+                          scaleX: 0.6,
+                          translateY: bloomFactor * -5
+                        }}
+                        transition={{ duration: 2.2, delay: 0.2 + (i * 0.1) }}
+                      />
+                    </motion.g>
+                  ))}
+                  <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} opacity="0.4" />
+                </g>
+              </svg>
+            </motion.div>
+          </div>
         </div>
 
         <svg viewBox="-150 -150 300 300" className="w-full h-full drop-shadow-xl relative z-10">
