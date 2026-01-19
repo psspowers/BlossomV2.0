@@ -63,7 +63,7 @@ export function WellnessRadar() {
         sleepToNumber(latest.lifestyle.sleep) * 1.4,
         skinScore(),
         bodyImageToNumber(latest.psych.bodyImage),
-        (latest.psych.mood || 5)
+        ((latest.psych.mood || 50) / 10)
       ];
 
       const baselineValues = [5, 7, 5, 5, 5];
