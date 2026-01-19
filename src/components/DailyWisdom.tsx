@@ -1,98 +1,111 @@
-import { Lightbulb } from 'lucide-react';
-import { useState, useEffect } from 'react';
-
-const wisdomTips = [
-  {
-    category: 'Exercise',
-    tip: 'Resistance training improves insulin sensitivity more than cardio for some PCOS phenotypes.',
-    source: 'Monash Guidelines'
-  },
-  {
-    category: 'Mental Health',
-    tip: 'Anxiety in PCOS is often linked to hormonal fluctuations, not just life events.',
-    source: 'Clinical Research'
-  },
-  {
-    category: 'Sleep',
-    tip: 'Poor sleep quality can worsen insulin resistance and increase androgen levels.',
-    source: 'Endocrine Studies'
-  },
-  {
-    category: 'Nutrition',
-    tip: 'Low-GI diets have been shown to improve menstrual regularity and reduce testosterone levels.',
-    source: 'Monash Guidelines'
-  },
-  {
-    category: 'Body Composition',
-    tip: 'Even 5% weight loss can restore ovulation in women with PCOS who have elevated BMI.',
-    source: 'Evidence-Based Research'
-  },
-  {
-    category: 'Cycle Tracking',
-    tip: 'Irregular cycles are often the first sign of hormonal imbalance in PCOS.',
-    source: 'Clinical Guidelines'
-  },
-  {
-    category: 'Stress Management',
-    tip: 'Chronic stress elevates cortisol, which can worsen insulin resistance and inflammation.',
-    source: 'Psychoneuroendocrinology'
-  },
-  {
-    category: 'Hyperandrogenism',
-    tip: 'Acne and hirsutism may take 6-12 months to improve with lifestyle changes alone.',
-    source: 'Dermatology Research'
-  },
-  {
-    category: 'Metabolism',
-    tip: 'Women with PCOS may have 20-30% lower resting metabolic rate than those without.',
-    source: 'Metabolic Studies'
-  },
-  {
-    category: 'Inflammation',
-    tip: 'Anti-inflammatory foods like omega-3s and turmeric may help reduce PCOS symptoms.',
-    source: 'Nutritional Science'
-  }
-];
+import { Lightbulb, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { useWisdomEngine } from '../lib/hooks/useWisdomEngine';
 
 export function DailyWisdom() {
-  const [currentTip, setCurrentTip] = useState(wisdomTips[0]);
+  const { wisdomCard, loading, error, context, refreshCard } = useWisdomEngine();
 
-  useEffect(() => {
-    const dayOfYear = Math.floor(
-      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
+  if (loading) {
+    return (
+      <div className="paper-card h-80 flex flex-col p-0">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
+            Daily Wisdom
+          </h2>
+          <Lightbulb className="w-4 h-4 text-sage-600" />
+        </div>
+
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-sage-300 border-t-sage-600 rounded-full animate-spin" />
+            <p className="text-sm text-sage-600">Loading wisdom...</p>
+          </div>
+        </div>
+      </div>
     );
-    const tipIndex = dayOfYear % wisdomTips.length;
-    setCurrentTip(wisdomTips[tipIndex]);
-  }, []);
+  }
+
+  if (error) {
+    return (
+      <div className="paper-card h-80 flex flex-col p-0">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
+            Daily Wisdom
+          </h2>
+          <AlertCircle className="w-4 h-4 text-red-500" />
+        </div>
+
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm text-red-600 mb-2">Failed to load wisdom cards</p>
+            <p className="text-xs text-sage-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!wisdomCard) {
+    return (
+      <div className="paper-card h-80 flex flex-col p-0">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
+            Daily Wisdom
+          </h2>
+          <Lightbulb className="w-4 h-4 text-sage-600" />
+        </div>
+
+        <div className="flex-1 p-6 flex items-center justify-center">
+          <p className="text-sm text-sage-600 text-center">
+            No wisdom cards available
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="paper-card h-80 flex flex-col p-0">
       <div className="p-4 border-b border-border flex items-center justify-between">
-        <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
-          Daily Wisdom
-        </h2>
-        <Lightbulb className="w-4 h-4 text-sage-600" />
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
+            Daily Wisdom
+          </h2>
+          {context && context.triggers.size > 1 && (
+            <Sparkles className="w-3 h-3 text-sage-600" title="Personalized for you" />
+          )}
+        </div>
+        <button
+          onClick={refreshCard}
+          className="p-1 hover:bg-sage-100 rounded-full transition-colors"
+          title="Get another insight"
+        >
+          <RefreshCw className="w-4 h-4 text-sage-600" />
+        </button>
       </div>
 
       <div className="flex-1 p-6 flex flex-col justify-center">
         <div className="mb-4">
           <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
-            {currentTip.category}
+            {wisdomCard.category}
           </span>
         </div>
 
-        <p className="text-base text-text-main leading-relaxed mb-4 font-medium">
-          {currentTip.tip}
+        <h3 className="text-lg font-semibold text-text-main mb-3 font-serif">
+          {wisdomCard.title}
+        </h3>
+
+        <p className="text-base text-text-main leading-relaxed mb-4">
+          {wisdomCard.text}
         </p>
 
         <p className="text-xs text-sage-600 italic">
-          Source: {currentTip.source}
+          Source: {wisdomCard.source}
         </p>
       </div>
 
       <div className="p-4 border-t border-border">
         <p className="text-xs text-sage-600 text-center">
-          Evidence-based insight • Rotates daily
+          Evidence-based insight • Personalized to your patterns
         </p>
       </div>
     </div>
