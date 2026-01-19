@@ -31,7 +31,7 @@ export function DailyWisdom() {
           <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
             Daily Wisdom
           </h2>
-          {context && !context.triggers.has('general') && (
+          {context && !context.matchedCard.triggers.includes('general') && (
             <Sparkles className="w-3 h-3 text-sage-600" title="Responding to your health patterns" />
           )}
         </div>
@@ -62,7 +62,7 @@ export function DailyWisdom() {
 
       <div className="p-4 border-t border-border">
         <p className="text-xs text-sage-600 text-center">
-          {context && context.triggers.size > 0 && !context.triggers.has('general')
+          {context && !context.matchedCard.triggers.includes('general')
             ? 'Responding to your current health patterns'
             : 'Daily evidence-based insight'}
         </p>

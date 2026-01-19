@@ -1,53 +1,11 @@
 import { useState, useEffect } from 'react';
-import { LogEntry, db } from '../db';
-import { WISDOM_LIBRARY, WisdomCard } from '../data/wisdom';
+import { db } from '../db';
+import { WisdomCard } from '../data/wisdom';
+import { getReactiveWisdom } from '../logic/reactiveWisdom';
 
 export interface WisdomContext {
-  triggers: Set<string>;
-  matchedCard: WisdomCard | null;
-}
-
-function detectTriggersFromLog(log: LogEntry | null): Set<string> {
-  const triggers = new Set<string>();
-
-  if (!log) {
-    triggers.add('general');
-    return triggers;
-  }
-
-  if (log.lifestyle?.sleep === '<6h' || log.lifestyle?.sleep === 'poor') {
-    triggers.add('low_sleep');
-  }
-
-  if (log.psych?.stress === 'high' || log.psych?.stress === 'very high') {
-    triggers.add('high_stress');
-  }
-
-  const painLevel = log.symptoms?.cramps || 0;
-  if (painLevel >= 7) {
-    triggers.add('high_pain');
-  }
-
-  if (log.cyclePhase === 'luteal') {
-    triggers.add('luteal_phase');
-  }
-
-  if (triggers.size === 0) {
-    triggers.add('general');
-  }
-
-  return triggers;
-}
-
-function selectCardForTriggers(triggers: Set<string>): WisdomCard {
-  for (const card of WISDOM_LIBRARY) {
-    const hasMatch = card.triggers.some(trigger => triggers.has(trigger));
-    if (hasMatch && card.id !== 'general_resilience') {
-      return card;
-    }
-  }
-
-  return WISDOM_LIBRARY.find(card => card.id === 'general_resilience') || WISDOM_LIBRARY[0];
+  todayLog: boolean;
+  matchedCard: WisdomCard;
 }
 
 export function useWisdomEngine() {
@@ -66,29 +24,17 @@ export function useWisdomEngine() {
           .equals(today)
           .first();
 
-        if (!todayLog) {
-          const recentLog = await db.logs
-            .orderBy('date')
-            .reverse()
-            .first();
+        const selectedCard = getReactiveWisdom(todayLog);
 
-          const triggers = detectTriggersFromLog(recentLog || null);
-          const selectedCard = selectCardForTriggers(triggers);
-
-          setContext({ triggers, matchedCard: selectedCard });
-          setWisdomCard(selectedCard);
-        } else {
-          const triggers = detectTriggersFromLog(todayLog);
-          const selectedCard = selectCardForTriggers(triggers);
-
-          setContext({ triggers, matchedCard: selectedCard });
-          setWisdomCard(selectedCard);
-        }
-
+        setContext({
+          todayLog: !!todayLog,
+          matchedCard: selectedCard
+        });
+        setWisdomCard(selectedCard);
         setLoading(false);
       } catch (err) {
         console.error('Error analyzing wisdom:', err);
-        const fallbackCard = WISDOM_LIBRARY.find(card => card.id === 'general_resilience') || WISDOM_LIBRARY[0];
+        const fallbackCard = getReactiveWisdom(undefined);
         setWisdomCard(fallbackCard);
         setLoading(false);
       }
@@ -109,10 +55,12 @@ export function useWisdomEngine() {
         .equals(today)
         .first();
 
-      const triggers = detectTriggersFromLog(todayLog || null);
-      const selectedCard = selectCardForTriggers(triggers);
+      const selectedCard = getReactiveWisdom(todayLog);
 
-      setContext({ triggers, matchedCard: selectedCard });
+      setContext({
+        todayLog: !!todayLog,
+        matchedCard: selectedCard
+      });
       setWisdomCard(selectedCard);
     } catch (err) {
       console.error('Error refreshing wisdom card:', err);
