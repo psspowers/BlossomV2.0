@@ -107,10 +107,10 @@ export function WellnessRadar() {
           stepSize: 2
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.08)'
+          display: false
         },
         angleLines: {
-          color: 'rgba(0, 0, 0, 0.08)'
+          display: false
         },
         pointLabels: {
           color: 'rgba(74, 74, 74, 0.8)',
