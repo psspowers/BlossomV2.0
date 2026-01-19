@@ -35,7 +35,7 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
 
   if (allLogs.length < 5) {
     return {
-      message: "We are learning your unique rhythm. Keep logging to unlock personalized pattern stories.",
+      message: "We are observing your rhythm. Continue logging to reveal your unique physiological patterns.",
       category: 'insight',
       hasData: false,
       source: "Blossom Pattern Engine"
@@ -295,9 +295,9 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
   }
 
   return {
-    message: "No clear patterns detected yet. Continue tracking daily to reveal your body's unique correlations.",
+    message: "Your baseline is stabilizing. We are looking for deeper correlations between your cycle and your lifestyle.",
     category: 'insight',
-    hasData: false,
+    hasData: true,
     source: "Blossom Pattern Engine"
   };
 }
