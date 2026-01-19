@@ -24,24 +24,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings }) => {
 
       {/* Privacy Badge Center (Absolute to ensure true center) */}
       <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:block">
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium">
+        <motion.div
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
           <Shield className="w-3 h-3" />
           <span>100% Private</span>
-        </div>
+        </motion.div>
       </div>
 
       {/* Icons Right */}
       <div className="flex items-center gap-3">
-        <button
+        <motion.button
+          whileHover={{ rotate: 10 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.2 }}
           className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
           aria-label="Notifications"
         >
           <Bell className="w-5 h-5" />
-        </button>
+        </motion.button>
 
         <motion.button
-          whileHover={{ rotate: 90 }}
-          transition={{ duration: 0.3 }}
+          whileHover={{ rotate: 15 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.2 }}
           onClick={onOpenSettings}
           className="p-2 bg-white/50 hover:bg-white border border-transparent hover:border-slate-200 rounded-xl text-slate-600 shadow-sm transition-all"
           aria-label="Settings"
