@@ -96,8 +96,8 @@ export function Dashboard() {
 
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12">
-          <div className="glass-card h-80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12 mb-8">
+          <div className="glass-card h-auto min-h-80">
             <div className="p-4 border-b border-slate-100">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                 Cycle Context

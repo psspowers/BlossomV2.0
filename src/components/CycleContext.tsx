@@ -135,7 +135,7 @@ export function CycleContext() {
   const metabolicScore = isLongCycle ? Math.max(40, 100 - (currentDay - 35)) : 85;
 
   return (
-    <div className="relative overflow-hidden h-full flex flex-col p-6">
+    <div className="relative overflow-hidden flex flex-col p-6">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className="text-sm font-medium text-sage-600 uppercase tracking-wider mb-3">
