@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCategoryInsights, InsightCategory } from '../lib/hooks/useInsights';
+import { InsightsNavigation, InsightView, viewConfig } from './InsightsNavigation';
 import { Radar, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -14,7 +15,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart, RefreshCw, Leaf, Sparkles } from 'lucide-react';
+import { TrendingDown, Minus, Leaf, Sparkles } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { db } from '../lib/db';
 
@@ -31,15 +32,21 @@ ChartJS.register(
   Filler
 );
 
-type ViewType = InsightCategory | 'cycle';
-
 export function Insights() {
-  const [view, setView] = useState<ViewType>('hyperandrogenism');
+  const [view, setView] = useState<InsightView>('physical');
   const [timeframe, setTimeframe] = useState<7 | 30>(7);
   const [cycleAnalysis, setCycleAnalysis] = useState<CycleAnalysis | null>(null);
   const [cycleLoading, setCycleLoading] = useState(true);
 
-  const category: InsightCategory = view === 'cycle' ? 'hyperandrogenism' : view;
+  const getCategoryFromView = (v: InsightView): InsightCategory => {
+    switch (v) {
+      case 'physical': return 'hyperandrogenism';
+      case 'emotional': return 'psych';
+      case 'metabolic': return 'metabolic';
+      case 'cycle': return 'hyperandrogenism';
+    }
+  };
+  const category = getCategoryFromView(view);
   const { insights, loading } = useCategoryInsights(category, timeframe);
 
   useEffect(() => {
@@ -54,66 +61,7 @@ export function Insights() {
     loadCycleHistory();
   }, []);
 
-  const handleViewChange = (newView: ViewType) => {
-    setView(newView);
-  };
-
-  const viewConfig = {
-    hyperandrogenism: {
-      label: 'Physical',
-      icon: Activity,
-      color: 'rgba(232, 174, 178, 0.8)',
-      bgColor: 'rgba(232, 174, 178, 0.1)',
-      borderColor: 'rgb(232, 174, 178)',
-      hex: '#E8AEB2',
-      glowClass: 'bg-secondary/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(232,174,178,0.3)]',
-      borderClass: 'border-secondary',
-      textClass: 'text-secondary',
-      badgeBgClass: 'bg-secondary/20 text-secondary border-secondary/30'
-    },
-    metabolic: {
-      label: 'Metabolic',
-      icon: Heart,
-      color: 'rgba(134, 168, 115, 0.8)',
-      bgColor: 'rgba(134, 168, 115, 0.1)',
-      borderColor: 'rgb(134, 168, 115)',
-      hex: '#86A873',
-      glowClass: 'bg-primary/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(134,168,115,0.3)]',
-      borderClass: 'border-primary',
-      textClass: 'text-primary',
-      badgeBgClass: 'bg-primary/20 text-primary border-primary/30'
-    },
-    psych: {
-      label: 'Emotional',
-      icon: Brain,
-      color: 'rgba(107, 143, 78, 0.8)',
-      bgColor: 'rgba(107, 143, 78, 0.1)',
-      borderColor: 'rgb(107, 143, 78)',
-      hex: '#6b8f4e',
-      glowClass: 'bg-sage-600/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(107,143,78,0.3)]',
-      borderClass: 'border-sage-600',
-      textClass: 'text-sage-600',
-      badgeBgClass: 'bg-sage-600/20 text-sage-600 border-sage-600/30'
-    },
-    cycle: {
-      label: 'Cycle',
-      icon: RefreshCw,
-      color: 'rgba(197, 179, 223, 0.8)',
-      bgColor: 'rgba(197, 179, 223, 0.1)',
-      borderColor: 'rgb(197, 179, 223)',
-      hex: '#C5B3DF',
-      glowClass: 'bg-lavender-400/10',
-      shadowClass: 'shadow-[0_4px_20px_rgba(197,179,223,0.3)]',
-      borderClass: 'border-lavender-400',
-      textClass: 'text-lavender-600',
-      badgeBgClass: 'bg-lavender-400/20 text-lavender-600 border-lavender-400/30'
-    }
-  };
-
-  const currentConfig = viewConfig[view as keyof typeof viewConfig];
+  const currentConfig = viewConfig[view];
 
   if (loading) {
     return (
@@ -167,26 +115,7 @@ export function Insights() {
         </div>
       </div>
 
-      <div className="flex gap-1.5 mb-4 overflow-x-auto scrollbar-hide">
-        {Object.entries(viewConfig).map(([key, config]) => {
-          const Icon = config.icon;
-          const isActive = view === key;
-          return (
-            <button
-              key={key}
-              onClick={() => handleViewChange(key as ViewType)}
-              className={`flex-1 min-w-[70px] flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-sm font-medium transition-all duration-300 ${
-                isActive
-                  ? `bg-white ${config.textClass} border-b-2 ${config.borderClass} ${config.shadowClass} border-t border-x border-slate-200`
-                  : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 border border-slate-200'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="text-[9px] sm:text-sm leading-tight whitespace-nowrap">{config.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <InsightsNavigation view={view} onViewChange={setView} />
 
       <div className="relative">
         <div
