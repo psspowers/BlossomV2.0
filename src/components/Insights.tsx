@@ -14,7 +14,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart, Calendar, Leaf, Sparkles } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart, RefreshCw, Leaf, Sparkles } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { db } from '../lib/db';
 import { WellnessRadar } from './WellnessRadar';
@@ -100,8 +100,8 @@ export function Insights() {
       badgeBgClass: 'bg-sage-600/20 text-sage-600 border-sage-600/30'
     },
     cycle: {
-      label: 'Cycle History',
-      icon: Calendar,
+      label: 'Cycle',
+      icon: RefreshCw,
       color: 'rgba(197, 179, 223, 0.8)',
       bgColor: 'rgba(197, 179, 223, 0.1)',
       borderColor: 'rgb(197, 179, 223)',
@@ -204,10 +204,10 @@ export function Insights() {
                 <div className="glass-card p-4 lg:col-span-2">
                   <div className="mb-3">
                     <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                      Last 6 Cycles
+                      Cycle History
                     </h3>
                     <p className="text-xs text-slate-600 mt-1">
-                      Track your cycle lengths over time
+                      Visual comparison: Stable vs. Irregular patterns
                     </p>
                   </div>
                   <div style={{ height: '300px' }}>
@@ -220,15 +220,15 @@ export function Insights() {
                             data: cycleAnalysis.cycleHistory.slice(-6).map(c => c.daysFromPrevious || 0),
                             backgroundColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
                               const days = c.daysFromPrevious || 0;
-                              if (days >= 21 && days <= 35) return 'rgba(107, 143, 78, 0.8)';
-                              if (days > 35) return 'rgba(134, 168, 115, 0.8)';
-                              return 'rgba(232, 174, 178, 0.8)';
+                              if (days >= 21 && days <= 35) return 'rgba(134, 168, 115, 0.8)'; // #86A873 Sage Green
+                              if (days > 35) return 'rgba(167, 199, 231, 0.8)'; // #A7C7E7 Soft Blue
+                              return 'rgba(232, 174, 178, 0.8)'; // #E8AEB2 Rose
                             }),
                             borderColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
                               const days = c.daysFromPrevious || 0;
-                              if (days >= 21 && days <= 35) return 'rgb(107, 143, 78)';
-                              if (days > 35) return 'rgb(134, 168, 115)';
-                              return 'rgb(232, 174, 178)';
+                              if (days >= 21 && days <= 35) return 'rgb(134, 168, 115)'; // #86A873
+                              if (days > 35) return 'rgb(167, 199, 231)'; // #A7C7E7
+                              return 'rgb(232, 174, 178)'; // #E8AEB2
                             }),
                             borderWidth: 2,
                             borderRadius: 6
@@ -250,9 +250,9 @@ export function Insights() {
                             callbacks: {
                               label: (context: any) => {
                                 const days = context.raw;
-                                let status = 'Short cycle';
-                                if (days >= 21 && days <= 35) status = 'Stable';
-                                else if (days > 35) status = 'Long cycle';
+                                let status = 'Short';
+                                if (days >= 21 && days <= 35) status = 'Normal';
+                                else if (days > 35) status = 'Extended';
                                 return `${days} days (${status})`;
                               }
                             }
@@ -275,45 +275,68 @@ export function Insights() {
                       }}
                     />
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-4 text-xs">
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded bg-sage-600"></div>
-                      <span className="text-slate-600">21-35 days (Stable)</span>
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#86A873' }}></div>
+                      <span className="text-slate-600">21-35 days (Normal)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded bg-primary"></div>
-                      <span className="text-slate-600">&gt;35 days (Long)</span>
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#A7C7E7' }}></div>
+                      <span className="text-slate-600">&gt;35 days (Extended)</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded bg-secondary"></div>
+                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#E8AEB2' }}></div>
                       <span className="text-slate-600">&lt;21 days (Short)</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="glass-card p-6">
-                  <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide mb-4">
-                    Variability Index
+                  <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide mb-6">
+                    Clinical Summary
                   </h3>
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <div className="text-5xl font-serif font-bold text-lavender-600 mb-2">
-                      {Math.round(cycleAnalysis.variability)}
+
+                  <div className="space-y-6">
+                    <div className="p-4 bg-white rounded-lg border border-slate-100">
+                      <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Average Length</div>
+                      <div className="text-3xl font-serif font-bold text-slate-800">
+                        {(() => {
+                          const cycleLengths = cycleAnalysis.cycleHistory
+                            .map(c => c.daysFromPrevious)
+                            .filter((d): d is number => d !== undefined);
+                          if (cycleLengths.length === 0) return 0;
+                          return Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+                        })()}
+                        <span className="text-lg text-slate-500 ml-1">days</span>
+                      </div>
                     </div>
-                    <div className="text-sm text-slate-600 mb-1">days</div>
-                    <div className={`mt-4 px-4 py-2 rounded-full text-sm font-medium ${
-                      cycleAnalysis.variability <= 5
-                        ? 'bg-sage-100 text-sage-700 border border-sage-200'
-                        : cycleAnalysis.variability <= 10
-                        ? 'bg-amber-100 text-amber-700 border border-amber-200'
-                        : 'bg-rose-100 text-rose-700 border border-rose-200'
-                    }`}>
-                      {cycleAnalysis.variability <= 5 ? 'Stable' : cycleAnalysis.variability <= 10 ? 'Moderate' : 'Dynamic'}
+
+                    <div className="p-4 bg-white rounded-lg border border-slate-100">
+                      <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Stability Index</div>
+                      <div className="text-3xl font-serif font-bold text-slate-800">
+                        ±{Math.round(cycleAnalysis.variability)}
+                        <span className="text-lg text-slate-500 ml-1">days</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-white rounded-lg border border-slate-100">
+                      <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">Status</div>
+                      <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
+                        cycleAnalysis.variability <= 5
+                          ? 'bg-sage-100 text-sage-700 border border-sage-200'
+                          : cycleAnalysis.variability <= 10
+                          ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                          : 'bg-rose-100 text-rose-700 border border-rose-200'
+                      }`}>
+                        {cycleAnalysis.variability <= 5 ? 'Stable' : cycleAnalysis.variability <= 10 ? 'Dynamic' : 'Irregular'}
+                      </div>
                     </div>
                   </div>
+
                   <div className="mt-6 p-4 bg-lavender-50 rounded-lg border border-lavender-100">
                     <p className="text-xs text-slate-700 leading-relaxed">
-                      <span className="font-medium">Your stability is {Math.round(cycleAnalysis.variability)} days.</span> This represents
-                      how much your cycle length varies. Lower numbers indicate more predictable cycles.
+                      <span className="font-medium">Stability Index of ±{Math.round(cycleAnalysis.variability)} days</span> shows
+                      how much your cycle varies. Values under ±5 indicate high regularity, while values over ±10 suggest more dynamic patterns common with PCOS.
                     </p>
                   </div>
                 </div>
