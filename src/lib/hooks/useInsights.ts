@@ -251,17 +251,17 @@ async function calculateInsights(category: InsightCategory, days: number): Promi
   let radarLabels: string[];
 
   if (category === 'hyperandrogenism') {
-    compositeMetrics = ['acne', 'hirsutism', 'hairLoss'];
-    radarMetrics = ['acne', 'hirsutism', 'hairLoss', 'bodyImage'];
-    radarLabels = ['Acne', 'Hirsutism', 'Hair Loss', 'Body Image'];
+    compositeMetrics = ['acne', 'hirsutism', 'hairLoss', 'bloat', 'cramps'];
+    radarMetrics = ['cramps', 'acne', 'bloat', 'hirsutism', 'hairLoss'];
+    radarLabels = ['Cramps', 'Acne', 'Bloat', 'Hirsutism', 'Hair Loss'];
   } else if (category === 'metabolic') {
-    compositeMetrics = ['energy', 'sleep'];
-    radarMetrics = ['energy', 'sleep', 'fatigue', 'cycleRegularity'];
-    radarLabels = ['Energy', 'Sleep Quality', 'Fatigue', 'Cycle Regularity'];
+    compositeMetrics = ['energy', 'sleep', 'diet'];
+    radarMetrics = ['sleep', 'exercise', 'diet'];
+    radarLabels = ['Sleep', 'Exercise', 'Diet'];
   } else if (category === 'psych') {
-    compositeMetrics = ['stress', 'bodyImage', 'mood'];
-    radarMetrics = ['stress', 'bodyImage', 'anxiety', 'mood'];
-    radarLabels = ['Stress', 'Body Image', 'Anxiety', 'Mood'];
+    compositeMetrics = ['stress', 'bodyImage', 'anxiety'];
+    radarMetrics = ['stress', 'bodyImage', 'anxiety'];
+    radarLabels = ['Stress', 'Body Image', 'Anxiety'];
   } else {
     compositeMetrics = ['acne', 'mood', 'sleep'];
     radarMetrics = ['acne', 'mood', 'sleep', 'exercise'];
@@ -348,14 +348,34 @@ async function calculateInsights(category: InsightCategory, days: number): Promi
     const values = currentLogs
       .map(log => getMetricValue(log, metric))
       .filter((v): v is number => v !== undefined);
-    return calculateAverage(values);
+    const avg = calculateAverage(values);
+
+    // Invert physical symptoms so 10 = Good
+    if (['acne', 'hirsutism', 'hairLoss', 'bloat', 'cramps'].includes(metric)) {
+      return 10 - avg;
+    }
+    // Invert stress and anxiety for emotional category so 10 = Good
+    if (['stress', 'anxiety'].includes(metric)) {
+      return 10 - avg;
+    }
+    return avg;
   });
 
   const radarBaselineData = radarMetrics.map(metric => {
     const values = baselineLogs
       .map(log => getMetricValue(log, metric))
       .filter((v): v is number => v !== undefined);
-    return calculateAverage(values);
+    const avg = calculateAverage(values);
+
+    // Invert physical symptoms so 10 = Good
+    if (['acne', 'hirsutism', 'hairLoss', 'bloat', 'cramps'].includes(metric)) {
+      return 10 - avg;
+    }
+    // Invert stress and anxiety for emotional category so 10 = Good
+    if (['stress', 'anxiety'].includes(metric)) {
+      return 10 - avg;
+    }
+    return avg;
   });
 
   const spokeVelocities: SpokeVelocity[] = radarMetrics.map((metric, index) => {

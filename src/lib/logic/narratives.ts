@@ -23,6 +23,61 @@ function calculateAverage(values: number[]): number {
   return values.reduce((sum, val) => sum + val, 0) / values.length;
 }
 
+interface LagCorrelation {
+  triggerCondition: (log: LogEntry) => boolean;
+  effectMetric: (log: LogEntry) => number | undefined;
+  threshold: number;
+  message: string;
+  category: DailyWisdom['category'];
+}
+
+function checkLagCorrelation(
+  logs: LogEntry[],
+  lagDays: number,
+  correlation: LagCorrelation
+): DailyWisdom | null {
+  if (logs.length < lagDays + 3) return null;
+
+  const sortedLogs = [...logs].sort((a, b) => a.date.localeCompare(b.date));
+
+  const pairs: Array<{ trigger: boolean; effect: number }> = [];
+
+  for (let i = 0; i < sortedLogs.length - lagDays; i++) {
+    const triggerLog = sortedLogs[i];
+    const effectLog = sortedLogs[i + lagDays];
+
+    const trigger = correlation.triggerCondition(triggerLog);
+    const effect = correlation.effectMetric(effectLog);
+
+    if (effect !== undefined) {
+      pairs.push({ trigger, effect });
+    }
+  }
+
+  if (pairs.length < 3) return null;
+
+  const triggeredPairs = pairs.filter(p => p.trigger);
+  const nonTriggeredPairs = pairs.filter(p => !p.trigger);
+
+  if (triggeredPairs.length < 2 || nonTriggeredPairs.length < 2) return null;
+
+  const triggeredAvg = calculateAverage(triggeredPairs.map(p => p.effect));
+  const nonTriggeredAvg = calculateAverage(nonTriggeredPairs.map(p => p.effect));
+
+  const difference = triggeredAvg - nonTriggeredAvg;
+
+  if (Math.abs(difference) >= correlation.threshold) {
+    return {
+      message: correlation.message,
+      category: correlation.category,
+      hasData: true,
+      source: "Blossom Causal Engine"
+    };
+  }
+
+  return null;
+}
+
 export interface DailyWisdom {
   message: string;
   category: 'sleep' | 'movement' | 'affirmation' | 'hydration' | 'diet' | 'stress' | 'cycle' | 'insight';
@@ -40,6 +95,55 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       hasData: false,
       source: "Blossom Pattern Engine"
     };
+  }
+
+  // Check time-lagged correlations first (Causal Logic)
+
+  // 1. Diet -> Acne (2 days lag): High Sugar leads to Acne spike 2 days later
+  const dietAcneCorrelation = checkLagCorrelation(allLogs, 2, {
+    triggerCondition: (log) => log.lifestyle.diet === 'cravings',
+    effectMetric: (log) => log.symptoms.acne,
+    threshold: 1.5,
+    message: "Whisper: Your data shows that high sugar intake tends to trigger acne flares ~2 days later.",
+    category: 'diet'
+  });
+  if (dietAcneCorrelation) return dietAcneCorrelation;
+
+  // 2. Sleep -> Anxiety (1 day lag): Poor Sleep leads to High Anxiety next day
+  const sleepAnxietyCorrelation = checkLagCorrelation(allLogs, 1, {
+    triggerCondition: (log) => log.lifestyle.sleep === '<6h',
+    effectMetric: (log) => {
+      const anxiety = log.psych.anxiety;
+      if (anxiety === 'none') return 0;
+      if (anxiety === 'low') return 3;
+      if (anxiety === 'high') return 8;
+      return typeof anxiety === 'number' ? anxiety : 5;
+    },
+    threshold: 2,
+    message: "Whisper: Poor sleep (<6h) leads to heightened anxiety the next day in your pattern.",
+    category: 'sleep'
+  });
+  if (sleepAnxietyCorrelation) return sleepAnxietyCorrelation;
+
+  // 3. Cycle Phase -> Bloat (0 days lag): Luteal Phase correlates with higher Bloat
+  const cyclePhases = allLogs.filter(log => log.cyclePhase && log.cyclePhase !== 'unknown');
+  if (cyclePhases.length >= 5) {
+    const lutealLogs = cyclePhases.filter(log => log.cyclePhase === 'luteal');
+    const follicularLogs = cyclePhases.filter(log => log.cyclePhase === 'follicular');
+
+    if (lutealLogs.length >= 2 && follicularLogs.length >= 2) {
+      const lutealBloat = calculateAverage(lutealLogs.map(log => log.symptoms.bloat || 0));
+      const follicularBloat = calculateAverage(follicularLogs.map(log => log.symptoms.bloat || 0));
+
+      if (lutealBloat - follicularBloat > 1.5) {
+        return {
+          message: "Whisper: Your luteal phase consistently shows higher bloating. This is a common PCOS pattern.",
+          category: 'cycle',
+          hasData: true,
+          source: "Blossom Causal Engine"
+        };
+      }
+    }
   }
 
   const goodSleepLogs = allLogs.filter(log => {

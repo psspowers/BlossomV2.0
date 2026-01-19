@@ -17,7 +17,6 @@ import {
 import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart, RefreshCw, Leaf, Sparkles } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { db } from '../lib/db';
-import { WellnessRadar } from './WellnessRadar';
 
 ChartJS.register(
   CategoryScale,
@@ -406,13 +405,102 @@ export function Insights() {
             <div className="glass-card">
               <div className="p-4 border-b border-slate-100">
                 <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                  Holistic Balance
+                  {currentConfig.label} Deep Dive
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 font-sans">
-                  Current vs. 30-Day Baseline
+                  Current vs. Baseline - Granular Analysis
                 </p>
               </div>
-              <WellnessRadar />
+              <div className="h-[350px] p-6">
+                {insights.radarLabels.length > 0 ? (
+                  <Radar
+                    data={{
+                      labels: insights.radarLabels,
+                      datasets: [
+                        {
+                          label: 'Current',
+                          data: insights.radarCurrent.data,
+                          backgroundColor: `${currentConfig.color.replace('0.8', '0.2')}`,
+                          borderColor: currentConfig.borderColor,
+                          borderWidth: 2,
+                          tension: 0.4,
+                          pointBackgroundColor: currentConfig.borderColor,
+                          pointBorderColor: '#fff',
+                          pointHoverBackgroundColor: '#fff',
+                          pointHoverBorderColor: currentConfig.borderColor
+                        },
+                        {
+                          label: 'Baseline',
+                          data: insights.radarBaseline.data,
+                          backgroundColor: 'rgba(229, 224, 216, 0.1)',
+                          borderColor: '#E5E0D8',
+                          borderWidth: 1,
+                          borderDash: [4, 4],
+                          tension: 0.4,
+                          pointBackgroundColor: '#E5E0D8',
+                          pointBorderColor: '#E5E0D8',
+                          pointRadius: 2
+                        }
+                      ]
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      layout: {
+                        padding: 20
+                      },
+                      scales: {
+                        r: {
+                          beginAtZero: true,
+                          max: 10,
+                          ticks: {
+                            display: false,
+                            stepSize: 2
+                          },
+                          grid: {
+                            display: false
+                          },
+                          angleLines: {
+                            display: false
+                          },
+                          pointLabels: {
+                            color: 'rgba(74, 74, 74, 0.8)',
+                            font: {
+                              size: 11,
+                              family: 'Georgia, serif'
+                            }
+                          }
+                        }
+                      },
+                      plugins: {
+                        legend: {
+                          display: false
+                        },
+                        tooltip: {
+                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                          titleColor: '#4A4A4A',
+                          bodyColor: '#64748b',
+                          borderColor: 'rgba(0, 0, 0, 0.1)',
+                          borderWidth: 1,
+                          padding: 12,
+                          displayColors: false,
+                          callbacks: {
+                            label: function(context: any) {
+                              const label = context.dataset.label || '';
+                              const value = context.parsed.r;
+                              return `${label}: ${value.toFixed(1)}/10`;
+                            }
+                          }
+                        }
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-slate-600">
+                    No data yet
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="glass-card p-6">
