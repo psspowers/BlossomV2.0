@@ -8,6 +8,40 @@ export interface SeasonState {
   icon: string;
 }
 
+export interface Season {
+  id: SeasonType;
+  label: string;
+  icon: string;
+  message: string;
+}
+
+export function determineSeason(score: number, recentLogCount: number): Season {
+  if (recentLogCount < 3 || score < 40) {
+    return {
+      id: 'resting',
+      label: 'Season of Resting',
+      icon: '🍂',
+      message: 'Winter is necessary for Spring. Rest is productive.'
+    };
+  }
+
+  if (score >= 80) {
+    return {
+      id: 'blooming',
+      label: 'Season of Blooming',
+      icon: '🌸',
+      message: 'You are radiant. Your efforts are bearing fruit.'
+    };
+  }
+
+  return {
+    id: 'growing',
+    label: 'Season of Growing',
+    icon: '🌱',
+    message: 'Your roots are deepening. Consistency is magic.'
+  };
+}
+
 export async function calculateSeason(blossomScore: number): Promise<SeasonState> {
   const recentLogs = await getLastNDays(7);
 
@@ -24,7 +58,7 @@ export async function calculateSeason(blossomScore: number): Promise<SeasonState
   if (blossomScore >= 80) {
     return {
       currentSeason: 'blooming',
-      message: 'You are radiant. Enjoy this season.',
+      message: 'You are radiant. Your efforts are bearing fruit.',
       icon: '🌸'
     };
   }
@@ -32,7 +66,7 @@ export async function calculateSeason(blossomScore: number): Promise<SeasonState
   return {
     currentSeason: 'growing',
     message: 'Your roots are deepening. Consistency is magic.',
-    icon: '🌿'
+    icon: '🌱'
   };
 }
 
