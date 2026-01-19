@@ -141,34 +141,40 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             disablePictureInPicture
           />
 
-          {/* FLOATING HUD */}
+          {/* Score Dewdrop - Floating on lotus */}
           {isReady && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="absolute bottom-[12%] z-20 flex flex-col items-center gap-4"
+              className="absolute bottom-[12%] z-20"
             >
-              {/* Score Dewdrop */}
               <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg">
                 <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
                 <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
-              </div>
-
-              {/* Narrative */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-slate-500 text-sm font-medium uppercase tracking-widest mb-1">
-                  <span className="text-lg">{season.icon}</span>
-                  <span>Season of {season.currentSeason}</span>
-                </div>
-                <p className="font-serif italic text-slate-400 text-sm max-w-xs mx-auto leading-relaxed px-4">
-                  {season.message}
-                </p>
               </div>
             </motion.div>
           )}
         </motion.div>
       </div>
+
+      {/* NARRATIVE BELOW LOTUS */}
+      {isReady && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.8 }}
+          className="mt-6 text-center"
+        >
+          <div className="flex items-center justify-center gap-2 text-slate-500 text-sm font-medium uppercase tracking-widest mb-2">
+            <span className="text-lg">{season.icon}</span>
+            <span>Season of {season.currentSeason}</span>
+          </div>
+          <p className="font-serif italic text-slate-600 text-base max-w-md mx-auto leading-relaxed px-4">
+            {season.message}
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 };
