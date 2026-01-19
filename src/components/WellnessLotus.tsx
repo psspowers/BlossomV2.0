@@ -102,8 +102,8 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
       {/* HEADER */}
       <motion.h2
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
-        className="absolute top-4 left-0 w-full text-center text-xs font-sans font-medium text-slate-400 tracking-[0.2em] uppercase"
+        animate={{ opacity: 0.85 }}
+        className="absolute top-4 left-0 w-full text-center text-xs font-sans font-semibold text-slate-600 tracking-[0.2em] uppercase"
       >
         {name}
       </motion.h2>
