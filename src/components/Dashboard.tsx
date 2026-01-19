@@ -5,7 +5,8 @@ import { CycleContext } from './CycleContext';
 import { Insights } from './Insights';
 import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
-import { Plus, Settings, Shield, Lightbulb } from 'lucide-react';
+import { Learn } from './Learn';
+import { Plus, Settings, Shield, Lightbulb, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -20,6 +21,7 @@ export function Dashboard() {
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showLearn, setShowLearn] = useState(false);
   const [blossomScore, setBlossomScore] = useState<number>(50);
   const [season, setSeason] = useState<SeasonState>({
     currentSeason: 'resting',
@@ -106,7 +108,14 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowLearn(true)}
+              className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm"
+              aria-label="Open education library"
+            >
+              <BookOpen className="w-5 h-5 text-slate-600 group-hover:text-slate-800 transition-all duration-300" />
+            </button>
             <button
               onClick={() => setShowSettings(true)}
               className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 transition-all group shadow-sm"
@@ -187,6 +196,7 @@ export function Dashboard() {
 
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showLearn && <Learn onClose={() => setShowLearn(false)} />}
     </div>
   );
 }

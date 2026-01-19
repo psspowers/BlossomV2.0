@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCategoryInsights, InsightCategory } from '../lib/hooks/useInsights';
 import { Line, Radar, Bar } from 'react-chartjs-2';
 import {
@@ -14,7 +14,9 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Activity, Brain, Heart, Calendar } from 'lucide-react';
+import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
+import { db } from '../lib/db';
 
 ChartJS.register(
   CategoryScale,
@@ -29,11 +31,29 @@ ChartJS.register(
   Filler
 );
 
+type ViewType = InsightCategory | 'cycle';
+
 export function Insights() {
-  const [category, setCategory] = useState<InsightCategory>('hyperandrogenism');
+  const [view, setView] = useState<ViewType>('hyperandrogenism');
   const [timeframe, setTimeframe] = useState<7 | 30>(7);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [cycleAnalysis, setCycleAnalysis] = useState<CycleAnalysis | null>(null);
+  const [cycleLoading, setCycleLoading] = useState(true);
+
+  const category: InsightCategory = view === 'cycle' ? 'hyperandrogenism' : view;
   const { insights, loading, filterByMetric, resetToComposite } = useCategoryInsights(category, timeframe);
+
+  useEffect(() => {
+    const loadCycleHistory = async () => {
+      setCycleLoading(true);
+      const logs = await db.logs.toArray();
+      const analysis = analyzeHistory(logs);
+      setCycleAnalysis(analysis);
+      setCycleLoading(false);
+    };
+
+    loadCycleHistory();
+  }, []);
 
   const handleMetricClick = async (metric: string, label: string) => {
     setSelectedMetric(metric);
@@ -45,12 +65,12 @@ export function Insights() {
     await resetToComposite();
   };
 
-  const handleCategoryChange = (newCategory: InsightCategory) => {
-    setCategory(newCategory);
+  const handleViewChange = (newView: ViewType) => {
+    setView(newView);
     setSelectedMetric(null);
   };
 
-  const categoryConfig = {
+  const viewConfig = {
     hyperandrogenism: {
       label: 'Physical',
       icon: Activity,
@@ -89,10 +109,23 @@ export function Insights() {
       borderClass: 'border-sage-600',
       textClass: 'text-sage-600',
       badgeBgClass: 'bg-sage-600/20 text-sage-600 border-sage-600/30'
+    },
+    cycle: {
+      label: 'Cycle History',
+      icon: Calendar,
+      color: 'rgba(197, 179, 223, 0.8)',
+      bgColor: 'rgba(197, 179, 223, 0.1)',
+      borderColor: 'rgb(197, 179, 223)',
+      hex: '#C5B3DF',
+      glowClass: 'bg-lavender-400/10',
+      shadowClass: 'shadow-[0_4px_20px_rgba(197,179,223,0.3)]',
+      borderClass: 'border-lavender-400',
+      textClass: 'text-lavender-600',
+      badgeBgClass: 'bg-lavender-400/20 text-lavender-600 border-lavender-400/30'
     }
   };
 
-  const currentConfig = categoryConfig[category as keyof typeof categoryConfig];
+  const currentConfig = viewConfig[view as keyof typeof viewConfig];
 
   const maxDataPoints = Math.max(insights.trendData.length, insights.baselineTrendData.length);
   const trendLabels = insights.trendData.map((d, i) => {
@@ -427,13 +460,13 @@ export function Insights() {
       </div>
 
       <div className="flex gap-2 mb-4">
-        {Object.entries(categoryConfig).map(([key, config]) => {
+        {Object.entries(viewConfig).map(([key, config]) => {
           const Icon = config.icon;
-          const isActive = category === key;
+          const isActive = view === key;
           return (
             <button
               key={key}
-              onClick={() => handleCategoryChange(key as InsightCategory)}
+              onClick={() => handleViewChange(key as ViewType)}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                 isActive
                   ? `bg-white ${config.textClass} border-b-2 ${config.borderClass} ${config.shadowClass} border-t border-x border-slate-200`
@@ -451,7 +484,144 @@ export function Insights() {
         <div
           className={`absolute inset-0 -inset-x-12 -inset-y-12 ${currentConfig.glowClass} blur-[100px] rounded-full transition-all duration-700 pointer-events-none opacity-50`}
         />
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {view === 'cycle' ? (
+          <div className="relative">
+            {cycleLoading ? (
+              <div className="glass-card p-8 flex items-center justify-center">
+                <div className="text-slate-600 animate-pulse">Loading cycle history...</div>
+              </div>
+            ) : cycleAnalysis && !cycleAnalysis.isUntracked && cycleAnalysis.cycleHistory.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="glass-card p-4 lg:col-span-2">
+                  <div className="mb-3">
+                    <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
+                      Last 6 Cycles
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Track your cycle lengths over time
+                    </p>
+                  </div>
+                  <div style={{ height: '300px' }}>
+                    <Bar
+                      data={{
+                        labels: cycleAnalysis.cycleHistory.slice(-6).map((_, i) => `Cycle ${i + 1}`),
+                        datasets: [
+                          {
+                            label: 'Days',
+                            data: cycleAnalysis.cycleHistory.slice(-6).map(c => c.daysFromPrevious || 0),
+                            backgroundColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
+                              const days = c.daysFromPrevious || 0;
+                              if (days >= 21 && days <= 35) return 'rgba(107, 143, 78, 0.8)';
+                              if (days > 35) return 'rgba(134, 168, 115, 0.8)';
+                              return 'rgba(232, 174, 178, 0.8)';
+                            }),
+                            borderColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
+                              const days = c.daysFromPrevious || 0;
+                              if (days >= 21 && days <= 35) return 'rgb(107, 143, 78)';
+                              if (days > 35) return 'rgb(134, 168, 115)';
+                              return 'rgb(232, 174, 178)';
+                            }),
+                            borderWidth: 2,
+                            borderRadius: 6
+                          }
+                        ]
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                            titleColor: '#4A4A4A',
+                            bodyColor: '#4A4A4A',
+                            borderColor: 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                              label: (context: any) => {
+                                const days = context.raw;
+                                let status = 'Short cycle';
+                                if (days >= 21 && days <= 35) status = 'Stable';
+                                else if (days > 35) status = 'Long cycle';
+                                return `${days} days (${status})`;
+                              }
+                            }
+                          }
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: {
+                              color: 'rgba(74, 74, 74, 0.6)',
+                              callback: (value: any) => `${value}d`
+                            }
+                          },
+                          x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(74, 74, 74, 0.6)' }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-sage-600"></div>
+                      <span className="text-slate-600">21-35 days (Stable)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-primary"></div>
+                      <span className="text-slate-600">&gt;35 days (Long)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-secondary"></div>
+                      <span className="text-slate-600">&lt;21 days (Short)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="glass-card p-6">
+                  <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide mb-4">
+                    Variability Index
+                  </h3>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="text-5xl font-serif font-bold text-lavender-600 mb-2">
+                      {Math.round(cycleAnalysis.variability)}
+                    </div>
+                    <div className="text-sm text-slate-600 mb-1">days</div>
+                    <div className={`mt-4 px-4 py-2 rounded-full text-sm font-medium ${
+                      cycleAnalysis.variability <= 5
+                        ? 'bg-sage-100 text-sage-700 border border-sage-200'
+                        : cycleAnalysis.variability <= 10
+                        ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                        : 'bg-rose-100 text-rose-700 border border-rose-200'
+                    }`}>
+                      {cycleAnalysis.variability <= 5 ? 'Stable' : cycleAnalysis.variability <= 10 ? 'Moderate' : 'Dynamic'}
+                    </div>
+                  </div>
+                  <div className="mt-6 p-4 bg-lavender-50 rounded-lg border border-lavender-100">
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      <span className="font-medium">Your stability is {Math.round(cycleAnalysis.variability)} days.</span> This represents
+                      how much your cycle length varies. Lower numbers indicate more predictable cycles.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="glass-card p-8">
+                <div className="text-center">
+                  <h3 className="text-lg font-serif font-semibold text-slate-800 mb-2">No Cycle Data Yet</h3>
+                  <p className="text-slate-600 text-sm">
+                    Start tracking your menstrual cycle to see cycle history and patterns.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="glass-card p-4">
           <div className="mb-3">
             <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
@@ -547,6 +717,7 @@ export function Insights() {
           )}
         </div>
         </div>
+        )}
       </div>
     </div>
   );
