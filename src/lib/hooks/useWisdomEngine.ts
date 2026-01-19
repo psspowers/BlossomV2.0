@@ -8,48 +8,44 @@ export interface WisdomContext {
   matchedCard: WisdomCard;
 }
 
+interface CachedWisdom {
+  date: string;
+  data: {
+    card: WisdomCard;
+    context: WisdomContext;
+  };
+}
+
+const STORAGE_KEY = 'blossom_daily_wisdom';
+
 export function useWisdomEngine() {
   const [wisdomCard, setWisdomCard] = useState<WisdomCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [context, setContext] = useState<WisdomContext | null>(null);
 
-  useEffect(() => {
-    async function analyzeAndSelectCard() {
+  const loadWisdom = async (forceRefresh = false) => {
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!forceRefresh) {
       try {
-        setLoading(true);
-
-        const today = new Date().toISOString().split('T')[0];
-        const todayLog = await db.logs
-          .where('date')
-          .equals(today)
-          .first();
-
-        const selectedCard = getReactiveWisdom(todayLog);
-
-        setContext({
-          todayLog: !!todayLog,
-          matchedCard: selectedCard
-        });
-        setWisdomCard(selectedCard);
-        setLoading(false);
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          const parsed: CachedWisdom = JSON.parse(cached);
+          if (parsed.date === today) {
+            setWisdomCard(parsed.data.card);
+            setContext(parsed.data.context);
+            setLoading(false);
+            return;
+          }
+        }
       } catch (err) {
-        console.error('Error analyzing wisdom:', err);
-        const fallbackCard = getReactiveWisdom(undefined);
-        setWisdomCard(fallbackCard);
-        setLoading(false);
+        console.error('Error reading cached wisdom:', err);
       }
     }
 
-    analyzeAndSelectCard();
-
-    const interval = setInterval(analyzeAndSelectCard, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const refreshCard = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      setLoading(true);
+
       const todayLog = await db.logs
         .where('date')
         .equals(today)
@@ -57,14 +53,45 @@ export function useWisdomEngine() {
 
       const selectedCard = getReactiveWisdom(todayLog);
 
-      setContext({
+      const newContext = {
         todayLog: !!todayLog,
         matchedCard: selectedCard
-      });
+      };
+
+      setContext(newContext);
       setWisdomCard(selectedCard);
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          date: today,
+          data: {
+            card: selectedCard,
+            context: newContext
+          }
+        }));
+      } catch (err) {
+        console.error('Error caching wisdom:', err);
+      }
+
+      setLoading(false);
     } catch (err) {
-      console.error('Error refreshing wisdom card:', err);
+      console.error('Error analyzing wisdom:', err);
+      const fallbackCard = getReactiveWisdom(undefined);
+      setWisdomCard(fallbackCard);
+      setContext({
+        todayLog: false,
+        matchedCard: fallbackCard
+      });
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadWisdom();
+  }, []);
+
+  const refreshCard = async () => {
+    await loadWisdom(true);
   };
 
   return {
