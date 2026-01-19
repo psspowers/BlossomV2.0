@@ -17,6 +17,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [isBuffered, setIsBuffered] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -24,19 +25,39 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
     const handleLoadedMetadata = () => {
       setVideoDuration(video.duration);
+    };
+
+    const handleCanPlayThrough = () => {
       setIsLoaded(true);
+      setIsBuffered(true);
+    };
+
+    const handleProgress = () => {
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const duration = video.duration;
+        if (bufferedEnd >= duration * 0.95) {
+          setIsBuffered(true);
+        }
+      }
     };
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('canplaythrough', handleCanPlayThrough);
+    video.addEventListener('progress', handleProgress);
+
+    video.load();
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('canplaythrough', handleCanPlayThrough);
+      video.removeEventListener('progress', handleProgress);
     };
   }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isLoaded || videoDuration === 0) return;
+    if (!video || !isLoaded || !isBuffered || videoDuration === 0) return;
 
     const targetTime = (health / 100) * videoDuration;
     const startTime = video.currentTime;
@@ -60,7 +81,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
     };
 
     requestAnimationFrame(smoothSeek);
-  }, [health, isLoaded, videoDuration]);
+  }, [health, isLoaded, isBuffered, videoDuration]);
 
   return (
     <div className="relative flex flex-col items-center justify-center py-4">
@@ -68,7 +89,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
         <motion.div
           className="relative w-full h-full flex items-center justify-center"
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: isLoaded ? 1 : 0.5, scale: 1 }}
+          animate={{ opacity: isBuffered ? 1 : 0.5, scale: 1 }}
           transition={{ duration: 0.6 }}
         >
           <video
@@ -79,13 +100,19 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             playsInline
             preload="auto"
             style={{
-              filter: 'drop-shadow(0 15px 25px rgba(77, 208, 225, 0.3))'
+              filter: 'drop-shadow(0 15px 25px rgba(77, 208, 225, 0.3))',
+              opacity: isBuffered ? 1 : 0.3
             }}
           />
 
-          {!isLoaded && (
+          {!isBuffered && (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sage-50 to-sage-100 rounded-lg">
-              <div className="text-sage-600 text-sm animate-pulse">Loading lotus...</div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 border-4 border-sage-200 border-t-sage-500 rounded-full animate-spin"></div>
+                <div className="text-sage-600 text-sm">
+                  {!isLoaded ? 'Loading lotus...' : 'Buffering...'}
+                </div>
+              </div>
             </div>
           )}
         </motion.div>
