@@ -11,6 +11,9 @@ import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
+import { getReactiveWisdom } from '../lib/logic/reactiveWisdom';
+import { WisdomCard } from '../lib/data/wisdom';
+import { db } from '../lib/db';
 
 export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
@@ -28,6 +31,7 @@ export function Dashboard() {
     category: 'affirmation',
     hasData: false
   });
+  const [reactiveWisdomCard, setReactiveWisdomCard] = useState<WisdomCard | null>(null);
 
   useEffect(() => {
     const loadCompassionateData = async () => {
@@ -41,6 +45,25 @@ export function Dashboard() {
       setWisdom(dailyWisdom);
     };
     loadCompassionateData();
+  }, []);
+
+  useEffect(() => {
+    const updateReactiveWisdom = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const todayLog = await db.logs
+        .where('date')
+        .equals(today)
+        .first();
+
+      const wisdomCard = getReactiveWisdom(todayLog);
+      setReactiveWisdomCard(wisdomCard);
+    };
+
+    updateReactiveWisdom();
+
+    const interval = setInterval(updateReactiveWisdom, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (plantLoading || themeLoading) {
@@ -122,10 +145,26 @@ export function Dashboard() {
                 Whispers from your Body
               </h2>
             </div>
-            <div className="p-8 flex items-center justify-center h-[calc(100%-56px)]">
-              <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
-                "{wisdom.message}"
-              </p>
+            <div className="p-6 flex flex-col justify-center h-[calc(100%-56px)]">
+              {reactiveWisdomCard ? (
+                <>
+                  <div className="mb-4">
+                    <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
+                      {reactiveWisdomCard.category}
+                    </span>
+                  </div>
+                  <p className="text-slate-800 text-base leading-relaxed mb-4">
+                    {reactiveWisdomCard.text}
+                  </p>
+                  <p className="text-xs text-slate-600 italic">
+                    Source: {reactiveWisdomCard.source}
+                  </p>
+                </>
+              ) : (
+                <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
+                  "{wisdom.message}"
+                </p>
+              )}
             </div>
           </div>
 
