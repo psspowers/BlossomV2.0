@@ -28,7 +28,7 @@ export function WellnessRadar() {
 
       const stressToNumber = (stress?: string) => {
         if (!stress) return 5;
-        if (stress === 'low') return 3;
+        if (stress === 'low') return 1;
         if (stress === 'medium') return 5;
         if (stress === 'high') return 8;
         return 5;
@@ -45,16 +45,23 @@ export function WellnessRadar() {
 
       const bodyImageToNumber = (bodyImage?: string) => {
         if (!bodyImage) return 5;
-        if (bodyImage === 'positive') return 8;
-        if (bodyImage === 'neutral') return 5;
-        if (bodyImage === 'negative') return 2;
+        if (bodyImage === 'positive') return 9;
+        if (bodyImage === 'neutral') return 6;
+        if (bodyImage === 'negative') return 3;
         return 5;
+      };
+
+      const skinScore = () => {
+        const acne = latest.symptoms.acne || 5;
+        const hirsutism = latest.symptoms.hirsutism || 5;
+        const averageSymptom = (acne + hirsutism) / 2;
+        return 10 - averageSymptom;
       };
 
       const currentValues = [
         10 - stressToNumber(latest.psych.stress),
         sleepToNumber(latest.lifestyle.sleep) * 1.4,
-        10 - (latest.symptoms.acne || 5),
+        skinScore(),
         bodyImageToNumber(latest.psych.bodyImage),
         (latest.psych.mood || 5)
       ];
