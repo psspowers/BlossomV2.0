@@ -115,15 +115,15 @@ export function Dashboard() {
             <WellnessRadar />
           </div>
 
-          <div className="glass-card h-80 bg-[#FFF9F0] border-2 border-sage-200">
-            <div className="p-4 border-b border-sage-100 flex items-center gap-2">
+          <div className="glass-card h-80 bg-stone-50 border border-stone-200 shadow-sm">
+            <div className="p-4 border-b border-stone-100 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-sage-600" />
               <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
                 Whispers from your Body
               </h2>
             </div>
-            <div className="p-6 flex items-center justify-center h-[calc(100%-56px)]">
-              <p className="text-slate-700 text-base leading-relaxed text-center italic font-serif">
+            <div className="p-8 flex items-center justify-center h-[calc(100%-56px)]">
+              <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
                 "{wisdom.message}"
               </p>
             </div>
