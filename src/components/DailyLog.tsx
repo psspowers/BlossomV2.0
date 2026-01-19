@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Shield } from 'lucide-react';
 import { db, LogEntry } from '../lib/db';
@@ -10,6 +10,13 @@ interface DailyLogProps {
 
 type CyclePhase = 'follicular' | 'ovulatory' | 'luteal' | 'menstrual' | 'unknown';
 type Flow = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
+
+const RITUAL_AFFIRMATIONS = [
+  "Rough mornings are valid.",
+  "Today I choose rest.",
+  "My body is listening.",
+  "Healing is a daily relationship."
+];
 
 export function DailyLog({ onClose }: DailyLogProps) {
   const [cyclePhase, setCyclePhase] = useState<CyclePhase>('unknown');
@@ -36,6 +43,19 @@ export function DailyLog({ onClose }: DailyLogProps) {
   const [customValues, setCustomValues] = useState<Record<string, number>>({});
   const [newTag, setNewTag] = useState('');
   const [newTagScore, setNewTagScore] = useState<number>(5);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [ritualAffirmation, setRitualAffirmation] = useState('');
+
+  useEffect(() => {
+    if (isSubmitted) {
+      const timer = setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isSubmitted, onClose]);
 
   const handleSave = async () => {
     const entry: LogEntry = {
@@ -49,6 +69,13 @@ export function DailyLog({ onClose }: DailyLogProps) {
     };
 
     await db.logs.add(entry);
+
+    const randomAffirmation = RITUAL_AFFIRMATIONS[Math.floor(Math.random() * RITUAL_AFFIRMATIONS.length)];
+    setRitualAffirmation(randomAffirmation);
+    setIsSubmitted(true);
+  };
+
+  const handleRitualClose = () => {
     onClose();
     window.location.reload();
   };
@@ -150,6 +177,48 @@ export function DailyLog({ onClose }: DailyLogProps) {
   const updateTagScore = (tag: string, score: number) => {
     setCustomValues({ ...customValues, [tag]: score });
   };
+
+  if (isSubmitted) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center"
+          onClick={handleRitualClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="w-full max-w-md mx-4 bg-[#FAF8F3] rounded-2xl p-12 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-2xl font-serif text-sage-800 leading-relaxed"
+              >
+                {ritualAffirmation}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="mt-8 text-sm text-sage-500"
+              >
+                Tap to continue
+              </motion.p>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
