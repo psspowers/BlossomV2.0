@@ -1,10 +1,10 @@
-import { Lightbulb, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { Lightbulb, RefreshCw, Sparkles } from 'lucide-react';
 import { useWisdomEngine } from '../lib/hooks/useWisdomEngine';
 
 export function DailyWisdom() {
-  const { wisdomCard, loading, error, context, refreshCard } = useWisdomEngine();
+  const { wisdomCard, loading, context, refreshCard } = useWisdomEngine();
 
-  if (loading) {
+  if (loading || !wisdomCard) {
     return (
       <div className="paper-card h-80 flex flex-col p-0">
         <div className="p-4 border-b border-border flex items-center justify-between">
@@ -24,45 +24,6 @@ export function DailyWisdom() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="paper-card h-80 flex flex-col p-0">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
-            Daily Wisdom
-          </h2>
-          <AlertCircle className="w-4 h-4 text-red-500" />
-        </div>
-
-        <div className="flex-1 p-6 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm text-red-600 mb-2">Failed to load wisdom cards</p>
-            <p className="text-xs text-sage-600">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!wisdomCard) {
-    return (
-      <div className="paper-card h-80 flex flex-col p-0">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
-            Daily Wisdom
-          </h2>
-          <Lightbulb className="w-4 h-4 text-sage-600" />
-        </div>
-
-        <div className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-sm text-sage-600 text-center">
-            No wisdom cards available
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="paper-card h-80 flex flex-col p-0">
       <div className="p-4 border-b border-border flex items-center justify-between">
@@ -70,14 +31,14 @@ export function DailyWisdom() {
           <h2 className="text-sm font-serif font-semibold text-text-main uppercase tracking-wide">
             Daily Wisdom
           </h2>
-          {context && context.triggers.size > 1 && (
-            <Sparkles className="w-3 h-3 text-sage-600" title="Personalized for you" />
+          {context && !context.triggers.has('general') && (
+            <Sparkles className="w-3 h-3 text-sage-600" title="Responding to your health patterns" />
           )}
         </div>
         <button
           onClick={refreshCard}
           className="p-1 hover:bg-sage-100 rounded-full transition-colors"
-          title="Get another insight"
+          title="Refresh wisdom"
         >
           <RefreshCw className="w-4 h-4 text-sage-600" />
         </button>
@@ -90,10 +51,6 @@ export function DailyWisdom() {
           </span>
         </div>
 
-        <h3 className="text-lg font-semibold text-text-main mb-3 font-serif">
-          {wisdomCard.title}
-        </h3>
-
         <p className="text-base text-text-main leading-relaxed mb-4">
           {wisdomCard.text}
         </p>
@@ -105,7 +62,9 @@ export function DailyWisdom() {
 
       <div className="p-4 border-t border-border">
         <p className="text-xs text-sage-600 text-center">
-          Evidence-based insight • Personalized to your patterns
+          {context && context.triggers.size > 0 && !context.triggers.has('general')
+            ? 'Responding to your current health patterns'
+            : 'Daily evidence-based insight'}
         </p>
       </div>
     </div>

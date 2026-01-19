@@ -1,214 +1,118 @@
 import { useState, useEffect } from 'react';
-import { supabase, WisdomCard } from '../supabase';
 import { LogEntry, db } from '../db';
+import { WISDOM_LIBRARY, WisdomCard } from '../data/wisdom';
 
 export interface WisdomContext {
   triggers: Set<string>;
-  cyclePhase?: string;
-  dominantIssues: string[];
+  matchedCard: WisdomCard | null;
 }
 
-function analyzeUserContext(recentLogs: LogEntry[]): WisdomContext {
+function detectTriggersFromLog(log: LogEntry | null): Set<string> {
   const triggers = new Set<string>();
-  const issueScores: Record<string, number> = {};
 
-  if (recentLogs.length === 0) {
+  if (!log) {
     triggers.add('general');
-    return { triggers, dominantIssues: ['general'] };
+    return triggers;
   }
 
-  const latestLog = recentLogs[0];
-
-  if (latestLog.cyclePhase) {
-    triggers.add(latestLog.cyclePhase);
-    if (latestLog.cyclePhase === 'luteal') {
-      triggers.add('luteal_phase');
-    }
-  }
-
-  const last3Days = recentLogs.slice(0, 3);
-
-  let lowSleepCount = 0;
-  let highStressCount = 0;
-  let highPainCount = 0;
-  let sugarCravingsCount = 0;
-
-  last3Days.forEach(log => {
-    if (log.lifestyle?.sleep === 'poor' || log.lifestyle?.sleep === '<6h') {
-      lowSleepCount++;
-      issueScores['sleep'] = (issueScores['sleep'] || 0) + 3;
-    }
-
-    if (log.psych?.stress === 'high' || log.psych?.stress === 'very high') {
-      highStressCount++;
-      issueScores['stress'] = (issueScores['stress'] || 0) + 3;
-    }
-
-    if (log.psych?.anxiety === 'high' || log.psych?.anxiety === 'very high') {
-      highStressCount++;
-      issueScores['stress'] = (issueScores['stress'] || 0) + 2;
-    }
-
-    const painLevel = (log.symptoms?.cramps || 0);
-    if (painLevel >= 7) {
-      highPainCount++;
-      issueScores['pain'] = (issueScores['pain'] || 0) + painLevel;
-    }
-
-    if (log.lifestyle?.diet?.includes('craving') || log.lifestyle?.diet?.includes('sugar')) {
-      sugarCravingsCount++;
-      issueScores['diet'] = (issueScores['diet'] || 0) + 2;
-    }
-
-    const moodScore = log.psych?.mood || 5;
-    if (moodScore <= 3) {
-      issueScores['emotional'] = (issueScores['emotional'] || 0) + (5 - moodScore);
-    }
-
-    if (log.psych?.bodyImage === 'negative' || log.psych?.bodyImage === 'very negative') {
-      issueScores['emotional'] = (issueScores['emotional'] || 0) + 2;
-    }
-  });
-
-  if (lowSleepCount >= 2) {
+  if (log.lifestyle?.sleep === '<6h' || log.lifestyle?.sleep === 'poor') {
     triggers.add('low_sleep');
-    triggers.add('metabolic');
   }
 
-  if (highStressCount >= 2) {
+  if (log.psych?.stress === 'high' || log.psych?.stress === 'very high') {
     triggers.add('high_stress');
-    triggers.add('emotional');
   }
 
-  if (highPainCount >= 1) {
+  const painLevel = log.symptoms?.cramps || 0;
+  if (painLevel >= 7) {
     triggers.add('high_pain');
-    triggers.add('physical');
   }
 
-  if (sugarCravingsCount >= 2) {
-    triggers.add('sugar_cravings');
-    triggers.add('metabolic');
+  if (log.cyclePhase === 'luteal') {
+    triggers.add('luteal_phase');
   }
 
-  if (latestLog.lifestyle?.sleep) {
-    const currentHour = new Date().getHours();
-    if (currentHour >= 5 && currentHour <= 10) {
-      triggers.add('morning');
-    }
-  }
-
-  if (latestLog.psych?.mood && latestLog.psych.mood <= 4) {
-    triggers.add('emotional');
-  }
-
-  if (issueScores['emotional'] && issueScores['emotional'] >= 5) {
-    triggers.add('emotional');
-  }
-
-  const dominantIssues = Object.entries(issueScores)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([issue]) => issue);
-
-  if (triggers.size === 0 || dominantIssues.length === 0) {
+  if (triggers.size === 0) {
     triggers.add('general');
-    dominantIssues.push('general');
   }
 
-  return {
-    triggers,
-    cyclePhase: latestLog.cyclePhase,
-    dominantIssues
-  };
+  return triggers;
 }
 
-function selectBestCard(cards: WisdomCard[], context: WisdomContext): WisdomCard | null {
-  if (cards.length === 0) return null;
-
-  const scoredCards = cards.map(card => {
-    let score = card.priority;
-
-    const matchingTriggers = card.triggers.filter(t => context.triggers.has(t));
-    score += matchingTriggers.length * 20;
-
-    if (context.dominantIssues.some(issue =>
-      card.triggers.some(t => t.includes(issue))
-    )) {
-      score += 15;
+function selectCardForTriggers(triggers: Set<string>): WisdomCard {
+  for (const card of WISDOM_LIBRARY) {
+    const hasMatch = card.triggers.some(trigger => triggers.has(trigger));
+    if (hasMatch && card.id !== 'general_resilience') {
+      return card;
     }
+  }
 
-    return { card, score };
-  });
-
-  scoredCards.sort((a, b) => b.score - a.score);
-
-  const topScore = scoredCards[0].score;
-  const topCards = scoredCards.filter(c => c.score === topScore);
-
-  const randomIndex = Math.floor(Math.random() * topCards.length);
-  return topCards[randomIndex].card;
+  return WISDOM_LIBRARY.find(card => card.id === 'general_resilience') || WISDOM_LIBRARY[0];
 }
 
 export function useWisdomEngine() {
   const [wisdomCard, setWisdomCard] = useState<WisdomCard | null>(null);
-  const [allCards, setAllCards] = useState<WisdomCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [context, setContext] = useState<WisdomContext | null>(null);
 
   useEffect(() => {
-    async function fetchWisdomCards() {
+    async function analyzeAndSelectCard() {
       try {
         setLoading(true);
 
-        const { data, error: fetchError } = await supabase
-          .from('wisdom_cards')
-          .select('*')
-          .eq('active', true)
-          .order('priority', { ascending: false });
+        const today = new Date().toISOString().split('T')[0];
+        const todayLog = await db.logs
+          .where('date')
+          .equals(today)
+          .first();
 
-        if (fetchError) throw fetchError;
+        if (!todayLog) {
+          const recentLog = await db.logs
+            .orderBy('date')
+            .reverse()
+            .first();
 
-        setAllCards(data || []);
+          const triggers = detectTriggersFromLog(recentLog || null);
+          const selectedCard = selectCardForTriggers(triggers);
 
-        const recentLogs = await db.logs
-          .orderBy('date')
-          .reverse()
-          .limit(7)
-          .toArray();
+          setContext({ triggers, matchedCard: selectedCard });
+          setWisdomCard(selectedCard);
+        } else {
+          const triggers = detectTriggersFromLog(todayLog);
+          const selectedCard = selectCardForTriggers(triggers);
 
-        const userContext = analyzeUserContext(recentLogs);
-        setContext(userContext);
+          setContext({ triggers, matchedCard: selectedCard });
+          setWisdomCard(selectedCard);
+        }
 
-        const selectedCard = selectBestCard(data || [], userContext);
-        setWisdomCard(selectedCard);
-
-        setError(null);
+        setLoading(false);
       } catch (err) {
-        console.error('Error fetching wisdom cards:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load wisdom cards');
-      } finally {
+        console.error('Error analyzing wisdom:', err);
+        const fallbackCard = WISDOM_LIBRARY.find(card => card.id === 'general_resilience') || WISDOM_LIBRARY[0];
+        setWisdomCard(fallbackCard);
         setLoading(false);
       }
     }
 
-    fetchWisdomCards();
+    analyzeAndSelectCard();
+
+    const interval = setInterval(analyzeAndSelectCard, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const refreshCard = async () => {
-    if (allCards.length === 0) return;
-
     try {
-      const recentLogs = await db.logs
-        .orderBy('date')
-        .reverse()
-        .limit(7)
-        .toArray();
+      const today = new Date().toISOString().split('T')[0];
+      const todayLog = await db.logs
+        .where('date')
+        .equals(today)
+        .first();
 
-      const userContext = analyzeUserContext(recentLogs);
-      setContext(userContext);
+      const triggers = detectTriggersFromLog(todayLog || null);
+      const selectedCard = selectCardForTriggers(triggers);
 
-      const selectedCard = selectBestCard(allCards, userContext);
+      setContext({ triggers, matchedCard: selectedCard });
       setWisdomCard(selectedCard);
     } catch (err) {
       console.error('Error refreshing wisdom card:', err);
@@ -217,9 +121,8 @@ export function useWisdomEngine() {
 
   return {
     wisdomCard,
-    allCards,
     loading,
-    error,
+    error: null,
     context,
     refreshCard
   };
