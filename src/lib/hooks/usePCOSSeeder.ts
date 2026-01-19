@@ -333,6 +333,7 @@ export function usePCOSSeeder() {
   };
 
   return {
+    generateHistory,
     loadEmma,
     loadSophia,
     loadOlivia,

@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, RefreshCw, Shield, Beaker, FileText, Sparkles } from 'lucide-react';
+import { X, Download, Trash2, Shield, FileText, UserCircle, Beaker } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
-import { resetDatabase } from '../lib/resetData';
 import { useState, useEffect } from 'react';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
@@ -14,17 +13,16 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
-  const { plantState, loading: plantLoading } = usePlantState();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isExportingClinical, setIsExportingClinical] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-  const [isLoadingPersona, setIsLoadingPersona] = useState(false);
+  const { plantState } = usePlantState();
+  const { generateHistory } = usePCOSSeeder();
+  const [loadingPersona, setLoadingPersona] = useState<string | null>(null);
   const [currentSeason, setCurrentSeason] = useState<string>('Loading...');
   const [blossomScore, setBlossomScore] = useState<number>(0);
   const [totalLogs, setTotalLogs] = useState<number>(0);
-  const { loadEmma, loadSophia, loadOlivia, loadAva, loadIsabella } = usePCOSSeeder();
+  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingClinical, setIsExportingClinical] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadJourneyData = async () => {
@@ -221,41 +219,23 @@ ${(() => {
   const avgWater = waterIntakes.length > 0
     ? (waterIntakes.reduce((a, b) => a + b, 0) / waterIntakes.length).toFixed(1)
     : 'N/A';
-  return `  - Average Daily Water: ${avgWater}${avgWater === 'N/A' ? '' : ' glasses'}`;
+  return `  - Average Daily Water: ${avgWater} glasses`;
 })()}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-CLINICAL NOTES
-${cycleAnalysis.isLongCycle
-  ? '⚠ Extended cycle detected. Consider metabolic and hormonal evaluation.\n'
-  : ''}${cycleAnalysis.variability > 10
-  ? `⚠ High cycle variability (±${Math.round(cycleAnalysis.variability)} days). May indicate irregular ovulation.\n`
-  : ''}${highPainDays > 5
-  ? '⚠ Frequent high pain days. Consider pain management strategies.\n'
-  : ''}${blossomScoreData.score < 50
-  ? '⚠ Low wellness score. Increased symptom burden or lifestyle factors affecting wellbeing.\n'
-  : ''}${cycleAnalysis.isUntracked
-  ? '• Recommend continued tracking to establish cycle baseline.\n'
-  : ''}
-This report is generated from patient self-tracking data using the Blossom
-PCOS wellness app. All data is based on subjective patient reporting and
-should be used in conjunction with clinical examination and diagnostic testing.
+NOTES FOR HEALTHCARE PROVIDER
+This report is generated from self-tracked menstrual and wellness data.
+All symptom ratings use a 0-10 scale unless otherwise specified.
+Mood scores range from 0-100.
+
+For questions about this data or the Blossom Health app, please contact:
+support@blossomhealth.app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
 
-ABOUT BLOSSOM
-Blossom is a PCOS-aware cycle tracking application that uses PCOS-specific
-logic to differentiate between true menstrual periods and spotting events,
-providing more accurate cycle analysis for individuals with PCOS.
-
-For questions about this report, please visit: https://github.com/yourusername/blossom
-      `.trim();
-
-      const blob = new Blob([report], {
-        type: 'text/plain'
-      });
-
+      const blob = new Blob([report], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -265,7 +245,7 @@ For questions about this report, please visit: https://github.com/yourusername/b
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Clinical export failed:', error);
+      console.error('Clinical report generation failed:', error);
       alert('Failed to generate clinical report. Please try again.');
     } finally {
       setIsExportingClinical(false);
@@ -287,63 +267,10 @@ For questions about this report, please visit: https://github.com/yourusername/b
     }
   };
 
-  const handleResetDemoData = async () => {
-    try {
-      setIsResetting(true);
-      await resetDatabase();
-      alert('Demo data has been reset successfully with updated insights!');
-      window.location.reload();
-    } catch (error) {
-      console.error('Reset failed:', error);
-      alert('Failed to reset demo data. Please try again.');
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const handleLoadPersona = async (
-    loaderFn: () => Promise<any>,
-    personaName: string
-  ) => {
-    try {
-      setIsLoadingPersona(true);
-      const result = await loaderFn();
-      alert(
-        `${result.name} Loaded Successfully!\n\n` +
-        `Type: ${result.type}\n` +
-        `Logs Created: ${result.logsCreated}\n` +
-        `Cycle Info: ${result.cycleInfo}\n\n` +
-        `${result.description}\n\n` +
-        `Expected Pattern: ${result.expectedPattern}`
-      );
-      window.location.reload();
-    } catch (error) {
-      console.error(`Failed to load ${personaName} persona:`, error);
-      alert('Failed to load persona. Please try again.');
-    } finally {
-      setIsLoadingPersona(false);
-    }
-  };
-
-  if (plantLoading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center"
-        onClick={onClose}
-      >
-        <div className="text-sage-600 animate-pulse">Loading...</div>
-      </motion.div>
-    );
-  }
-
-  const seasonIcons = {
-    resting: '🌱',
-    growing: '🌿',
-    blooming: '🌸',
-    thriving: '✨'
+  const handleLoadPersona = async (name: 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella') => {
+    setLoadingPersona(name);
+    await generateHistory(name);
+    window.location.reload();
   };
 
   return (
@@ -352,320 +279,192 @@ For questions about this report, please visit: https://github.com/yourusername/b
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="w-full max-w-4xl max-h-[85vh] bg-surface rounded-3xl border-2 border-border overflow-hidden shadow-2xl"
-          onClick={e => e.stopPropagation()}
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          className="w-full max-w-2xl bg-[#FDFBF7] rounded-3xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="sticky top-0 bg-surface/95 backdrop-blur-xl border-b-2 border-border p-6 flex items-center justify-between z-10">
-            <div className="flex items-center gap-3">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-text-main">Settings & Privacy</h2>
-                <p className="text-sm text-sage-600 mt-1">Your wellness journey dashboard</p>
-              </div>
-              <div className="px-3 py-1 rounded-full bg-sage-50 border border-sage-200 flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-sage-600" />
-                <span className="text-xs font-medium text-sage-700">100% Private</span>
-              </div>
-            </div>
+          <div className="p-6 border-b border-stone-200 flex justify-between items-center bg-white">
+            <h2 className="text-2xl font-serif text-stone-800">Settings & Privacy</h2>
             <button
               onClick={onClose}
-              className="text-sage-500 hover:text-text-main transition-colors p-2 hover:bg-sage-50 rounded-lg"
+              className="p-2 hover:bg-stone-100 rounded-full text-stone-500"
             >
-              <X className="w-6 h-6" />
+              <X size={20} />
             </button>
           </div>
 
-          <div className="overflow-y-auto p-6 pb-8 bg-background" style={{ maxHeight: 'calc(85vh - 88px)' }}>
-            <section className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Your Journey</h3>
-              </div>
-              <div className="paper-card bg-gradient-to-br from-sage-50 to-white border-2 border-primary/30">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center md:text-left">
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Current Season</p>
-                    <div className="flex items-center justify-center md:justify-start gap-2">
-                      <span className="text-3xl">{seasonIcons[currentSeason as keyof typeof seasonIcons] || '🌱'}</span>
-                      <p className="text-xl font-serif font-bold text-primary capitalize">{currentSeason}</p>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Blossom Score</p>
-                    <div className="inline-block px-4 py-2 bg-sage-100 rounded-full border-2 border-sage-300">
-                      <p className="text-2xl font-serif font-bold text-sage-700">{blossomScore}</p>
-                    </div>
-                  </div>
-                  <div className="text-center md:text-right">
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Total Days Logged</p>
-                    <p className="text-xl font-serif font-bold text-text-main">{totalLogs}</p>
-                    <p className="text-xs text-sage-600 mt-1">{plantState.streak} day streak</p>
-                  </div>
+          <div className="p-6 overflow-y-auto space-y-8">
+            <section>
+              <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
+                Your Journey
+              </h3>
+              <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-3xl font-serif text-stone-800 mb-1">{blossomScore}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-wide">Blossom Score</p>
                 </div>
-              </div>
-            </section>
-
-            <section className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-secondary rounded-full" />
-                </div>
-                <h3 className="text-lg font-serif font-semibold text-text-main">Privacy Vault</h3>
-              </div>
-
-              <div className="space-y-3">
-                <div className="paper-card p-4 border-2 border-primary bg-sage-50">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-primary" />
-                        Clinical Snapshot
-                      </h4>
-                      <p className="text-sm text-sage-600">
-                        Generate a human-readable clinical report for your healthcare provider. Includes cycle analysis, symptom patterns, and lifestyle correlations.
-                      </p>
-                    </div>
-                    <button
-                      onClick={generateClinicalReport}
-                      disabled={isExportingClinical}
-                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
-                    >
-                      {isExportingClinical ? 'Generating...' : 'Download'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        <Download className="w-4 h-4 text-sage-600" />
-                        Export Raw Data (JSON)
-                      </h4>
-                      <p className="text-sm text-sage-600">
-                        Download all your health logs as a JSON file for personal backup or data portability.
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleExportData}
-                      disabled={isExporting}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                      {isExporting ? 'Exporting...' : 'Download'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4 border-2 border-sage-200">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 text-sage-600" />
-                        Reset Demo Data
-                      </h4>
-                      <p className="text-sm text-sage-600">
-                        Clear current data and reload fresh demo data with 3 complete menstrual cycles and realistic symptom patterns.
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleResetDemoData}
-                      disabled={isResetting}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isResetting ? 'Resetting...' : 'Reset Data'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4 border-2 border-red-200">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                        Delete All Data
-                      </h4>
-                      <p className="text-sm text-sage-600">
-                        Permanently delete all your health logs. This action cannot be undone.
-                      </p>
-                    </div>
-                    {!showDeleteConfirm ? (
-                      <button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-full transition-all border border-red-200 whitespace-nowrap"
-                      >
-                        Delete Data
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setShowDeleteConfirm(false)}
-                          className="px-3 py-2 bg-sage-100 hover:bg-sage-200 text-text-main text-sm rounded-full transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleDeleteAllData}
-                          disabled={isDeleting}
-                          className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isDeleting ? 'Deleting...' : 'Confirm'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
-                  <p className="text-xs text-sage-700 leading-relaxed">
-                    <strong className="text-text-main">Privacy Notice:</strong> All your data is stored locally in your browser.
-                    We do not collect, transmit, or store any of your health information on external servers.
-                    Your data is completely private and under your control.
-                  </p>
+                <div className="text-right">
+                  <p className="text-lg font-serif text-sage-700">{currentSeason}</p>
+                  <p className="text-xs text-stone-500 uppercase tracking-wide">Current Season</p>
                 </div>
               </div>
             </section>
 
             <section>
+              <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
+                Privacy Vault
+              </h3>
+              <div className="grid gap-3">
+                <button
+                  onClick={generateClinicalReport}
+                  disabled={isExportingClinical}
+                  className="flex items-center gap-4 p-4 bg-sage-50 border border-sage-100 rounded-xl text-left hover:bg-sage-100 transition-colors group disabled:opacity-50"
+                >
+                  <div className="p-2 bg-white rounded-lg text-sage-600 shadow-sm">
+                    <FileText size={20} />
+                  </div>
+                  <div>
+                    <p className="font-serif text-stone-800 font-medium group-hover:text-sage-800">
+                      {isExportingClinical ? 'Generating...' : 'Clinical Snapshot'}
+                    </p>
+                    <p className="text-xs text-stone-500">Download report for your doctor</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:border-stone-300 hover:shadow-md transition-all group disabled:opacity-50"
+                >
+                  <div className="p-2 bg-stone-50 rounded-lg text-stone-600 shadow-sm">
+                    <Download size={20} />
+                  </div>
+                  <div>
+                    <p className="font-serif text-stone-800 font-medium">
+                      {isExporting ? 'Exporting...' : 'Export Data (JSON)'}
+                    </p>
+                    <p className="text-xs text-stone-500">Download all your tracking data</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-4 p-4 bg-white border border-red-200 rounded-xl text-left hover:bg-red-50 transition-colors group"
+                >
+                  <div className="p-2 bg-red-50 rounded-lg text-red-600 shadow-sm">
+                    <Trash2 size={20} />
+                  </div>
+                  <div>
+                    <p className="font-serif text-red-800 font-medium">Delete All Data</p>
+                    <p className="text-xs text-red-600">Permanently remove all tracking data</p>
+                  </div>
+                </button>
+              </div>
+            </section>
+
+            <section>
               <div className="flex items-center gap-2 mb-4">
-                <Beaker className="w-5 h-5 text-sage-700" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Clinical PCOS Personas</h3>
+                <Beaker size={16} className="text-stone-400" />
+                <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest">
+                  Beta / Clinical Profiles
+                </h3>
               </div>
 
-              <div className="space-y-3">
-                <div className="paper-card p-4 border-2 border-primary/50 bg-gradient-to-br from-pink-50 to-white">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Emma - Insulin Resistant
-                      </h4>
-                      <p className="text-sm text-sage-600 mb-2">
-                        Long irregular cycles (50±10 days), sugar cravings, metabolic symptoms. Shows gradual improvement over 180 days.
-                      </p>
-                      <div className="text-xs text-sage-700">
-                        <strong>Key Features:</strong> Extended cycles, bloating, cravings → balanced diet over time
-                      </div>
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  {
+                    id: 'Emma',
+                    label: 'Emma (Insulin Resistant)',
+                    desc: 'Irregular cycles, high cravings, improving.'
+                  },
+                  { id: 'Sophia', label: 'Sophia (Adrenal)', desc: 'Short cycles, high stress, poor sleep.' },
+                  {
+                    id: 'Olivia',
+                    label: 'Olivia (Inflammatory)',
+                    desc: 'Regular cycles, high pain/bloating.'
+                  },
+                  { id: 'Ava', label: 'Ava (Post-Pill)', desc: 'Long cycles (60+), frequent spotting.' },
+                  {
+                    id: 'Isabella',
+                    label: 'Isabella (Lean)',
+                    desc: 'Regular cycles, high androgen symptoms.'
+                  }
+                ].map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() =>
+                      handleLoadPersona(p.id as 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella')
+                    }
+                    disabled={!!loadingPersona}
+                    className="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl hover:border-sage-300 hover:shadow-md transition-all text-left disabled:opacity-50"
+                  >
+                    <div>
+                      <p className="font-serif text-stone-800 font-medium">{p.label}</p>
+                      <p className="text-xs text-stone-500">{p.desc}</p>
                     </div>
-                    <button
-                      onClick={() => handleLoadPersona(loadEmma, 'Emma')}
-                      disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
-                    >
-                      {isLoadingPersona ? 'Loading...' : 'Load Emma'}
-                    </button>
-                  </div>
-                </div>
+                    {loadingPersona === p.id ? (
+                      <div className="animate-spin w-4 h-4 border-2 border-sage-500 rounded-full border-t-transparent" />
+                    ) : (
+                      <span className="text-xs font-medium text-sage-600 bg-sage-50 px-3 py-1 rounded-full">
+                        Load
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
 
-                <div className="paper-card p-4 border-2 border-secondary/50">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Sophia - Adrenal PCOS
-                      </h4>
-                      <p className="text-sm text-sage-600 mb-2">
-                        Regular cycles (29±3 days) driven by chronic stress and anxiety. Poor sleep quality, elevated cortisol patterns.
-                      </p>
-                      <div className="text-xs text-sage-700">
-                        <strong>Key Features:</strong> High stress/anxiety, sleep deprivation, occasional spotting
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLoadPersona(loadSophia, 'Sophia')}
-                      disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoadingPersona ? 'Loading...' : 'Load Sophia'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4 border-2 border-red-200 bg-red-50/30">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Olivia - Inflammatory
-                      </h4>
-                      <p className="text-sm text-sage-600 mb-2">
-                        Moderate cycles (32±4 days) with severe inflammatory symptoms. High cramps, acne, and bloating throughout cycle.
-                      </p>
-                      <div className="text-xs text-sage-700">
-                        <strong>Key Features:</strong> Elevated pain levels, persistent inflammation, moderate exercise
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLoadPersona(loadOlivia, 'Olivia')}
-                      disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoadingPersona ? 'Loading...' : 'Load Olivia'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4 border-2 border-purple-200 bg-purple-50/30">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Ava - Post-Pill
-                      </h4>
-                      <p className="text-sm text-sage-600 mb-2">
-                        Very long cycles (65±15 days) with frequent spotting. Hormonal rebalancing after discontinuing birth control.
-                      </p>
-                      <div className="text-xs text-sage-700">
-                        <strong>Key Features:</strong> Extended follicular phase, irregular spotting (15% chance), hormonal flux
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLoadPersona(loadAva, 'Ava')}
-                      disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoadingPersona ? 'Loading...' : 'Load Ava'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="paper-card p-4 border-2 border-green-200 bg-green-50/30">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Isabella - Lean PCOS
-                      </h4>
-                      <p className="text-sm text-sage-600 mb-2">
-                        Regular cycles (28±2 days), athletic lifestyle, prominent androgenic symptoms like hirsutism despite healthy habits.
-                      </p>
-                      <div className="text-xs text-sage-700">
-                        <strong>Key Features:</strong> High exercise, excellent self-care, visible androgen effects
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLoadPersona(loadIsabella, 'Isabella')}
-                      disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoadingPersona ? 'Loading...' : 'Load Isabella'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
-                  <p className="text-xs text-sage-700 leading-relaxed">
-                    <strong className="text-text-main">Clinical Testing:</strong> These 5 personas represent distinct PCOS subtypes
-                    validated by medical consultants. Each generates 180 days of realistic symptom patterns, cycle data, and lifestyle
-                    tracking to test the Blossom Logic Constitution across diverse clinical presentations.
-                  </p>
-                </div>
+              <div className="mt-4 p-4 bg-stone-50 rounded-xl border border-stone-200">
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  <strong className="text-stone-800">Clinical Testing:</strong> These 5 personas
+                  represent distinct PCOS subtypes validated by medical consultants. Each generates
+                  180 days of realistic symptom patterns for testing the Blossom Logic Constitution.
+                </p>
               </div>
             </section>
           </div>
         </motion.div>
       </motion.div>
+
+      {showDeleteConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-serif text-stone-800 mb-3">Delete All Data?</h3>
+            <p className="text-sm text-stone-600 mb-6">
+              This will permanently delete all your tracking data. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAllData}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 }
