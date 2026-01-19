@@ -23,32 +23,22 @@ function calculateAverage(values: number[]): number {
   return values.reduce((sum, val) => sum + val, 0) / values.length;
 }
 
-const MONASH_AFFIRMATIONS = [
-  "You are not broken. You are navigating a complex path with grace.",
-  "Your body is doing its best. Every small choice matters.",
-  "PCOS is a constellation of symptoms, not a character flaw.",
-  "Healing is not linear. Rest is part of progress.",
-  "You deserve compassion, especially from yourself.",
-  "Your worth is not measured by your symptoms.",
-  "Small, consistent actions create lasting change.",
-  "You are learning to listen to your body's wisdom."
-];
-
 export interface DailyWisdom {
   message: string;
-  category: 'sleep' | 'movement' | 'affirmation' | 'hydration' | 'diet' | 'stress' | 'cycle';
+  category: 'sleep' | 'movement' | 'affirmation' | 'hydration' | 'diet' | 'stress' | 'cycle' | 'insight';
   hasData: boolean;
+  source?: string;
 }
 
 export async function generateDailyWisdom(): Promise<DailyWisdom> {
   const allLogs = await getLastNDays(14);
 
   if (allLogs.length < 5) {
-    const randomAffirmation = MONASH_AFFIRMATIONS[Math.floor(Math.random() * MONASH_AFFIRMATIONS.length)];
     return {
-      message: randomAffirmation,
-      category: 'affirmation',
-      hasData: false
+      message: "We are learning your unique rhythm. Keep logging to unlock personalized pattern stories.",
+      category: 'insight',
+      hasData: false,
+      source: "Blossom Pattern Engine"
     };
   }
 
@@ -76,7 +66,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Your body loves rest. Mood lifts when you sleep 7h+.`,
         category: 'sleep',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -118,7 +109,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Movement creates energy for you.`,
         category: 'movement',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -137,7 +129,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Nights you slept 7h+, your acne was clearer.`,
         category: 'sleep',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -179,7 +172,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Days you drank 6+ glasses, your energy held steady.`,
         category: 'hydration',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -201,7 +195,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Balanced meals aligned with brighter moods.`,
         category: 'diet',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -237,7 +232,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Low-stress days showed fewer physical symptoms.`,
         category: 'stress',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -269,7 +265,8 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Movement days brought calmer thoughts.`,
         category: 'movement',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
@@ -291,15 +288,16 @@ export async function generateDailyWisdom(): Promise<DailyWisdom> {
       return {
         message: `Whisper: Consistent sleep supported more predictable cycles.`,
         category: 'cycle',
-        hasData: true
+        hasData: true,
+        source: "Blossom Pattern Engine"
       };
     }
   }
 
-  const randomAffirmation = MONASH_AFFIRMATIONS[Math.floor(Math.random() * MONASH_AFFIRMATIONS.length)];
   return {
-    message: randomAffirmation,
-    category: 'affirmation',
-    hasData: false
+    message: "No clear patterns detected yet. Continue tracking daily to reveal your body's unique correlations.",
+    category: 'insight',
+    hasData: false,
+    source: "Blossom Pattern Engine"
   };
 }
