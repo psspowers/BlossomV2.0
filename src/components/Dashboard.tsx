@@ -93,6 +93,7 @@ export function Dashboard() {
             <WellnessRadar />
           </div>
 
+          {/* WHISPERS CARD (Internal Data Only) */}
           <div className="glass-card h-80 bg-stone-50 border border-stone-200 shadow-sm">
             <div className="p-4 border-b border-stone-100 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-sage-600" />
@@ -100,9 +101,23 @@ export function Dashboard() {
                 Whispers from your Body
               </h2>
             </div>
+
             <div className="p-6 flex flex-col justify-center h-[calc(100%-56px)]">
-              <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
+              {/* Category Badge */}
+              <div className="mb-4">
+                <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
+                  {wisdom.category}
+                </span>
+              </div>
+
+              {/* The Message (Strictly Narrative) */}
+              <p className="text-slate-800 text-lg leading-relaxed italic font-serif">
                 "{wisdom.message}"
+              </p>
+
+              {/* The Source (Strictly Internal) */}
+              <p className="text-xs text-slate-500 mt-4 font-medium">
+                Source: {wisdom.hasData ? "Your Pattern Data" : "Blossom Engine"}
               </p>
             </div>
           </div>
