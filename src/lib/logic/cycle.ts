@@ -161,3 +161,63 @@ export function getCycleInsight(analysis: CycleAnalysis): string {
 
   return `Day ${analysis.currentDay} - Listen to your body's rhythm.`;
 }
+
+export interface CycleState {
+  currentDay: number;
+  isLongCycle: boolean;
+  stabilityScore: number;
+  varianceDays: number;
+  phase: 'Follicular' | 'Luteal' | 'Maintenance' | 'Menstrual';
+  message: string;
+}
+
+export function analyzeCycleState(logs: LogEntry[]): CycleState {
+  const analysis = analyzeHistory(logs);
+
+  if (analysis.isUntracked || analysis.currentDay === 0) {
+    return {
+      currentDay: 0,
+      isLongCycle: false,
+      stabilityScore: 0,
+      varianceDays: 0,
+      phase: 'Maintenance',
+      message: 'Start tracking to see your unique cycle pattern'
+    };
+  }
+
+  const varianceDays = Math.round(analysis.variability);
+
+  const stabilityScore = Math.round(Math.max(0, Math.min(100, 100 - (analysis.variability * 5))));
+
+  let phase: 'Follicular' | 'Luteal' | 'Maintenance' | 'Menstrual';
+  let message: string;
+
+  if (analysis.currentDay <= 5) {
+    phase = 'Menstrual';
+    message = 'Rest is productive. Your body is renewing.';
+  } else if (analysis.currentDay <= 14) {
+    phase = 'Follicular';
+    message = 'Energy rising. A good time for new beginnings.';
+  } else if (analysis.currentDay <= 28) {
+    phase = 'Luteal';
+    message = 'Your body is working hard. Gentleness matters now.';
+  } else {
+    phase = 'Maintenance';
+    if (analysis.isLongCycle && analysis.currentDay > 60) {
+      message = `Day ${analysis.currentDay}. Your cycle is real and valid. Consider checking in with your care team.`;
+    } else if (analysis.isLongCycle) {
+      message = `Day ${analysis.currentDay}. Long cycles are common with PCOS. You're not broken.`;
+    } else {
+      message = `Day ${analysis.currentDay}. Your body follows its own rhythm.`;
+    }
+  }
+
+  return {
+    currentDay: analysis.currentDay,
+    isLongCycle: analysis.isLongCycle,
+    stabilityScore,
+    varianceDays,
+    phase,
+    message
+  };
+}
