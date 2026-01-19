@@ -40,10 +40,12 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const innerPetals = [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5];
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-12">
-      <div className="relative w-80 h-96 flex items-center justify-start flex-col">
+    <div className="relative flex flex-col items-center justify-center py-4">
+      <div className="relative w-80 h-64 flex items-end justify-center flex-col">
 
-        <svg viewBox="-150 -150 300 300" className="w-80 h-80 drop-shadow-xl relative z-10">
+        <svg viewBox="-150 -150 300 300" className="w-80 h-80 drop-shadow-2xl relative z-10" style={{
+          filter: 'drop-shadow(0 15px 25px rgba(77, 208, 225, 0.3))'
+        }}>
           <defs>
             <linearGradient id="petalGradientOuter" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0%" stopColor={colors.base} />
@@ -99,9 +101,14 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} />
         </svg>
 
-        <div className="relative w-80 h-40 -mt-8 overflow-hidden">
+        <div className="relative w-80 h-40 -mt-28 overflow-hidden">
           <div className="absolute inset-0 rounded-b-[100%]" style={{
-            background: `linear-gradient(to bottom, transparent 0%, ${colors.waterBase}20 25%, ${colors.waterBase}50 100%)`
+            background: `linear-gradient(to bottom, transparent 0%, ${colors.waterBase}15 15%, ${colors.waterBase}40 50%, ${colors.waterBase}60 100%)`
+          }} />
+
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-20 pointer-events-none" style={{
+            background: `radial-gradient(ellipse at center, ${colors.waterRipple.replace('0.3)', '0.5)')}, transparent 70%)`,
+            filter: 'blur(8px)'
           }} />
 
           {[0.8, 1.0, 1.2].map((scale, i) => (
@@ -130,26 +137,26 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 viewBox="-150 -150 300 150"
                 className="w-full h-full"
                 style={{
-                  filter: 'blur(2px)',
-                  opacity: 0.6,
+                  filter: 'blur(1.5px)',
+                  opacity: 0.75,
                   transform: 'scaleY(-1) translateY(-150px)'
                 }}
               >
                 <defs>
                   <linearGradient id="reflectionGradientOuter" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={colors.tip} stopOpacity="0.5" />
-                    <stop offset="100%" stopColor={colors.base} stopOpacity="0.1" />
+                    <stop offset="0%" stopColor={colors.tip} stopOpacity="0.65" />
+                    <stop offset="100%" stopColor={colors.base} stopOpacity="0.15" />
                   </linearGradient>
                   <linearGradient id="reflectionGradientInner" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={colors.tip} stopOpacity="0.4" />
-                    <stop offset="100%" stopColor={colors.base} stopOpacity="0.05" />
+                    <stop offset="0%" stopColor={colors.tip} stopOpacity="0.55" />
+                    <stop offset="100%" stopColor={colors.base} stopOpacity="0.1" />
                   </linearGradient>
                   <mask id="waterMask">
                     <rect x="-150" y="-150" width="300" height="150" fill="url(#waterFade)" />
                   </mask>
                   <linearGradient id="waterFade" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="white" stopOpacity="0.8" />
-                    <stop offset="50%" stopColor="white" stopOpacity="0.4" />
+                    <stop offset="0%" stopColor="white" stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="white" stopOpacity="0.5" />
                     <stop offset="100%" stopColor="white" stopOpacity="0" />
                   </linearGradient>
                 </defs>
@@ -188,7 +195,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                       />
                     </motion.g>
                   ))}
-                  <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} opacity="0.3" />
+                  <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} opacity="0.45" />
                 </g>
               </svg>
             </motion.div>
