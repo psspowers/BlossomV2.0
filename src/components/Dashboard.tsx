@@ -7,7 +7,7 @@ import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
 import { Learn } from './Learn';
 import { Navbar } from './Navbar';
-import { Plus } from 'lucide-react';
+import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
