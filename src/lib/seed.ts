@@ -231,11 +231,18 @@ function generateLutealDay(daysAgo: number, isLate: boolean): LogEntry {
 }
 
 export async function seedDatabase(): Promise<void> {
-  const existingLogs = await db.logs.count();
+  try {
+    console.log('[Seed] Checking existing logs...');
+    const existingLogs = await db.logs.count();
 
-  if (existingLogs > 0) {
-    console.log('Database already has data. Skipping seed.');
-    return;
+    if (existingLogs > 0) {
+      console.log('[Seed] Database already has data. Skipping seed.');
+      return;
+    }
+    console.log('[Seed] No existing logs found, creating seed data...');
+  } catch (error) {
+    console.error('[Seed] Error checking logs:', error);
+    throw error;
   }
 
   const syntheticData: LogEntry[] = [];
@@ -301,13 +308,19 @@ export async function seedDatabase(): Promise<void> {
     }
   }
 
-  await db.logs.bulkAdd(syntheticData);
+  try {
+    console.log(`[Seed] Adding ${syntheticData.length} records to database...`);
+    await db.logs.bulkAdd(syntheticData);
 
-  console.log(`✅ Seeded ${syntheticData.length} days of synthetic cycle data`);
-  console.log('📊 Data Narrative:');
-  console.log('  - 3 complete menstrual cycles');
-  console.log('  - Cycle 1: 29 days (65-36 days ago)');
-  console.log('  - Cycle 2: 27 days (36-9 days ago)');
-  console.log('  - Cycle 3: In progress (started 9 days ago)');
-  console.log('  - Realistic symptom patterns across cycle phases');
+    console.log(`✅ Seeded ${syntheticData.length} days of synthetic cycle data`);
+    console.log('📊 Data Narrative:');
+    console.log('  - 3 complete menstrual cycles');
+    console.log('  - Cycle 1: 29 days (65-36 days ago)');
+    console.log('  - Cycle 2: 27 days (36-9 days ago)');
+    console.log('  - Cycle 3: In progress (started 9 days ago)');
+    console.log('  - Realistic symptom patterns across cycle phases');
+  } catch (error) {
+    console.error('[Seed] Error adding data to database:', error);
+    throw error;
+  }
 }
