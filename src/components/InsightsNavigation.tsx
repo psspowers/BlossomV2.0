@@ -17,6 +17,9 @@ interface ViewConfig {
   activeTextLight: string;
   activeTextDark: string;
   inactiveText: string;
+  color: string;
+  borderColor: string;
+  glowClass: string;
 }
 
 export const viewConfig: Record<InsightView, ViewConfig> = {
@@ -27,7 +30,10 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     activeBgDark: 'bg-rose-900/30',
     activeTextLight: 'text-rose-600',
     activeTextDark: 'text-rose-400',
-    inactiveText: 'text-slate-400'
+    inactiveText: 'text-slate-400',
+    color: 'rgba(232, 174, 178, 0.8)',
+    borderColor: 'rgb(232, 174, 178)',
+    glowClass: 'bg-rose-500/10'
   },
   metabolic: {
     label: 'Metabolic & Fuel',
@@ -36,7 +42,10 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     activeBgDark: 'bg-amber-900/30',
     activeTextLight: 'text-amber-600',
     activeTextDark: 'text-amber-400',
-    inactiveText: 'text-slate-400'
+    inactiveText: 'text-slate-400',
+    color: 'rgba(134, 168, 115, 0.8)',
+    borderColor: 'rgb(134, 168, 115)',
+    glowClass: 'bg-amber-500/10'
   },
   emotional: {
     label: 'Emotional Well-being',
@@ -45,7 +54,10 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     activeBgDark: 'bg-violet-900/30',
     activeTextLight: 'text-violet-600',
     activeTextDark: 'text-violet-400',
-    inactiveText: 'text-slate-400'
+    inactiveText: 'text-slate-400',
+    color: 'rgba(107, 143, 78, 0.8)',
+    borderColor: 'rgb(107, 143, 78)',
+    glowClass: 'bg-violet-500/10'
   },
   cycle: {
     label: 'Cycle & Fertility',
@@ -54,7 +66,10 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     activeBgDark: 'bg-teal-900/30',
     activeTextLight: 'text-teal-600',
     activeTextDark: 'text-teal-400',
-    inactiveText: 'text-slate-400'
+    inactiveText: 'text-slate-400',
+    color: 'rgba(197, 179, 223, 0.8)',
+    borderColor: 'rgb(197, 179, 223)',
+    glowClass: 'bg-teal-500/10'
   }
 };
 
