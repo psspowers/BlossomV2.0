@@ -1,11 +1,6 @@
 import { Activity, Zap, Sparkles, Droplet, LucideIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type InsightView = 'physical' | 'emotional' | 'metabolic' | 'cycle';
 
@@ -64,67 +59,89 @@ interface InsightsNavigationProps {
 }
 
 export function InsightsNavigation({ view, onViewChange }: InsightsNavigationProps) {
+  const [pressedView, setPressedView] = useState<InsightView | null>(null);
+  const [showLabel, setShowLabel] = useState<InsightView | null>(null);
+  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const views: InsightView[] = ['physical', 'metabolic', 'emotional', 'cycle'];
 
+  const handlePressStart = (viewKey: InsightView) => {
+    setPressedView(viewKey);
+    setShowLabel(viewKey);
+
+    pressTimerRef.current = setTimeout(() => {
+      onViewChange(viewKey);
+      setPressedView(null);
+      setShowLabel(null);
+    }, 800);
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+    }
+    setPressedView(null);
+    setShowLabel(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pressTimerRef.current) {
+        clearTimeout(pressTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <TooltipProvider delayDuration={100}>
-      <div className="w-full flex justify-center mb-8">
-        <div className="flex items-center p-2 gap-4 bg-white/70 backdrop-blur-md border border-stone-200/60 rounded-full shadow-sm">
+    <div className="w-full flex justify-center mb-6">
+      <div className="flex items-center p-1.5 gap-2 bg-white/70 backdrop-blur-md border border-stone-200/60 rounded-full shadow-sm">
+        {views.map((viewKey) => {
+          const config = viewConfig[viewKey];
+          const Icon = config.icon;
+          const isActive = view === viewKey;
+          const isPressed = pressedView === viewKey;
+          const shouldShowLabel = showLabel === viewKey;
 
-          {views.map((viewKey) => {
-            const config = viewConfig[viewKey];
-            const Icon = config.icon;
-            const isActive = view === viewKey;
+          return (
+            <div key={viewKey} className="relative">
+              <button
+                onMouseDown={() => handlePressStart(viewKey)}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={handlePressEnd}
+                onTouchStart={() => handlePressStart(viewKey)}
+                onTouchEnd={handlePressEnd}
+                className={`
+                  relative flex items-center justify-center w-14 h-14 rounded-full
+                  transition-all duration-300 ease-out focus:outline-none
+                  ${isActive
+                    ? `${config.activeClass} scale-105`
+                    : `${config.inactiveClass} hover:shadow-sm`}
+                  ${isPressed ? 'scale-95' : ''}
+                `}
+                aria-label={config.label}
+              >
+                <Icon
+                  size={26}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className="transition-transform duration-200"
+                />
+              </button>
 
-            return (
-              <Tooltip key={viewKey}>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => onViewChange(viewKey)}
-                    className={`
-                      relative group flex items-center justify-center w-12 h-12 rounded-full
-                      transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-stone-300 focus:ring-offset-2
-                      ${isActive
-                        ? `${config.activeClass} scale-105`
-                        : `${config.inactiveClass} hover:shadow-sm`}
-                    `}
-                    aria-label={config.label}
+              <AnimatePresence>
+                {shouldShowLabel && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 px-2 py-1 text-xs font-medium text-stone-600 bg-white/95 backdrop-blur border border-stone-100 rounded-md shadow-lg"
                   >
-                    <Icon
-                      size={20}
-                      strokeWidth={isActive ? 2.5 : 2}
-                      className="relative z-10 transition-transform duration-300"
-                    />
-
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-breath"
-                        className="absolute inset-0 rounded-full bg-current opacity-10"
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1.1 }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 2,
-                          repeatType: "reverse",
-                          ease: "easeInOut"
-                        }}
-                      />
-                    )}
-                  </button>
-                </TooltipTrigger>
-
-                <TooltipContent
-                  className="z-50 px-3 py-1.5 text-xs font-medium text-stone-600 bg-white/90 backdrop-blur border border-stone-100 rounded-lg shadow-lg"
-                  sideOffset={8}
-                  side="bottom"
-                >
-                  {config.label}
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
+                    {config.label}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
