@@ -41,7 +41,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
   return (
     <div className="relative flex flex-col items-center justify-center py-4">
-      <div className="relative w-80 h-64 flex items-end justify-center flex-col">
+      <div className="relative w-80 flex items-center justify-center flex-col gap-0">
 
         <svg viewBox="-150 -150 300 300" className="w-80 h-80 drop-shadow-2xl relative z-10" style={{
           filter: 'drop-shadow(0 15px 25px rgba(77, 208, 225, 0.3))'
@@ -101,15 +101,95 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           <circle cx="0" cy="0" r={15 * bloomFactor} fill={colors.center} />
         </svg>
 
-        <div className="relative w-80 h-40 -mt-28 overflow-hidden">
+        <motion.svg
+          viewBox="0 0 100 120"
+          className="w-20 h-24 relative z-10"
+          initial={{ opacity: 0, scaleY: 0 }}
+          animate={{ opacity: 1, scaleY: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          style={{
+            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))'
+          }}
+        >
+          <defs>
+            <linearGradient id="stemGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7CB342" />
+              <stop offset="50%" stopColor="#689F38" />
+              <stop offset="100%" stopColor="#558B2F" />
+            </linearGradient>
+            <linearGradient id="stemReflectionGradient" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#558B2F" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#7CB342" stopOpacity="0.2" />
+            </linearGradient>
+          </defs>
+
+          <motion.path
+            d="M 50 0 Q 45 30, 48 60 Q 50 90, 50 120"
+            fill="none"
+            stroke="url(#stemGradient)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            animate={{
+              d: [
+                "M 50 0 Q 45 30, 48 60 Q 50 90, 50 120",
+                "M 50 0 Q 47 30, 52 60 Q 50 90, 50 120",
+                "M 50 0 Q 45 30, 48 60 Q 50 90, 50 120"
+              ]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          <motion.path
+            d="M 50 0 Q 45 30, 48 60 Q 50 90, 50 120"
+            fill="none"
+            stroke="rgba(124, 179, 66, 0.3)"
+            strokeWidth="10"
+            strokeLinecap="round"
+            style={{ filter: 'blur(3px)' }}
+            animate={{
+              d: [
+                "M 50 0 Q 45 30, 48 60 Q 50 90, 50 120",
+                "M 50 0 Q 47 30, 52 60 Q 50 90, 50 120",
+                "M 50 0 Q 45 30, 48 60 Q 50 90, 50 120"
+              ]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.svg>
+
+        <div className="relative w-80 h-40 overflow-hidden">
           <div className="absolute inset-0 rounded-b-[100%]" style={{
             background: `linear-gradient(to bottom, transparent 0%, ${colors.waterBase}15 15%, ${colors.waterBase}40 50%, ${colors.waterBase}60 100%)`
           }} />
 
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-20 pointer-events-none" style={{
-            background: `radial-gradient(ellipse at center, ${colors.waterRipple.replace('0.3)', '0.5)')}, transparent 70%)`,
-            filter: 'blur(8px)'
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-16 pointer-events-none" style={{
+            background: `radial-gradient(circle at center, ${colors.waterRipple.replace('0.3)', '0.6)')}, ${colors.waterRipple.replace('0.3)', '0.3)')} 40%, transparent 70%)`,
+            filter: 'blur(6px)'
           }} />
+
+          {[1, 2, 3].map((ring, i) => (
+            <motion.div
+              key={`entry-ring-${i}`}
+              className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full border-2"
+              style={{
+                width: `${24 + i * 12}px`,
+                height: `${24 + i * 12}px`,
+                borderColor: colors.waterRipple.replace('0.3)', '0.4)'),
+                marginLeft: '-12px',
+                marginTop: '-12px'
+              }}
+              animate={{
+                scale: [1, 1.8, 1],
+                opacity: [0.6, 0, 0.6]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeOut",
+                delay: i * 0.6
+              }}
+            />
+          ))}
 
           {[0.8, 1.0, 1.2].map((scale, i) => (
             <motion.div
@@ -199,6 +279,35 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 </g>
               </svg>
             </motion.div>
+
+            <motion.svg
+              viewBox="0 0 100 80"
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-16"
+              style={{
+                filter: 'blur(2px)',
+                opacity: 0.5
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              transition={{ duration: 1.5, delay: 0.5 }}
+            >
+              <motion.path
+                d="M 50 0 Q 48 20, 50 40 Q 52 60, 50 80"
+                fill="none"
+                stroke="url(#stemReflectionGradient)"
+                strokeWidth="6"
+                strokeLinecap="round"
+                animate={{
+                  d: [
+                    "M 50 0 Q 48 20, 50 40 Q 52 60, 50 80",
+                    "M 50 0 Q 52 20, 50 40 Q 48 60, 50 80",
+                    "M 50 0 Q 48 20, 50 40 Q 52 60, 50 80"
+                  ],
+                  opacity: [0.5, 0.3, 0.5]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.svg>
           </div>
         </div>
       </div>
