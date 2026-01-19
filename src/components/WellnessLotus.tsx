@@ -39,18 +39,24 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
     if (!video || !isLoaded || videoDuration === 0) return;
 
     const targetTime = (health / 100) * videoDuration;
+    const startTime = video.currentTime;
+    const startTimestamp = performance.now();
+    const duration = 3500;
 
-    const smoothSeek = () => {
-      const currentTime = video.currentTime;
-      const diff = targetTime - currentTime;
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
 
-      if (Math.abs(diff) < 0.05) {
-        video.currentTime = targetTime;
-        return;
+    const smoothSeek = (currentTimestamp: number) => {
+      const elapsed = currentTimestamp - startTimestamp;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeInOutCubic(progress);
+
+      video.currentTime = startTime + (targetTime - startTime) * easedProgress;
+
+      if (progress < 1) {
+        requestAnimationFrame(smoothSeek);
       }
-
-      video.currentTime = currentTime + (diff * 0.15);
-      requestAnimationFrame(smoothSeek);
     };
 
     requestAnimationFrame(smoothSeek);
