@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings }) => {
       </div>
 
       {/* Privacy Badge - Centered between Blossom text and Bell icon */}
-      <div className="absolute left-[calc(50%+0.5cm)] transform -translate-x-1/2">
+      <div className="absolute left-[58%] transform -translate-x-1/2">
         <motion.div
           className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] sm:text-xs font-medium shadow-sm"
           animate={{ scale: [1, 1.05, 1] }}
