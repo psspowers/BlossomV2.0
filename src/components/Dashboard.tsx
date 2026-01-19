@@ -7,15 +7,12 @@ import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
 import { Learn } from './Learn';
 import { Navbar } from './Navbar';
-import { Plus, Lightbulb, RotateCw } from 'lucide-react';
+import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
-import { getReactiveWisdom } from '../lib/logic/reactiveWisdom';
-import { WisdomCard } from '../lib/data/wisdom';
-import { db } from '../lib/db';
 
 export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
@@ -34,7 +31,6 @@ export function Dashboard() {
     category: 'affirmation',
     hasData: false
   });
-  const [reactiveWisdomCard, setReactiveWisdomCard] = useState<WisdomCard | null>(null);
 
   useEffect(() => {
     const loadCompassionateData = async () => {
@@ -50,43 +46,6 @@ export function Dashboard() {
     loadCompassionateData();
   }, []);
 
-  useEffect(() => {
-    const updateReactiveWisdom = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const todayLog = await db.logs
-        .where('date')
-        .equals(today)
-        .first();
-
-      const wisdomCard = getReactiveWisdom(todayLog);
-      setReactiveWisdomCard(wisdomCard);
-    };
-
-    updateReactiveWisdom();
-
-    const subscription = db.logs.hook('creating', () => {
-      updateReactiveWisdom();
-    });
-
-    db.logs.hook('updating', () => {
-      updateReactiveWisdom();
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleRefreshWhispers = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayLog = await db.logs
-      .where('date')
-      .equals(today)
-      .first();
-
-    const wisdomCard = getReactiveWisdom(todayLog);
-    setReactiveWisdomCard(wisdomCard);
-  };
 
   if (plantLoading || themeLoading) {
     return (
@@ -135,41 +94,16 @@ export function Dashboard() {
           </div>
 
           <div className="glass-card h-80 bg-stone-50 border border-stone-200 shadow-sm">
-            <div className="p-4 border-b border-stone-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-sage-600" />
-                <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
-                  Whispers from your Body
-                </h2>
-              </div>
-              <button
-                onClick={handleRefreshWhispers}
-                className="p-1 hover:bg-sage-100 rounded-full transition-colors"
-                title="Refresh whisper"
-              >
-                <RotateCw className="w-4 h-4 text-sage-600" />
-              </button>
+            <div className="p-4 border-b border-stone-100 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-sage-600" />
+              <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
+                Whispers from your Body
+              </h2>
             </div>
             <div className="p-6 flex flex-col justify-center h-[calc(100%-56px)]">
-              {reactiveWisdomCard ? (
-                <>
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
-                      {reactiveWisdomCard.category}
-                    </span>
-                  </div>
-                  <p className="text-slate-800 text-base leading-relaxed mb-4">
-                    {reactiveWisdomCard.text}
-                  </p>
-                  <p className="text-xs text-slate-600 italic">
-                    Source: {reactiveWisdomCard.source}
-                  </p>
-                </>
-              ) : (
-                <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
-                  "{wisdom.message}"
-                </p>
-              )}
+              <p className="text-slate-800 text-lg leading-relaxed text-center italic font-serif">
+                "{wisdom.message}"
+              </p>
             </div>
           </div>
 
