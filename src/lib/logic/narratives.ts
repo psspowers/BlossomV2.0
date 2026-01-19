@@ -279,7 +279,7 @@ export async function generatePatternStories(): Promise<PatternStory[]> {
             message: text,
             category: scenario.category,
             hasData: true,
-            source: scenario.source,
+            source: "Your Unique Pattern",
             impact: Math.round(diff)
           });
         }
