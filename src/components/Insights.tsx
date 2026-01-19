@@ -168,7 +168,7 @@ export function Insights() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1.5 mb-4 overflow-x-auto scrollbar-hide">
         {Object.entries(viewConfig).map(([key, config]) => {
           const Icon = config.icon;
           const isActive = view === key;
@@ -176,14 +176,14 @@ export function Insights() {
             <button
               key={key}
               onClick={() => handleViewChange(key as ViewType)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+              className={`flex-1 min-w-[70px] flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-sm font-medium transition-all duration-300 ${
                 isActive
                   ? `bg-white ${config.textClass} border-b-2 ${config.borderClass} ${config.shadowClass} border-t border-x border-slate-200`
                   : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 border border-slate-200'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {config.label}
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="text-[9px] sm:text-sm leading-tight whitespace-nowrap">{config.label}</span>
             </button>
           );
         })}
