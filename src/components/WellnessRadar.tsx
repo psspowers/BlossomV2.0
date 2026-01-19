@@ -105,6 +105,9 @@ export function WellnessRadar() {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: 20
+    },
     scales: {
       r: {
         beginAtZero: true,
@@ -122,7 +125,7 @@ export function WellnessRadar() {
         pointLabels: {
           color: 'rgba(74, 74, 74, 0.8)',
           font: {
-            size: 12,
+            size: 11,
             family: 'Georgia, serif'
           }
         }
@@ -153,7 +156,7 @@ export function WellnessRadar() {
   }
 
   return (
-    <div className="h-full p-6">
+    <div className="h-[350px] p-6">
       <Radar data={chartData} options={options} />
     </div>
   );

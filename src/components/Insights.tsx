@@ -210,7 +210,7 @@ export function Insights() {
                       Visual comparison: Stable vs. Irregular patterns
                     </p>
                   </div>
-                  <div style={{ height: '300px' }}>
+                  <div style={{ height: '400px' }}>
                     <Bar
                       data={{
                         labels: cycleAnalysis.cycleHistory.slice(-6).map((_, i) => `Cycle ${i + 1}`),
@@ -238,6 +238,9 @@ export function Insights() {
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: {
+                          padding: 20
+                        },
                         plugins: {
                           legend: { display: false },
                           tooltip: {
