@@ -231,9 +231,11 @@ function generateLutealDay(daysAgo: number, isLate: boolean): LogEntry {
 }
 
 export async function seedDatabase(): Promise<void> {
+  let existingLogs = 0;
+
   try {
     console.log('[Seed] Checking existing logs...');
-    const existingLogs = await db.logs.count();
+    existingLogs = await db.logs.count();
 
     if (existingLogs > 0) {
       console.log('[Seed] Database already has data. Skipping seed.');
@@ -242,7 +244,7 @@ export async function seedDatabase(): Promise<void> {
     console.log('[Seed] No existing logs found, creating seed data...');
   } catch (error) {
     console.error('[Seed] Error checking logs:', error);
-    throw error;
+    console.log('[Seed] Attempting to continue with seeding...');
   }
 
   const syntheticData: LogEntry[] = [];
