@@ -2,33 +2,167 @@
 
 **Complete guide to all documentation and resources**
 
+**Last Updated**: January 2026 (Soul Injection Update)
+
 ---
 
 ## 📚 Documentation Overview
 
-This project includes comprehensive documentation for different audiences. Use this index to find what you need quickly.
+Blossom is a privacy-first, body-positive PCOS companion app built on the "True North" principles: **Seen, Supported, Sovereign**. This comprehensive documentation suite covers everything from user-facing features to technical architecture to privacy philosophy.
+
+Use this index to navigate based on your role and needs.
+
+---
+
+## 🆕 What's New in Soul Injection Update (January 2026)
+
+The "Soul Injection" represents a major philosophical and technical upgrade to Blossom, replacing gamification mechanics with compassionate intelligence.
+
+### New Documentation
+
+1. **FEATURES.md**: Complete feature guide with True North alignment
+2. **PRIVACY.md**: The Sacred Rules explained in depth
+3. **ROADMAP.md**: Phased development plan (5-year vision)
+
+### Updated Documentation
+
+1. **README.md**: Completely rewritten with True North framing
+2. **TECHNICAL_MANUAL.md**: Added Section 6 - Soul Injection Core Logic
+   - Blossom Score algorithm
+   - Seasons engine
+   - Narratives & Daily Wisdom
+   - Pattern Stories generator
+3. **THEME_SYSTEM_GUIDE.md**: Added body-positive UX principles
+
+### Key Conceptual Changes
+
+- **Removed**: Streak counters, gamification, achievement pressure
+- **Added**: Seasons (Resting/Growing/Blooming), Blossom Score, Pattern Stories
+- **Reframed**: "Guilt to Grace" - validation over judgment
+
+### For Quick Start
+
+- **New users**: Read README.md → FEATURES.md
+- **Developers**: Read TECHNICAL_MANUAL.md Section 6 (Soul Injection)
+- **Designers**: Read THEME_SYSTEM_GUIDE.md (Body-Positive UX Principles)
+- **Privacy advocates**: Read PRIVACY.md (Sacred Rules)
 
 ---
 
 ## For End Users
 
 ### 🌸 README.md
-**Primary user documentation**
+**Primary user documentation with True North alignment**
 
-- What is Blossom
-- Key features overview
-- How to use the app
-- Privacy & security information
-- Medical disclaimer
+**Contents**:
+- Compassionate overview (Guilt to Grace philosophy)
+- Soul Injection features:
+  - Blossom Score (holistic wellness metric)
+  - Seasons (Resting/Growing/Blooming states)
+  - Pattern Stories (personalized insights)
+  - Daily Wisdom (affirmations + research)
+- Privacy & security (Sacred Rules)
+- True North alignment: Seen, Supported, Sovereign
+- Installation and development guide
+- Roadmap overview
 
-**When to read**: First-time users, understanding features
+**When to read**:
+- First-time users
+- Understanding the app's philosophy
+- Getting started with features
+- Sharing with others who have PCOS
+
+**Key Audience**: PCOS patients, potential users, healthcare providers
+
+---
+
+## Core Documentation
+
+### 📖 FEATURES.md
+**Complete feature breakdown with True North ties**
+
+**NEW in Soul Injection Update**
+
+**Contents**:
+- Page-by-page feature description
+- Soul Injection deep dives:
+  - Blossom Score detailed breakdown
+  - Seasons philosophy and logic
+  - Pattern Stories categories
+  - Daily Wisdom content types
+- Component-by-component UI guide
+- True North alignment for each feature
+- Technical feature mapping
+- Design principles summary
+
+**When to read**:
+- Understanding what each page does
+- Learning how features serve True North
+- Planning feature additions
+- User training and support
+
+**Key Audience**: Product managers, designers, support team, developers
+
+---
+
+### 🔒 PRIVACY.md
+**The Sacred Rules: Complete privacy philosophy**
+
+**NEW in Soul Injection Update**
+
+**Contents**:
+- The three Sacred Rules explained
+- Why privacy is non-negotiable for PCOS data
+- Technical privacy architecture
+- What Blossom does NOT collect
+- Threat model and limitations
+- Privacy best practices
+- Comparison to other health apps
+- FAQ and transparency pledge
+
+**When to read**:
+- Understanding privacy commitments
+- Evaluating Blossom for sensitive use cases
+- Explaining privacy to users or stakeholders
+- Security audits
+
+**Key Audience**: Privacy-conscious users, security auditors, healthcare compliance officers
+
+---
+
+### 🗺️ ROADMAP.md
+**Phased development plan and vision**
+
+**NEW in Soul Injection Update**
+
+**Contents**:
+- Phase 1: Logic Audit (completed)
+- Phase 2: User Research (in progress)
+- Phase 3: Clinical Enhancements (planned)
+- Phase 4: Export & Interoperability (planned)
+- Phase 5: Accessibility & i18n (planned)
+- Phase 6: Community Features (future)
+- Feature backlog and rationale for exclusions
+- Success metrics (non-gamified)
+- Technical debt tracking
+- Long-term vision (3-5 years)
+
+**When to read**:
+- Understanding development priorities
+- Contributing feature ideas
+- Planning sprints
+- Stakeholder updates
+
+**Key Audience**: Product managers, contributors, stakeholders
 
 ---
 
 ## For Developers
 
 ### 🔧 TECHNICAL_MANUAL.md
-**Complete technical reference (15,000+ words)**
+**Complete technical reference with Soul Injection algorithms**
+
+**UPDATED in Soul Injection Update**
 
 **Sections**:
 1. Architecture Overview
@@ -36,18 +170,24 @@ This project includes comprehensive documentation for different audiences. Use t
 3. Project Structure
 4. Database Architecture
 5. Component Architecture
-6. State Management
-7. Theme System
-8. Build & Deployment
-9. Testing & Debugging
-10. Extending the App
-11. Performance Optimization
-12. Troubleshooting
-13. API Reference
+6. **Soul Injection: Core Logic** (NEW)
+   - 6.1 Blossom Score Algorithm
+   - 6.2 Seasons Engine
+   - 6.3 Narratives & Daily Wisdom
+   - 6.4 Pattern Stories Generator
+7. State Management
+8. Theme System
+9. Build & Deployment
+10. Testing & Debugging
+11. Extending the App
+12. Performance Optimization
+13. Troubleshooting
+14. API Reference
 
 **When to read**:
 - Setting up development environment
 - Understanding codebase architecture
+- Implementing Soul Injection features
 - Adding new features
 - Debugging complex issues
 - Performance tuning
@@ -56,10 +196,16 @@ This project includes comprehensive documentation for different audiences. Use t
 - Tech stack details
 - Database schema (Dexie/IndexedDB)
 - Component hierarchy
+- **Soul Injection algorithms with code examples** (NEW)
+- **Blossom Score formula and weighting rationale** (NEW)
+- **Seasons logic and messaging strategy** (NEW)
+- **Pattern Stories statistical thresholds** (NEW)
 - React Query usage
 - Theme system architecture
 - Build configuration
 - Security considerations
+
+**Key Audience**: Developers, technical architects, data scientists
 
 ---
 
@@ -114,10 +260,21 @@ This project includes comprehensive documentation for different audiences. Use t
 ## Feature-Specific Guides
 
 ### 🎨 THEME_SYSTEM_GUIDE.md
-**Complete theme system documentation**
+**Body-positive UX and theme system documentation**
+
+**UPDATED in Soul Injection Update**
 
 **Contents**:
-- Overview of theme system
+- **Body-Positive UX Principles** (NEW):
+  - "Guilt to Grace" design philosophy
+  - No punishment colors (warm browns vs red alerts)
+  - Organic, non-linear visualizations
+  - Compassionate animation language
+  - Calming color palettes
+  - Typography for emotional safety
+  - No gamification mechanics
+  - Seasonal visual adaptation
+- Theme system overview
 - Tesla-Apple vs Lotus Garden
 - Implementation details
 - How to add new themes
@@ -126,10 +283,14 @@ This project includes comprehensive documentation for different audiences. Use t
 - Testing checklist
 
 **When to read**:
+- Understanding body-positive design principles
 - Adding new themes
 - Customizing existing themes
+- Designing new UI components
 - Understanding theme switching
 - Debugging theme issues
+
+**Key Audience**: Designers, UX researchers, frontend developers
 
 ---
 
@@ -255,48 +416,100 @@ This project includes comprehensive documentation for different audiences. Use t
 → Read: `HYPERANDROGENISM_INSIGHTS.md`
 → User guide: `HOW_TO_VIEW_HYPERANDROGENISM.md`
 
+#### **Understand Soul Injection features** (NEW)
+→ Start: `FEATURES.md` → Soul Injection Deep Dives
+→ Technical: `TECHNICAL_MANUAL.md` → Section 6
+
+#### **Understand Blossom Score algorithm** (NEW)
+→ Read: `TECHNICAL_MANUAL.md` → 6.1 Blossom Score Algorithm
+→ Overview: `FEATURES.md` → Blossom Score
+
+#### **Understand Seasons system** (NEW)
+→ Read: `TECHNICAL_MANUAL.md` → 6.2 Seasons Engine
+→ Philosophy: `THEME_SYSTEM_GUIDE.md` → Seasonal Visual Adaptation
+
+#### **Understand Pattern Stories** (NEW)
+→ Read: `TECHNICAL_MANUAL.md` → 6.4 Pattern Stories Generator
+→ Overview: `FEATURES.md` → Pattern Stories
+
+#### **Understand privacy architecture** (NEW)
+→ Read: `PRIVACY.md` → The Sacred Rules
+→ Technical: `TECHNICAL_MANUAL.md` → Security Considerations
+
+#### **Plan new features** (NEW)
+→ Read: `ROADMAP.md` → Development Phases
+→ Check: `FEATURES.md` → Contributing New Features
+
+#### **Understand body-positive design** (NEW)
+→ Read: `THEME_SYSTEM_GUIDE.md` → Body-Positive UX Principles
+→ Examples: `FEATURES.md` → Design Principles Summary
+
 ---
 
 ## Documentation by Audience
 
 ### 👨‍💻 Frontend Developer
 **Priority Reading**:
-1. `TECHNICAL_MANUAL.md` (full read)
-2. `THEME_SYSTEM_GUIDE.md`
-3. `QUICK_REFERENCE.md` (bookmark)
-4. `CHART_FIX_GUIDE.md`
-5. `INTERACTIVE_FILTER_GUIDE.md`
+1. `TECHNICAL_MANUAL.md` (full read, especially Section 6: Soul Injection)
+2. `FEATURES.md` (feature implementation guide)
+3. `THEME_SYSTEM_GUIDE.md` (body-positive UX principles)
+4. `QUICK_REFERENCE.md` (bookmark)
+5. `CHART_FIX_GUIDE.md`
+6. `INTERACTIVE_FILTER_GUIDE.md`
 
 ### 🚀 DevOps Engineer
 **Priority Reading**:
 1. `OPERATIONS_MANUAL.md` (full read)
 2. `TECHNICAL_MANUAL.md` → Build & Deployment
-3. `QUICK_REFERENCE.md` → Emergency Procedures
+3. `PRIVACY.md` (understand privacy architecture)
+4. `QUICK_REFERENCE.md` → Emergency Procedures
 
 ### 🏗️ System Architect
 **Priority Reading**:
-1. `TECHNICAL_MANUAL.md` → Architecture Overview
+1. `TECHNICAL_MANUAL.md` → Architecture Overview + Soul Injection
 2. `TECHNICAL_MANUAL.md` → Database Architecture
-3. `IMPLEMENTATION_SUMMARY.md`
-4. `OPERATIONS_MANUAL.md` → Scaling Considerations
+3. `PRIVACY.md` (Sacred Rules architecture)
+4. `ROADMAP.md` (long-term vision)
+5. `IMPLEMENTATION_SUMMARY.md`
+6. `OPERATIONS_MANUAL.md` → Scaling Considerations
 
 ### 🎨 UI/UX Designer
 **Priority Reading**:
-1. `README.md` → Key Features
-2. `THEME_SYSTEM_GUIDE.md`
-3. `TECHNICAL_MANUAL.md` → Component Architecture
+1. `THEME_SYSTEM_GUIDE.md` → Body-Positive UX Principles (MUST READ)
+2. `FEATURES.md` → True North alignment per feature
+3. `README.md` → Core Features
+4. `TECHNICAL_MANUAL.md` → Component Architecture
 
 ### 📊 Product Manager
 **Priority Reading**:
-1. `README.md`
-2. `IMPLEMENTATION_SUMMARY.md`
-3. `OPERATIONS_MANUAL.md` → Compliance & Reporting
+1. `README.md` → True North alignment
+2. `FEATURES.md` → Feature breakdown
+3. `ROADMAP.md` → Phased development plan
+4. `PRIVACY.md` → Sacred Rules rationale
+5. `IMPLEMENTATION_SUMMARY.md`
+6. `OPERATIONS_MANUAL.md` → Compliance & Reporting
+
+### 🔒 Privacy / Security Auditor
+**Priority Reading**:
+1. `PRIVACY.md` → The Sacred Rules (MUST READ)
+2. `TECHNICAL_MANUAL.md` → Security Considerations
+3. `FEATURES.md` → Clinical Snapshot export
+4. `README.md` → Privacy & Security section
+
+### 🏥 Healthcare Provider / Clinical Advisor
+**Priority Reading**:
+1. `README.md` → Overview + Clinical Snapshot
+2. `FEATURES.md` → Clinical Snapshot details
+3. `PRIVACY.md` → Why no HIPAA concerns
+4. `HYPERANDROGENISM_INSIGHTS.md`
+5. `ROADMAP.md` → Clinical Enhancements (Phase 3)
 
 ### 🆘 Support Team
 **Priority Reading**:
 1. `README.md`
-2. `HOW_TO_VIEW_HYPERANDROGENISM.md`
-3. `QUICK_REFERENCE.md` → Common Fixes
+2. `FEATURES.md` → How to Use section
+3. `HOW_TO_VIEW_HYPERANDROGENISM.md`
+4. `QUICK_REFERENCE.md` → Common Fixes
 
 ---
 

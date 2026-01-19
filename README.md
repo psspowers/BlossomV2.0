@@ -1,201 +1,240 @@
 # Blossom - Your PCOS Companion
 
-A privacy-first PCOS symptom tracking app that helps you understand your body through mindful daily logging and personalized insights. Watch your wellness journey visualized as a growing plant companion.
+A compassionate, privacy-first PCOS companion that transforms symptom tracking into a journey of self-discovery and empowerment. Built on evidence-based research and body-positive principles, Blossom helps you understand your patterns without judgment or guilt.
 
 ## Overview
 
-Blossom transforms PCOS management into a nurturing journey. Track symptoms, lifestyle factors, and menstrual cycles while your virtual plant companion grows alongside your progress. All data stays private on your device with no cloud storage, ads, or tracking.
+Living with PCOS often means navigating an invisible weight of symptoms, uncertainty, and a healthcare system that doesn't always understand. Blossom is different. It meets you where you are, validates your experience, and helps you discover what works for your unique body through gentle daily logging and personalized pattern discovery.
 
-## Key Features
+This is not another fitness app demanding streaks or perfect days. This is a companion that understands **"Guilt to Grace"** - transforming shame into self-knowledge, chaos into clarity, and isolation into being truly seen.
 
-### 1. Daily Symptom Tracking
-Track multiple PCOS-related symptoms on a 0-10 scale:
-- Mood and energy levels
-- Physical symptoms (pain, bloating, acne, hair changes)
-- Sleep quality
-- Stress levels
-- Digestive health
-- Menstrual cycle phases (period, ovulation, luteal, follicular)
+## Core Features
 
-### 2. Lifestyle Logging
-Monitor lifestyle factors that impact PCOS:
-- Sleep hours (with 7+ hour tracking)
-- Daily steps and activity level
-- Water intake (goal: 8 glasses/day)
-- Meal quality and timing
-- Exercise type and intensity
-- Stress management activities
+### 1. Blossom Score: Your Holistic Health Snapshot
+Unlike binary metrics or shame-inducing point systems, the Blossom Score (0-100) reflects three dimensions of wellness:
+- **Symptom Factor (40%)**: Week-over-week symptom trends, not isolated bad days
+- **Self-Care Factor (30%)**: Nourishing choices like sleep, movement, and hydration
+- **Emotional Factor (30%)**: Your mood and mental well-being
 
-### 3. Adaptive Interface Modes
-The app adapts its tone based on your entries:
-- **Nurture Mode**: Activated when symptoms are higher, providing gentle encouragement
-- **Steady Mode**: Default balanced interface
-- **Challenge Mode**: Offers growth opportunities when you're feeling strong
+This isn't about being perfect. It's about understanding your patterns and celebrating small victories.
 
-### 4. Plant Growth Visualization
-Your wellness companion evolves through four stages:
-- **Seedling** (Days 1-7): Just getting started
-- **Herb** (Days 8-30): Building consistency
-- **Flowering Plant** (Days 31-90): Thriving routine
-- **Mature Tree** (90+ days): Established practice
+### 2. Seasons: Where You Are Right Now
+Your journey through PCOS has natural rhythms. The Seasons system honors this reality:
 
-Plant appearance also reflects:
-- Daily mood (vibrant blooms for great days, gentle support for rough days)
-- Current streak length
-- Overall wellness trends
+- **Resting (🍂)**: Lower energy, higher symptoms. *"Winter is necessary for Spring. Rest is productive."*
+- **Growing (🌿)**: Building consistency and strength. *"Your roots are deepening. Consistency is magic."*
+- **Blooming (🌸)**: Feeling balanced and thriving. *"You are radiant. Enjoy this season."*
 
-### 5. Streak Tracking
-Build consistency with daily logging streaks:
-- Visual streak counter in header
-- Streak protection and recovery features
-- Streak-based achievements
-- Growth indicators showing progress
+Seasons adapt based on your Blossom Score and recent logging. No guilt for Resting seasons - they're part of healing.
 
-### 6. Achievement System
-Unlock 12 achievements across 3 tiers:
+### 3. Pattern Stories: Your Body's Whispers
+The app analyzes your last 30 days of logs to discover personalized insights:
+- "On nights you sleep 7h+, your anxiety is noticeably lower. Rest is your medicine."
+- "Movement fuels you. You reported 18% more energy on active days."
+- "Lower stress days correlate with fewer physical symptoms. Your mind-body connection is strong."
 
-**Tier 1 (Foundation)**
-- Seed Planted: Log your first day
-- First Sprout: 7-day streak
-- Growing Strong: 14-day streak
+These aren't generic tips from the internet. They're patterns unique to **your body**, written in plain English.
 
-**Tier 2 (Progress)**
-- In Full Bloom: 30-day streak
-- Sleep Wisdom: Discover sleep correlations
-- Nourished Roots: Meet water goals for 14 days
-- Natural Rhythms: Track a complete cycle
-- Restful Garden: 7+ hours sleep for 21 days
-- Pattern Finder: 50 total logged days
+### 4. Daily Wisdom: Affirmations & Insights
+Each day, you receive either:
+- **Evidence-based research** from Monash University (PCOS gold standard)
+- **Personalized whispers** when patterns emerge (e.g., sleep-mood links)
+- **Body-positive affirmations**: "You are not broken. You are navigating a complex path with grace."
 
-**Tier 3 (Mastery)**
-- Mighty Tree: 90-day streak
-- Blossoming Health: 50% symptom reduction
-- Flourishing Forest: 100 total logged days
+### 5. Daily Logging: Quick, Non-Judgmental Input
+Track what matters in under 2 minutes:
+- Physical symptoms (acne, bloating, cramps, hair changes)
+- Emotional state (mood, anxiety, stress, body image)
+- Lifestyle factors (sleep hours, exercise, diet quality, hydration)
+- Cycle tracking (phase, flow intensity)
 
-### 7. Smart Insights
-Advanced analytics to understand your patterns:
-- Symptom trends over time
-- Lifestyle factor correlations
-- Cycle phase analysis
-- Weekly summaries
-- Monthly heatmap calendars
-- Growth comparison charts
-- Personalized pattern discovery
+No guilt for skipped days. No streaks to maintain. Just gentle invitations to check in with yourself.
 
-### 8. Educational Content
-Learn about PCOS management:
-- Symptom explanations and management tips
-- Lifestyle modification guidance
-- Nutrition and exercise recommendations
-- Stress management techniques
-- Goal-specific advice based on your primary focus
+### 6. Lotus Visualization: Nature-Inspired Beauty
+Your wellness is visualized as a realistic lotus bloom:
+- Petals bloom and glow based on your Blossom Score
+- Seasonal colors adapt to your current state
+- Smooth, organic animations reflect body-positive design
+- No harsh gamification or progress bars
 
-### 9. Calendar Views
-Visualize your journey:
-- Heatmap calendar showing daily wellness scores
-- Monthly view with mood indicators
-- Cycle tracking overlay
-- Streak visualization
-- Quick navigation to past entries
+### 7. Clinical Snapshot Export
+Bridge the gap between patient and doctor with the Clinical Snapshot feature:
+- Downloads a human-readable .txt report (not JSON!)
+- Includes cycle history, symptom averages, lifestyle correlations
+- Flags concerning patterns (e.g., extended cycles, high variability)
+- Designed for doctors to scan in under 60 seconds
 
-### 10. Data Privacy & Export
-Complete control over your data:
-- 100% local storage (no cloud, no servers)
-- Export data as JSON backup
-- Delete all data option
-- View data size metrics
-- No ads or tracking
+### 8. Educational Foundation
+Grounded in evidence from Monash University (world leaders in PCOS research):
+- Low-GI nutrition guidance
+- Insulin resistance and metabolic health
+- Anti-inflammatory lifestyle strategies
+- Mind-body connection for hormone balance
+
+### 9. Complete Privacy & Data Control
+- **100% local storage**: No cloud, no servers, no tracking
+- **No account required**: Start using immediately
+- **Export anytime**: JSON backup of all your data
+- **Delete anytime**: Complete data portability and control
+- **No ads, no analytics**: Your data never leaves your device
 
 ## How to Use
 
-### First Time Setup
-1. Complete the onboarding wizard
-2. Enter basic profile info (age, diagnosis year)
-3. Choose your primary wellness goal
-4. Name your plant companion
-5. Set daily reminder preferences
+### Daily Practice (2 Minutes)
+1. Open the app and observe your lotus bloom
+2. Click the floating + button to add a daily log
+3. Quickly rate symptoms on gentle sliders (0-10)
+4. Log lifestyle choices (sleep, movement, food, hydration)
+5. Mark your cycle phase if tracking
+6. Read your Daily Wisdom for the day
+7. Close and return tomorrow (no pressure for perfect consistency)
 
-### Daily Logging
-1. Open the app
-2. Select your mood (Great, Okay, or Rough)
-3. Rate symptoms on sliders (0-10 scale)
-4. Log lifestyle factors (sleep, water, steps)
-5. Mark menstrual cycle phase
-6. Watch your plant grow and earn celebrations
+### Discovering Your Patterns
+1. After 5-7 days of logging, Pattern Stories begin to appear
+2. View your Blossom Score breakdown (symptom/self-care/emotional)
+3. Notice which Season you're in (Resting/Growing/Blooming)
+4. Review lifestyle correlations in the Insights section
+5. Use the Clinical Snapshot export before doctor appointments
 
-### Viewing Insights
-1. Navigate to Insights tab
-2. Explore different views:
-   - Quick Stats: Today's snapshot
-   - Charts: Trend analysis
-   - Calendar: Heatmap visualization
-   - Weekly Summary: 7-day overview
-   - Correlations: Pattern discovery
-   - Growth Comparison: Progress tracking
+### When You Need Support
+- Read body-positive affirmations in Daily Wisdom
+- Review your Pattern Stories to validate what your body is telling you
+- Remember: Resting seasons are not failures - they're necessary
+- Export your data if you need a break (it's always yours)
 
-### Earning Achievements
-1. Navigate to Settings to view achievement progress
-2. Complete daily logs to unlock streak achievements
-3. Track lifestyle goals for habit achievements
-4. Maintain consistent logging for pattern achievements
-5. Receive celebration animations when unlocking
+### Sharing with Healthcare Providers
+1. Go to Settings > Privacy Vault
+2. Click "Clinical Snapshot"
+3. Download the human-readable .txt report
+4. Bring to appointments for evidence-based conversations
 
-### Exporting Data
-1. Go to Settings
-2. Scroll to "Your Data" section
-3. Tap "Export All Data"
-4. JSON file downloads with all logs and profile info
-5. Safe to import into other tools or keep as backup
+## Privacy & Security: The Sacred Rules
 
-## Privacy & Security
+Your health data is yours alone. Period. Blossom is built on three non-negotiable privacy principles:
 
-- **No Account Required**: Start using immediately
-- **Local Storage Only**: All data stored on your device
-- **No Cloud Sync**: Nothing transmitted to servers
-- **No Analytics**: Zero tracking or telemetry
-- **No Ads**: Completely ad-free experience
-- **Data Portability**: Export anytime in JSON format
-- **Complete Control**: Delete all data with one tap
+1. **Local-Only Storage**: All data lives in your browser's IndexedDB. Nothing is ever transmitted to servers, clouds, or third parties.
+2. **No Account, No Tracking**: No sign-up, no email, no analytics, no cookies, no fingerprinting. You are completely anonymous.
+3. **Complete Data Sovereignty**: Export or delete all your data with one click. No lock-in, no questions asked.
+
+This isn't just a feature - it's a fundamental right. PCOS data is deeply personal. We never compromise on privacy.
+
+## True North Alignment: A New Class of Benefit
+
+Blossom delivers **"Empathetic Proof"** - a hybrid approach that honors both heart and science. This isn't just symptom tracking or wellness woo. It's a new paradigm:
+
+### The Unseen Weight
+PCOS comes with invisible burdens: anxiety spirals, body image struggles, feeling broken or defective. Traditional health apps ignore this emotional dimension entirely, or worse, add shame through missed-streak notifications.
+
+Blossom acknowledges **"The Unseen Weight"** through:
+- Body-positive affirmations grounded in self-compassion research
+- Resting seasons that validate low-energy periods
+- No gamification, no streaks, no punishment mechanics
+
+### From Guilt to Grace
+Many PCOS journeys are marked by guilt: guilt for symptoms you can't control, guilt for "imperfect" choices, guilt for not doing enough. Blossom transforms this through:
+- Pattern Stories that show what **actually works for your body** (not generic advice)
+- Seasons that honor natural rhythms (not linear progress)
+- Clinical Snapshots that turn chaos into clarity for doctor conversations
+
+### The Different Path: Science + Kindness
+Evidence-based doesn't mean cold. Blossom integrates:
+- **Monash University research** (PCOS gold standard) into Daily Wisdom
+- **Pattern detection algorithms** that find sleep-mood and stress-symptom links
+- **Compassionate language** that avoids medical judgment
+
+This is the "Different Path" - rigorous science delivered with warmth.
+
+### Seen, Supported, Sovereign
+The app's core promise (True North):
+1. **Seen**: Your patterns are validated through personalized stories, not generic tips
+2. **Supported**: Daily Wisdom and Seasons meet you where you are
+3. **Sovereign**: Complete privacy and data control - your journey belongs to you alone
 
 ## Medical Disclaimer
 
 Blossom is a companion tool for tracking and understanding your PCOS journey. It is not medical advice and does not replace professional healthcare. Always consult with your healthcare provider for diagnosis, treatment, and medical guidance.
 
-## Technical Details
+## Technical Stack
 
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **UI Library**: Radix UI + Tailwind CSS
-- **Charts**: Recharts
-- **Storage**: Browser LocalStorage
-- **PWA**: Installable as mobile app
-- **Theme**: Light/Dark/System modes
+- **Frontend**: React 18 + TypeScript (full type safety)
+- **Build Tool**: Vite (fast HMR, optimized production builds)
+- **UI Components**: Radix UI (accessible primitives) + Tailwind CSS (utility-first)
+- **Animations**: Framer Motion (smooth lotus bloom, seasonal transitions)
+- **Database**: Dexie.js wrapper for IndexedDB (5-10MB client-side storage)
+- **Charts**: Recharts (responsive data visualizations)
+- **State Management**: React Query for async state, Context for themes
+- **PWA**: Installable as mobile app (offline-first architecture)
+- **No Backend**: 100% client-side (no servers, no APIs, no tracking)
+
+## Roadmap: What's Next
+
+### Phase 1: Logic Audit (Completed)
+- Blossom Score algorithm (symptom/self-care/emotional weighting)
+- Seasons engine (Resting/Growing/Blooming states)
+- Pattern Stories generator (sleep-mood, movement-energy correlations)
+- Daily Wisdom affirmations
+- Clinical Snapshot export
+
+### Phase 2: User Research (In Progress)
+- Persona validation with PCOS community
+- Usability testing of Seasons messaging
+- Clinical Snapshot doctor feedback
+- Pattern Stories confidence tuning
+
+### Phase 3: Enhancements (Next)
+- **Cycle Variability Index**: Flag irregular cycles for clinical conversations
+- **Spotting vs Period Clarity**: Differentiate flow types for hyperandrogenism tracking
+- **Predictive Insights**: "Your anxiety tends to spike 3 days before your period"
+- **Custom Metrics**: User-defined symptoms beyond core set
+- **Export Formats**: PDF Clinical Snapshot, CSV for research consent
+
+### Future Considerations
+- Multi-language support (Spanish, Mandarin priority)
+- Accessibility audit (WCAG 2.1 AAA compliance)
+- Community-sourced Pattern Stories (anonymous aggregation with consent)
+
+## Installation & Development
+
+```bash
+npm install
+npm run dev       # Start dev server at localhost:5173
+npm run build     # Production build to dist/
+npm run preview   # Preview production build
+```
+
+All data is client-side. No environment variables or backend setup required.
 
 ## Browser Compatibility
 
-- Chrome/Edge: Full support
-- Firefox: Full support
-- Safari: Full support
-- Mobile browsers: Optimized for touch
+- **Chrome/Edge**: Full support (recommended)
+- **Firefox**: Full support
+- **Safari**: Full support (iOS 14+)
+- **Mobile**: Optimized for touch, installable as PWA
 
-## Data Storage Limits
+## Data Storage
 
-Typical storage usage: 0.5-2 KB per day of logs
-Browser LocalStorage limit: 5-10 MB (enough for years of data)
+- **Per log**: 0.5-2 KB
+- **1 year**: ~180-730 KB
+- **5 years**: ~900 KB - 3.6 MB
+- **Browser limit**: 5-10 MB (decades of daily logs)
 
-## Developer & Operations Documentation
+## Developer Documentation
 
-For developers, operators, and technical teams, comprehensive documentation is available:
+For contributors and technical teams:
 
-- **[Documentation Index](./DOCUMENTATION_INDEX.md)** - Complete guide to all documentation
-- **[Technical Manual](./TECHNICAL_MANUAL.md)** - Architecture, development, and API reference
-- **[Operations Manual](./OPERATIONS_MANUAL.md)** - Deployment, monitoring, and maintenance
-- **[Quick Reference](./QUICK_REFERENCE.md)** - One-page cheat sheet for common tasks
-- **[Theme System Guide](./THEME_SYSTEM_GUIDE.md)** - Complete theme customization guide
+- **[Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigation hub for all docs
+- **[Technical Manual](./TECHNICAL_MANUAL.md)** - Architecture, Soul Injection algorithms, API reference
+- **[Features Guide](./FEATURES.md)** - Page-by-page breakdown with True North ties
+- **[Privacy Guide](./PRIVACY.md)** - Sacred Rules and data sovereignty details
+- **[Theme System Guide](./THEME_SYSTEM_GUIDE.md)** - Body-positive UX and theme customization
+- **[Roadmap](./ROADMAP.md)** - Phased development plan
 
-Additional feature-specific guides:
-- Chart troubleshooting, filter implementation, PCOS insights, and more
+## Support & Philosophy
 
-## Support & Feedback
+Blossom is built with love for the PCOS community. If you're struggling with symptoms, please know:
+- You are not broken
+- Your body is doing its best with complex biology
+- Healing is not linear - rest is part of progress
+- You deserve compassionate care, especially from yourself
 
-For issues, suggestions, or questions about features, please refer to the app's built-in help sections or consult the educational content within the Learn tab.
+For technical issues, consult the documentation above. For PCOS support, please reach out to qualified healthcare providers or PCOS support communities.

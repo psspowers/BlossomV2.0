@@ -1,8 +1,8 @@
-# Blossom - Technical & Operations Manual
+# Blossom - Technical Manual
 
-**Version**: 1.0
+**Version**: 2.0 (Soul Injection Update)
 **Last Updated**: January 2026
-**Target Audience**: Developers, DevOps, Technical Operators
+**Target Audience**: Developers, DevOps, Technical Operators, Documentation Architects
 
 ---
 
@@ -13,14 +13,19 @@
 3. [Project Structure](#project-structure)
 4. [Database Architecture](#database-architecture)
 5. [Component Architecture](#component-architecture)
-6. [State Management](#state-management)
-7. [Theme System](#theme-system)
-8. [Build & Deployment](#build--deployment)
-9. [Testing & Debugging](#testing--debugging)
-10. [Extending the App](#extending-the-app)
-11. [Performance Optimization](#performance-optimization)
-12. [Troubleshooting](#troubleshooting)
-13. [API Reference](#api-reference)
+6. [Soul Injection: Core Logic](#soul-injection-core-logic)
+   - 6.1 [Blossom Score Algorithm](#blossom-score-algorithm)
+   - 6.2 [Seasons Engine](#seasons-engine)
+   - 6.3 [Narratives & Daily Wisdom](#narratives--daily-wisdom)
+   - 6.4 [Pattern Stories Generator](#pattern-stories-generator)
+7. [State Management](#state-management)
+8. [Theme System](#theme-system)
+9. [Build & Deployment](#build--deployment)
+10. [Testing & Debugging](#testing--debugging)
+11. [Extending the App](#extending-the-app)
+12. [Performance Optimization](#performance-optimization)
+13. [Troubleshooting](#troubleshooting)
+14. [API Reference](#api-reference)
 
 ---
 
@@ -390,6 +395,372 @@ interface FormData {
 - Days in current phase
 - Phase-specific tips
 - Symptom warnings
+
+---
+
+## Soul Injection: Core Logic
+
+The "Soul Injection" represents the compassionate intelligence layer of Blossom. Unlike traditional health apps that use gamification or shame-based mechanics, these algorithms deliver **"Empathetic Proof"** - personalized insights that honor both science and emotional reality.
+
+### Design Philosophy
+
+1. **No Punishment**: No streak counters, no missed-day guilt, no binary success/failure
+2. **Pattern Over Perfection**: Focus on trends, not individual bad days
+3. **Validation First**: Affirm the user's experience before suggesting changes
+4. **Evidence-Based Warmth**: Ground insights in research, deliver with compassion
+
+---
+
+### 6.1 Blossom Score Algorithm
+
+**File**: `src/lib/logic/blossomScore.ts`
+
+The Blossom Score (0-100) is a composite wellness metric that replaces traditional health scores. It's weighted to prioritize symptom trends over lifestyle perfectionism.
+
+#### Formula
+
+```typescript
+score = (symptomFactor × 0.4) + (selfCareFactor × 0.3) + (emotionalFactor × 0.3)
+```
+
+#### Component Breakdown
+
+**1. Symptom Factor (40% weight)**
+
+Compares the last 7 days of symptom averages to the previous 7 days:
+
+```typescript
+// Average all symptoms per log (acne, hirsutism, hairLoss, bloat, cramps)
+function getSymptomScore(log: LogEntry): number {
+  const symptoms = [
+    log.symptoms.acne || 0,
+    log.symptoms.hirsutism || 0,
+    log.symptoms.hairLoss || 0,
+    log.symptoms.bloat || 0,
+    log.symptoms.cramps || 0
+  ];
+  return calculateAverage(symptoms);
+}
+
+// Compare weeks
+const prevSymptomAvg = calculateAverage(previous7Days.map(getSymptomScore));
+const currSymptomAvg = calculateAverage(last7Days.map(getSymptomScore));
+const percentChange = ((prevSymptomAvg - currSymptomAvg) / prevSymptomAvg) * 100;
+
+// Scoring
+if (percentChange > 10)  return 100;   // Improving symptoms
+if (percentChange < -10) return 50;    // Worsening symptoms
+else                     return 75;    // Stable symptoms
+```
+
+**Key Design Choice**: We use week-over-week trends, not absolute values. A user with high baseline symptoms who improves by 10% gets a perfect symptom score. This avoids punishing chronic conditions.
+
+**2. Self-Care Factor (30% weight)**
+
+Percentage of days (last 7) with at least one nourishing choice:
+
+```typescript
+const nourishingDays = last7Days.filter(log => {
+  const hasGoodSleep = sleepHours >= 7;
+  const hasMovement = exercise !== 'rest';
+  const hasHydration = waterIntake >= 6 glasses;
+
+  return hasGoodSleep || hasMovement || hasHydration;
+});
+
+selfCareFactor = (nourishingDays.length / 7) * 100;
+```
+
+**Key Design Choice**: It's an OR condition, not AND. You don't need perfect sleep AND exercise AND hydration. One nourishing choice counts.
+
+**3. Emotional Factor (30% weight)**
+
+Average mood score (0-10 scale) from the last 7 days:
+
+```typescript
+const moodScores = last7Days.map(log => log.psych.mood || 50);
+const emotionalFactor = calculateAverage(moodScores);
+```
+
+**Key Design Choice**: Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. This validates the mental health burden of PCOS.
+
+#### Edge Cases
+
+```typescript
+// Insufficient data (< 3 logs in 14 days)
+return {
+  score: 50,               // Neutral score
+  symptomFactor: 50,
+  selfCareFactor: 0,       // Not enough data
+  emotionalFactor: 50
+};
+```
+
+#### Usage Example
+
+```typescript
+import { calculateBlossomScore } from '@/lib/logic/blossomScore';
+
+const result = await calculateBlossomScore();
+console.log(result);
+// {
+//   score: 72,
+//   symptomFactor: 75,
+//   selfCareFactor: 85,
+//   emotionalFactor: 60
+// }
+```
+
+---
+
+### 6.2 Seasons Engine
+
+**File**: `src/lib/logic/seasons.ts`
+
+Seasons replace linear progress bars with cyclical wellness states. Inspired by natural rhythms, this system validates low-energy periods as necessary rather than failures.
+
+#### Three Seasons
+
+```typescript
+export type SeasonType = 'resting' | 'growing' | 'blooming';
+```
+
+#### Season Rules
+
+```typescript
+export async function calculateSeason(blossomScore: number): Promise<SeasonState> {
+  const recentLogs = await getLastNDays(7);
+  const logsInLast7Days = recentLogs.length;
+
+  // RESTING: Low engagement or low score
+  if (logsInLast7Days < 3 || blossomScore < 40) {
+    return {
+      currentSeason: 'resting',
+      message: 'Winter is necessary for Spring. Rest is productive.',
+      icon: '🍂'
+    };
+  }
+
+  // BLOOMING: High score and consistent logging
+  if (blossomScore >= 80) {
+    return {
+      currentSeason: 'blooming',
+      message: 'You are radiant. Enjoy this season.',
+      icon: '🌸'
+    };
+  }
+
+  // GROWING: Default mid-range state
+  return {
+    currentSeason: 'growing',
+    message: 'Your roots are deepening. Consistency is magic.',
+    icon: '🌿'
+  };
+}
+```
+
+#### Messaging Strategy
+
+Each season has compassionate framing:
+
+| Season | Trigger | Message Philosophy |
+|--------|---------|-------------------|
+| Resting | Score <40 or <3 logs/week | Validate low energy as necessary. "Rest is productive." |
+| Growing | Score 40-79 | Encourage consistency without pressure. "Roots are deepening." |
+| Blooming | Score 80+ | Celebrate without expectation of permanence. "Enjoy this season." |
+
+**Key Design Choice**: We never say "you failed" or "you're slipping." Resting is reframed as natural and temporary.
+
+#### Visual Theming
+
+```typescript
+export function getSeasonColors(season: SeasonType) {
+  switch (season) {
+    case 'resting':  return { primary: '#A1887F', secondary: '#EFEBE9' };  // Warm browns
+    case 'growing':  return { primary: '#66BB6A', secondary: '#E8F5E9' };  // Fresh greens
+    case 'blooming': return { primary: '#FF69B4', secondary: '#FFF0F5' };  // Soft pinks
+  }
+}
+```
+
+These colors are applied to the lotus visualization and UI accents.
+
+---
+
+### 6.3 Narratives & Daily Wisdom
+
+**File**: `src/lib/logic/narratives.ts`
+
+Daily Wisdom delivers one insight per day: either a personalized pattern from the user's data, or a Monash University-backed affirmation.
+
+#### Logic Flow
+
+```typescript
+export async function generateDailyWisdom(): Promise<DailyWisdom> {
+  const allLogs = await getLastNDays(14);
+
+  // Insufficient data → Affirmation
+  if (allLogs.length < 5) {
+    return {
+      message: randomAffirmation(),
+      category: 'affirmation',
+      hasData: false
+    };
+  }
+
+  // Test for sleep-mood correlation
+  const goodSleepLogs = allLogs.filter(log => sleepHours >= 7);
+  const badSleepLogs = allLogs.filter(log => sleepHours < 7);
+
+  if (goodSleepLogs.length >= 3 && badSleepLogs.length >= 2) {
+    const goodSleepMood = calculateAverage(goodSleepLogs.map(l => l.psych.mood));
+    const badSleepMood = calculateAverage(badSleepLogs.map(l => l.psych.mood));
+    const moodDifference = goodSleepMood - badSleepMood;
+
+    if (moodDifference > 10) {
+      return {
+        message: `Whisper: Your body loves rest. Mood lifts when you sleep 7h+.`,
+        category: 'sleep',
+        hasData: true
+      };
+    }
+  }
+
+  // Test for movement-energy correlation
+  // ... similar logic for exercise vs energy
+
+  // Fallback → Affirmation
+  return {
+    message: randomAffirmation(),
+    category: 'affirmation',
+    hasData: false
+  };
+}
+```
+
+#### Affirmations Bank
+
+Aligned with self-compassion research and body-positive messaging:
+
+```typescript
+const MONASH_AFFIRMATIONS = [
+  "You are not broken. You are navigating a complex path with grace.",
+  "Your body is doing its best. Every small choice matters.",
+  "PCOS is a constellation of symptoms, not a character flaw.",
+  "Healing is not linear. Rest is part of progress.",
+  "You deserve compassion, especially from yourself.",
+  "Your worth is not measured by your symptoms.",
+  "Small, consistent actions create lasting change.",
+  "You are learning to listen to your body's wisdom."
+];
+```
+
+**Key Design Choice**: "Whisper" prefix for personalized insights. This framing suggests the app is helping you hear what your body is already saying, not imposing external rules.
+
+---
+
+### 6.4 Pattern Stories Generator
+
+**File**: `src/lib/logic/stories.ts`
+
+Pattern Stories are the flagship insight feature. They find correlations in 30 days of user data and present them as narrative sentences, not charts.
+
+#### Analysis Categories
+
+1. **Sleep-Anxiety**: "On nights you sleep 7h+, your anxiety is noticeably lower."
+2. **Movement-Energy**: "Movement fuels you. You reported 18% more energy on active days."
+3. **Diet-Mood**: "Balanced nutrition stabilizes your mood. You feel 15% better on those days."
+4. **Stress-Symptoms**: "Lower stress days correlate with fewer physical symptoms."
+
+#### Confidence Levels
+
+```typescript
+export interface PatternStory {
+  story: string;
+  category: 'sleep' | 'movement' | 'diet' | 'stress' | 'education';
+  confidence: 'high' | 'medium' | 'low';
+}
+```
+
+**High Confidence**: Statistical threshold met (e.g., >15% difference, n≥3 in each group)
+**Medium Confidence**: Weak signal detected
+**Low Confidence**: Insufficient data, fallback to education
+
+#### Example: Sleep-Anxiety Detection
+
+```typescript
+const goodSleepLogs = allLogs.filter(log => sleepHours >= 7);
+const badSleepLogs = allLogs.filter(log => sleepHours < 6);
+
+if (goodSleepLogs.length >= 3 && badSleepLogs.length >= 3) {
+  const goodSleepAnxiety = calculateAverage(goodSleepLogs.map(log => anxietyScore));
+  const badSleepAnxiety = calculateAverage(badSleepLogs.map(log => anxietyScore));
+
+  const anxietyDifference = ((badSleepAnxiety - goodSleepAnxiety) / badSleepAnxiety) * 100;
+
+  if (anxietyDifference > 15) {
+    stories.push({
+      story: `On nights you sleep 7h+, your anxiety is noticeably lower. Rest is your medicine.`,
+      category: 'sleep',
+      confidence: 'high'
+    });
+  }
+}
+```
+
+#### Educational Fallback
+
+If no patterns detected, provide evidence-based tips:
+
+```typescript
+const MONASH_TIPS = [
+  "Did you know? Consistent sleep helps regulate insulin levels.",
+  "Research shows that regular movement can improve insulin sensitivity by up to 25%.",
+  "Balanced meals with low-GI foods help stabilize blood sugar throughout the day.",
+  // ... 10 total tips from Monash University research
+];
+```
+
+#### Usage Example
+
+```typescript
+import { generatePatternStories } from '@/lib/logic/stories';
+
+const stories = await generatePatternStories();
+console.log(stories);
+// [
+//   {
+//     story: "Movement fuels you. You reported 22% more energy on active days.",
+//     category: "movement",
+//     confidence: "high"
+//   },
+//   {
+//     story: "Lower stress days correlate with fewer physical symptoms.",
+//     category: "stress",
+//     confidence: "high"
+//   }
+// ]
+```
+
+---
+
+### Soul Injection Integration Points
+
+These logic modules are consumed by UI components:
+
+```typescript
+// Dashboard.tsx
+const { score, symptomFactor, selfCareFactor, emotionalFactor } = await calculateBlossomScore();
+const { currentSeason, message, icon } = await calculateSeason(score);
+
+// DailyWisdom.tsx
+const { message, category, hasData } = await generateDailyWisdom();
+
+// Insights.tsx
+const stories = await generatePatternStories();
+```
+
+The lotus visualization in `BioOrb.tsx` uses the Blossom Score to control bloom intensity and seasonal colors.
 
 ---
 
