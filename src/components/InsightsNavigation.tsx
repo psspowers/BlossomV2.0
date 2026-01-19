@@ -12,79 +12,49 @@ export type InsightView = 'physical' | 'emotional' | 'metabolic' | 'cycle';
 interface ViewConfig {
   label: string;
   icon: LucideIcon;
-  activeColor: string;
-  glowColor: string;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  hex: string;
-  glowClass: string;
-  shadowClass: string;
-  borderClass: string;
-  textClass: string;
-  badgeBgClass: string;
+  activeBgLight: string;
+  activeBgDark: string;
+  activeTextLight: string;
+  activeTextDark: string;
+  inactiveText: string;
 }
 
 export const viewConfig: Record<InsightView, ViewConfig> = {
   physical: {
     label: 'Physical & Movement',
     icon: Activity,
-    activeColor: 'text-emerald-400',
-    glowColor: 'bg-emerald-500/50',
-    color: 'rgba(232, 174, 178, 0.8)',
-    bgColor: 'rgba(232, 174, 178, 0.1)',
-    borderColor: 'rgb(232, 174, 178)',
-    hex: '#E8AEB2',
-    glowClass: 'bg-secondary/10',
-    shadowClass: 'shadow-[0_4px_20px_rgba(232,174,178,0.3)]',
-    borderClass: 'border-secondary',
-    textClass: 'text-secondary',
-    badgeBgClass: 'bg-secondary/20 text-secondary border-secondary/30'
+    activeBgLight: 'bg-rose-100',
+    activeBgDark: 'bg-rose-900/30',
+    activeTextLight: 'text-rose-600',
+    activeTextDark: 'text-rose-400',
+    inactiveText: 'text-slate-400'
   },
   metabolic: {
     label: 'Metabolic & Fuel',
     icon: Zap,
-    activeColor: 'text-amber-400',
-    glowColor: 'bg-amber-500/50',
-    color: 'rgba(134, 168, 115, 0.8)',
-    bgColor: 'rgba(134, 168, 115, 0.1)',
-    borderColor: 'rgb(134, 168, 115)',
-    hex: '#86A873',
-    glowClass: 'bg-primary/10',
-    shadowClass: 'shadow-[0_4px_20px_rgba(134,168,115,0.3)]',
-    borderClass: 'border-primary',
-    textClass: 'text-primary',
-    badgeBgClass: 'bg-primary/20 text-primary border-primary/30'
+    activeBgLight: 'bg-amber-100',
+    activeBgDark: 'bg-amber-900/30',
+    activeTextLight: 'text-amber-600',
+    activeTextDark: 'text-amber-400',
+    inactiveText: 'text-slate-400'
   },
   emotional: {
     label: 'Emotional Well-being',
     icon: Sparkles,
-    activeColor: 'text-purple-400',
-    glowColor: 'bg-purple-500/50',
-    color: 'rgba(107, 143, 78, 0.8)',
-    bgColor: 'rgba(107, 143, 78, 0.1)',
-    borderColor: 'rgb(107, 143, 78)',
-    hex: '#6b8f4e',
-    glowClass: 'bg-sage-600/10',
-    shadowClass: 'shadow-[0_4px_20px_rgba(107,143,78,0.3)]',
-    borderClass: 'border-sage-600',
-    textClass: 'text-sage-600',
-    badgeBgClass: 'bg-sage-600/20 text-sage-600 border-sage-600/30'
+    activeBgLight: 'bg-violet-100',
+    activeBgDark: 'bg-violet-900/30',
+    activeTextLight: 'text-violet-600',
+    activeTextDark: 'text-violet-400',
+    inactiveText: 'text-slate-400'
   },
   cycle: {
     label: 'Cycle & Fertility',
     icon: Droplet,
-    activeColor: 'text-rose-400',
-    glowColor: 'bg-rose-500/50',
-    color: 'rgba(197, 179, 223, 0.8)',
-    bgColor: 'rgba(197, 179, 223, 0.1)',
-    borderColor: 'rgb(197, 179, 223)',
-    hex: '#C5B3DF',
-    glowClass: 'bg-lavender-400/10',
-    shadowClass: 'shadow-[0_4px_20px_rgba(197,179,223,0.3)]',
-    borderClass: 'border-lavender-400',
-    textClass: 'text-lavender-600',
-    badgeBgClass: 'bg-lavender-400/20 text-lavender-600 border-lavender-400/30'
+    activeBgLight: 'bg-teal-100',
+    activeBgDark: 'bg-teal-900/30',
+    activeTextLight: 'text-teal-600',
+    activeTextDark: 'text-teal-400',
+    inactiveText: 'text-slate-400'
   }
 };
 
@@ -97,9 +67,9 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
   const views: InsightView[] = ['physical', 'metabolic', 'emotional', 'cycle'];
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="relative mb-6">
-        <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl p-2 flex items-center justify-around gap-1 border border-slate-700/50 shadow-2xl">
+    <TooltipProvider delayDuration={300}>
+      <div className="relative mb-6 flex justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-3 rounded-full bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-slate-700/40 shadow-sm">
           {views.map((viewKey) => {
             const config = viewConfig[viewKey];
             const Icon = config.icon;
@@ -110,57 +80,47 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => onViewChange(viewKey)}
-                    className={`relative flex items-center justify-center w-16 h-16 rounded-xl transition-all duration-300 ${
-                      isActive
-                        ? `${config.activeColor} scale-105`
-                        : 'text-slate-400 hover:text-slate-200 hover:scale-110 hover:bg-slate-800/40'
-                    }`}
+                    className="relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
                     aria-label={config.label}
                   >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeBackground"
+                        className={`absolute inset-0 rounded-full ${config.activeBgLight} dark:${config.activeBgDark}`}
+                        initial={false}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 30
+                        }}
+                      />
+                    )}
+
                     <motion.div
-                      initial={false}
+                      className="relative z-10"
                       animate={{
-                        scale: isActive ? [1, 1.1, 1] : 1,
-                        rotate: isActive ? [0, 5, -5, 0] : 0,
+                        scale: isActive ? 1 : 0.9,
                       }}
                       transition={{
-                        duration: 0.5,
-                        ease: "easeInOut"
+                        duration: 0.3,
+                        ease: "easeOut"
                       }}
                     >
-                      <Icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 2} />
+                      <Icon
+                        className={`w-5 h-5 transition-colors duration-300 ${
+                          isActive
+                            ? `${config.activeTextLight} dark:${config.activeTextDark}`
+                            : `${config.inactiveText} hover:text-slate-600 dark:hover:text-slate-300`
+                        }`}
+                        strokeWidth={isActive ? 2.5 : 2}
+                      />
                     </motion.div>
-
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full ${config.glowColor} blur-sm`}
-                        initial={false}
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30
-                        }}
-                      />
-                    )}
-
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeGlow"
-                        className={`absolute inset-0 ${config.glowColor} rounded-xl blur-2xl opacity-20 -z-10`}
-                        initial={false}
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30
-                        }}
-                      />
-                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="bg-slate-900/95 backdrop-blur-sm border-slate-700 text-slate-100 text-sm font-medium px-3 py-2"
+                  className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-medium px-3 py-1.5 rounded-lg shadow-md"
+                  sideOffset={8}
                 >
                   {config.label}
                 </TooltipContent>
