@@ -84,71 +84,118 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   }, [health, isLoaded, isBuffered, videoDuration]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-4">
-      <div className="relative w-80 h-64 flex items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center py-8 min-h-screen">
+      {/* Subtle header */}
+      <motion.h2
+        className="absolute top-8 left-1/2 -translate-x-1/2 text-sm font-serif text-slate-500 tracking-widest uppercase opacity-60"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 0.6, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        {name}
+      </motion.h2>
+
+      {/* Ambient Glow Background - matches lotus colors */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+      >
+        <motion.div
+          className="w-[800px] h-[800px] rounded-full blur-[120px] opacity-30"
+          style={{
+            background: `radial-gradient(circle,
+              rgba(77, 208, 225, ${health / 200}) 0%,
+              rgba(134, 239, 172, ${health / 250}) 25%,
+              rgba(167, 243, 208, ${health / 300}) 50%,
+              transparent 70%)`
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.4, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </motion.div>
+
+      {/* Main Lotus Container - MUCH BIGGER */}
+      <div className="relative w-[700px] h-[580px] flex items-center justify-center mb-12">
         <motion.div
           className="relative w-full h-full flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: isBuffered ? 1 : 0.5, scale: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
         >
           <video
             ref={videoRef}
             src="/lotus-bloom.mp4"
-            className="w-full h-full object-contain drop-shadow-2xl"
+            className="w-full h-full object-contain"
             muted
             playsInline
             preload="auto"
             style={{
-              filter: 'drop-shadow(0 15px 25px rgba(77, 208, 225, 0.3))',
+              filter: 'drop-shadow(0 25px 50px rgba(77, 208, 225, 0.25)) drop-shadow(0 10px 30px rgba(134, 239, 172, 0.2))',
               opacity: isBuffered ? 1 : 0.3
             }}
           />
 
           {!isBuffered && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sage-50 to-sage-100 rounded-lg">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 border-4 border-sage-200 border-t-sage-500 rounded-full animate-spin"></div>
-                <div className="text-sage-600 text-sm">
-                  {!isLoaded ? 'Loading lotus...' : 'Buffering...'}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sage-50/50 to-sage-100/50 backdrop-blur-md rounded-3xl">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-16 h-16 border-4 border-sage-200 border-t-sage-500 rounded-full animate-spin"></div>
+                <div className="text-sage-600 text-base font-light">
+                  {!isLoaded ? 'Loading your sanctuary...' : 'Preparing...'}
                 </div>
               </div>
             </div>
           )}
+
+          {/* Glass Badge Score - Floating over lotus */}
+          {isBuffered && (
+            <motion.div
+              className="absolute bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full backdrop-blur-xl bg-white/20 border border-white/40 shadow-2xl z-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-serif font-light text-white drop-shadow-lg">
+                  {health}
+                </span>
+                <span className="text-xs font-light text-white/80 uppercase tracking-wider">
+                  Blossom
+                </span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
 
-      <div className="text-center space-y-3 relative z-10">
-        <h2 className="text-3xl font-serif text-slate-800 tracking-wide italic">
-          {name}
-        </h2>
-
-        <div className="flex items-center justify-center">
-          <div className="px-8 py-4 rounded-2xl bg-white/80 border-2 border-sage-300 shadow-lg backdrop-blur-sm">
-            <div className="text-xs text-sage-600 font-medium uppercase tracking-wider mb-1">
-              Blossom Score
-            </div>
-            <div className="text-5xl font-serif font-bold text-slate-800">
-              {health}
-            </div>
-            <div className="text-xs text-slate-500 mt-1">
-              out of 100
-            </div>
-          </div>
+      {/* Season Info - Integrated and Poetic */}
+      <motion.div
+        className="flex flex-col items-center gap-4 max-w-2xl px-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+      >
+        {/* Season Badge - More subtle */}
+        <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
+          <span className="text-xl opacity-80">{season.icon}</span>
+          <span className="text-base font-serif text-slate-700 capitalize tracking-wide">
+            {season.currentSeason}
+          </span>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <div className="px-6 py-3 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-3">
-            <span className="text-2xl">{season.icon}</span>
-            <span className="text-lg font-serif text-slate-800 capitalize">
-              {season.currentSeason}
-            </span>
-          </div>
-          <p className="text-sm text-slate-600 italic max-w-md text-center px-4">
-            {season.message}
-          </p>
-        </div>
-      </div>
+        {/* Season Message - Larger and more prominent */}
+        <p className="text-lg font-serif text-slate-600 italic text-center leading-relaxed max-w-xl">
+          {season.message}
+        </p>
+      </motion.div>
     </div>
   );
 };
