@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette, Beaker } from 'lucide-react';
+import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette, Beaker, FileText } from 'lucide-react';
 import { useAchievements, usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
 import { getPhaseDescription } from '../lib/logic/plant';
@@ -7,6 +7,8 @@ import { resetDatabase } from '../lib/resetData';
 import { useState } from 'react';
 import { useTheme } from '../lib/themes/ThemeContext';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
+import { analyzeHistory } from '../lib/logic/cycle';
+import { calculateBlossomScore } from '../lib/logic/blossomScore';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -18,6 +20,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const { designTheme, themeConfig, setDesignTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingClinical, setIsExportingClinical] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isLoadingPersona, setIsLoadingPersona] = useState(false);
@@ -61,6 +64,196 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       alert('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const generateClinicalReport = async () => {
+    try {
+      setIsExportingClinical(true);
+      const logs = await db.logs.orderBy('date').toArray();
+
+      if (logs.length === 0) {
+        alert('No data available to generate a clinical report. Please log some entries first.');
+        return;
+      }
+
+      const cycleAnalysis = analyzeHistory(logs);
+      const blossomScore = await calculateBlossomScore();
+      const today = new Date();
+      const last30Days = logs.filter(log => {
+        const logDate = new Date(log.date);
+        const daysDiff = Math.floor((today.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff <= 30;
+      });
+
+      const avgCycleLength = cycleAnalysis.cycleHistory.length > 1
+        ? Math.round(
+            cycleAnalysis.cycleHistory
+              .slice(-3)
+              .map(c => c.daysFromPrevious)
+              .filter((d): d is number => d !== undefined)
+              .reduce((a, b) => a + b, 0) /
+            cycleAnalysis.cycleHistory.slice(-3).filter(c => c.daysFromPrevious !== undefined).length
+          )
+        : 0;
+
+      const painLevels = last30Days
+        .map(log => log.symptoms.cramps || 0)
+        .filter(val => val > 0);
+      const avgPainLevel = painLevels.length > 0
+        ? (painLevels.reduce((a, b) => a + b, 0) / painLevels.length).toFixed(1)
+        : 'N/A';
+
+      const moodScores = last30Days
+        .map(log => log.psych.mood || 0)
+        .filter(val => val > 0);
+      const avgMoodScore = moodScores.length > 0
+        ? Math.round(moodScores.reduce((a, b) => a + b, 0) / moodScores.length)
+        : 0;
+
+      const highAcneDays = last30Days.filter(log => (log.symptoms.acne || 0) >= 7).length;
+      const highPainDays = last30Days.filter(log => (log.symptoms.cramps || 0) >= 7).length;
+
+      const goodSleepDays = last30Days.filter(log =>
+        log.lifestyle.sleep === '7-8h' || log.lifestyle.sleep === '>8h'
+      ).length;
+
+      const goodSleepMood = last30Days
+        .filter(log => log.lifestyle.sleep === '7-8h' || log.lifestyle.sleep === '>8h')
+        .map(log => log.psych.mood || 0)
+        .filter(val => val > 0);
+
+      const avgGoodSleepMood = goodSleepMood.length > 0
+        ? Math.round(goodSleepMood.reduce((a, b) => a + b, 0) / goodSleepMood.length)
+        : 0;
+
+      const moodImprovement = avgMoodScore > 0 && avgGoodSleepMood > avgMoodScore
+        ? Math.round(((avgGoodSleepMood - avgMoodScore) / avgMoodScore) * 100)
+        : 0;
+
+      const report = `
+BLOSSOM CLINICAL SNAPSHOT
+Generated: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PATIENT TRACKING SUMMARY
+• Total Days Tracked: ${logs.length} days
+• Data Range: ${logs[0]?.date || 'N/A'} to ${logs[logs.length - 1]?.date || 'N/A'}
+• Current Streak: ${plantState.streak} consecutive days
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CYCLE HISTORY
+${cycleAnalysis.isUntracked ? '• Status: Insufficient cycle data (less than 2 periods tracked)' : `• Last Period Start: ${cycleAnalysis.lastTruePeriod?.startDate || 'N/A'}
+• Last Period Duration: ${cycleAnalysis.lastTruePeriod ? Math.round((new Date(cycleAnalysis.lastTruePeriod.endDate).getTime() - new Date(cycleAnalysis.lastTruePeriod.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0} days
+• Current Cycle Day: Day ${cycleAnalysis.currentDay}
+• Average Cycle Length (Last 3): ${avgCycleLength > 0 ? `${avgCycleLength} days` : 'N/A'}
+• Cycle Stability: ${cycleAnalysis.variability <= 7 ? 'Stable' : 'Dynamic'} (±${Math.round(cycleAnalysis.variability)} days)
+• Cycle Pattern: ${cycleAnalysis.isLongCycle ? 'Extended Cycle (>35 days)' : 'Regular Pattern'}
+• Total Cycles Tracked: ${cycleAnalysis.cycleHistory.length} cycles`}
+
+Recent Cycle Lengths:
+${cycleAnalysis.cycleHistory.length > 0
+  ? cycleAnalysis.cycleHistory
+      .slice(-5)
+      .reverse()
+      .map((c, idx) => `  ${idx + 1}. ${c.startDate}${c.daysFromPrevious ? ` (${c.daysFromPrevious} days from previous)` : ' (first tracked cycle)'}`)
+      .join('\n')
+  : '  No cycles tracked yet'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SYMPTOM OVERVIEW (Last 30 Days)
+• Average Pain Level: ${avgPainLevel}${typeof avgPainLevel === 'string' ? '' : '/10'}
+• High Pain Days (7+/10): ${highPainDays} days
+• High Acne Days (7+/10): ${highAcneDays} days
+• Average Mood Score: ${avgMoodScore}/100
+• Wellness Score (Blossom): ${blossomScore.score}/100
+
+Symptom Breakdown:
+  - Symptom Factor: ${Math.round(blossomScore.symptomFactor)}/100
+  - Self-Care Factor: ${Math.round(blossomScore.selfCareFactor)}/100
+  - Emotional Factor: ${Math.round(blossomScore.emotionalFactor)}/100
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LIFESTYLE CORRELATIONS (Last 30 Days)
+• Days with Good Sleep (7+ hours): ${goodSleepDays} days (${Math.round((goodSleepDays / Math.max(last30Days.length, 1)) * 100)}%)
+${moodImprovement > 0
+  ? `• Sleep-Mood Correlation: ${moodImprovement}% better mood on days with 7+ hours of sleep`
+  : '• Sleep-Mood Correlation: Insufficient data or no improvement detected'}
+
+Exercise Frequency:
+${(() => {
+  const exerciseCounts = {
+    rest: last30Days.filter(l => l.lifestyle.exercise === 'rest').length,
+    light: last30Days.filter(l => l.lifestyle.exercise === 'light').length,
+    moderate: last30Days.filter(l => l.lifestyle.exercise === 'moderate').length,
+    intense: last30Days.filter(l => l.lifestyle.exercise === 'intense').length
+  };
+  return `  - Rest: ${exerciseCounts.rest} days
+  - Light: ${exerciseCounts.light} days
+  - Moderate: ${exerciseCounts.moderate} days
+  - Intense: ${exerciseCounts.intense} days`;
+})()}
+
+Hydration:
+${(() => {
+  const waterIntakes = last30Days
+    .map(l => l.lifestyle.waterIntake || 0)
+    .filter(w => w > 0);
+  const avgWater = waterIntakes.length > 0
+    ? (waterIntakes.reduce((a, b) => a + b, 0) / waterIntakes.length).toFixed(1)
+    : 'N/A';
+  return `  - Average Daily Water: ${avgWater}${avgWater === 'N/A' ? '' : ' glasses'}`;
+})()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CLINICAL NOTES
+${cycleAnalysis.isLongCycle
+  ? '⚠ Extended cycle detected. Consider metabolic and hormonal evaluation.\n'
+  : ''}${cycleAnalysis.variability > 10
+  ? `⚠ High cycle variability (±${Math.round(cycleAnalysis.variability)} days). May indicate irregular ovulation.\n`
+  : ''}${highPainDays > 5
+  ? '⚠ Frequent high pain days. Consider pain management strategies.\n'
+  : ''}${blossomScore.score < 50
+  ? '⚠ Low wellness score. Increased symptom burden or lifestyle factors affecting wellbeing.\n'
+  : ''}${cycleAnalysis.isUntracked
+  ? '• Recommend continued tracking to establish cycle baseline.\n'
+  : ''}
+This report is generated from patient self-tracking data using the Blossom
+PCOS wellness app. All data is based on subjective patient reporting and
+should be used in conjunction with clinical examination and diagnostic testing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ABOUT BLOSSOM
+Blossom is a PCOS-aware cycle tracking application that uses PCOS-specific
+logic to differentiate between true menstrual periods and spotting events,
+providing more accurate cycle analysis for individuals with PCOS.
+
+For questions about this report, please visit: https://github.com/yourusername/blossom
+      `.trim();
+
+      const blob = new Blob([report], {
+        type: 'text/plain'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `blossom-clinical-snapshot-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Clinical export failed:', error);
+      alert('Failed to generate clinical report. Please try again.');
+    } finally {
+      setIsExportingClinical(false);
     }
   };
 
@@ -318,23 +511,44 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               </div>
 
               <div className="space-y-3">
+                <div className="paper-card p-4 border-2 border-primary bg-sage-50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-primary" />
+                        Clinical Snapshot
+                      </h4>
+                      <p className="text-sm text-sage-600">
+                        Generate a human-readable clinical report for your healthcare provider. Includes cycle analysis, symptom patterns, and lifestyle correlations.
+                      </p>
+                    </div>
+                    <button
+                      onClick={generateClinicalReport}
+                      disabled={isExportingClinical}
+                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
+                    >
+                      {isExportingClinical ? 'Generating...' : 'Download'}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="paper-card p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        <Download className="w-4 h-4 text-primary" />
-                        Export Your Data
+                        <Download className="w-4 h-4 text-sage-600" />
+                        Export Raw Data (JSON)
                       </h4>
                       <p className="text-sm text-sage-600">
-                        Download all your health logs as a JSON file. Share with your healthcare provider or keep for your records.
+                        Download all your health logs as a JSON file for personal backup or data portability.
                       </p>
                     </div>
                     <button
                       onClick={handleExportData}
                       disabled={isExporting}
-                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
-                      {isExporting ? 'Exporting...' : 'Download Report'}
+                      {isExporting ? 'Exporting...' : 'Download'}
                     </button>
                   </div>
                 </div>
