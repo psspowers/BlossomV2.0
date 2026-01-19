@@ -8,12 +8,12 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const themeConfig = themeConfigs['default'];
+  const themeConfig = themeConfigs['lotus'];
 
   useEffect(() => {
     const root = document.documentElement;
 
-    root.setAttribute('data-theme', 'default');
+    root.setAttribute('data-theme', 'lotus');
 
     root.style.setProperty('--theme-primary', themeConfig.colors.primary);
     root.style.setProperty('--theme-primary-hover', themeConfig.colors.primaryHover);

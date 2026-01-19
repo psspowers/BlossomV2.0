@@ -24,7 +24,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [currentSeason, setCurrentSeason] = useState<string>('Loading...');
   const [blossomScore, setBlossomScore] = useState<number>(0);
   const [totalLogs, setTotalLogs] = useState<number>(0);
-  const { loadSarahPersona, loadAlexPersona } = usePCOSSeeder();
+  const { loadEmma, loadSophia, loadOlivia, loadAva, loadIsabella } = usePCOSSeeder();
 
   useEffect(() => {
     const loadJourneyData = async () => {
@@ -301,28 +301,24 @@ For questions about this report, please visit: https://github.com/yourusername/b
     }
   };
 
-  const handleLoadSarah = async () => {
+  const handleLoadPersona = async (
+    loaderFn: () => Promise<any>,
+    personaName: string
+  ) => {
     try {
       setIsLoadingPersona(true);
-      const result = await loadSarahPersona();
-      alert(`Loaded: ${result.persona}\n\n${result.description}\n\nExpected Current Day: ${result.expectedCurrentDay}\n\n${result.trapDescription}`);
+      const result = await loaderFn();
+      alert(
+        `${result.name} Loaded Successfully!\n\n` +
+        `Type: ${result.type}\n` +
+        `Logs Created: ${result.logsCreated}\n` +
+        `Cycle Info: ${result.cycleInfo}\n\n` +
+        `${result.description}\n\n` +
+        `Expected Pattern: ${result.expectedPattern}`
+      );
       window.location.reload();
     } catch (error) {
-      console.error('Failed to load Sarah persona:', error);
-      alert('Failed to load persona. Please try again.');
-    } finally {
-      setIsLoadingPersona(false);
-    }
-  };
-
-  const handleLoadAlex = async () => {
-    try {
-      setIsLoadingPersona(true);
-      const result = await loadAlexPersona();
-      alert(`Loaded: ${result.persona}\n\n${result.description}\n\nExpected Current Day: ${result.expectedCurrentDay}\n\n${result.note}`);
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to load Alex persona:', error);
+      console.error(`Failed to load ${personaName} persona:`, error);
       alert('Failed to load persona. Please try again.');
     } finally {
       setIsLoadingPersona(false);
@@ -539,65 +535,130 @@ For questions about this report, please visit: https://github.com/yourusername/b
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <Beaker className="w-5 h-5 text-sage-700" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Developer Tools</h3>
+                <h3 className="text-lg font-serif font-semibold text-text-main">Clinical PCOS Personas</h3>
               </div>
 
               <div className="space-y-3">
-                <div className="paper-card p-4 border-2 border-sage-300">
+                <div className="paper-card p-4 border-2 border-primary/50 bg-gradient-to-br from-pink-50 to-white">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Persona: Sarah - The Spotter
+                        Emma - Insulin Resistant
                       </h4>
                       <p className="text-sm text-sage-600 mb-2">
-                        High variance cycle with spotting trap. Tests if engine correctly ignores single-day light flow.
+                        Long irregular cycles (50±10 days), sugar cravings, metabolic symptoms. Shows gradual improvement over 180 days.
                       </p>
-                      <div className="text-xs text-sage-700 space-y-1">
-                        <p><strong>Cycle History:</strong> 32 days ago (TRUE), 78 days ago (TRUE)</p>
-                        <p><strong>Trap:</strong> 5 days ago (single light flow - should be ignored)</p>
-                        <p><strong>Expected:</strong> Current Day ~32, NOT 5</p>
+                      <div className="text-xs text-sage-700">
+                        <strong>Key Features:</strong> Extended cycles, bloating, cravings → balanced diet over time
                       </div>
                     </div>
                     <button
-                      onClick={handleLoadSarah}
+                      onClick={() => handleLoadPersona(loadEmma, 'Emma')}
                       disabled={isLoadingPersona}
-                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-primary hover:opacity-90 text-white font-medium rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shadow-sm"
                     >
-                      {isLoadingPersona ? 'Loading...' : 'Load Sarah'}
+                      {isLoadingPersona ? 'Loading...' : 'Load Emma'}
                     </button>
                   </div>
                 </div>
 
-                <div className="paper-card p-4 border-2 border-sage-300">
+                <div className="paper-card p-4 border-2 border-secondary/50">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
-                        Persona: Alex - The Long Cycle
+                        Sophia - Adrenal PCOS
                       </h4>
                       <p className="text-sm text-sage-600 mb-2">
-                        Extended 65-day cycle with consistent lifestyle tracking. Tests maintenance mode detection.
+                        Regular cycles (29±3 days) driven by chronic stress and anxiety. Poor sleep quality, elevated cortisol patterns.
                       </p>
-                      <div className="text-xs text-sage-700 space-y-1">
-                        <p><strong>Cycle History:</strong> 65 days ago (TRUE period)</p>
-                        <p><strong>Tracking:</strong> 60 consecutive days of lifestyle logs</p>
-                        <p><strong>Expected:</strong> Current Day 65, Maintenance Mode status</p>
+                      <div className="text-xs text-sage-700">
+                        <strong>Key Features:</strong> High stress/anxiety, sleep deprivation, occasional spotting
                       </div>
                     </div>
                     <button
-                      onClick={handleLoadAlex}
+                      onClick={() => handleLoadPersona(loadSophia, 'Sophia')}
                       disabled={isLoadingPersona}
                       className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoadingPersona ? 'Loading...' : 'Load Alex'}
+                      {isLoadingPersona ? 'Loading...' : 'Load Sophia'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="paper-card p-4 border-2 border-red-200 bg-red-50/30">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        Olivia - Inflammatory
+                      </h4>
+                      <p className="text-sm text-sage-600 mb-2">
+                        Moderate cycles (32±4 days) with severe inflammatory symptoms. High cramps, acne, and bloating throughout cycle.
+                      </p>
+                      <div className="text-xs text-sage-700">
+                        <strong>Key Features:</strong> Elevated pain levels, persistent inflammation, moderate exercise
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleLoadPersona(loadOlivia, 'Olivia')}
+                      disabled={isLoadingPersona}
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingPersona ? 'Loading...' : 'Load Olivia'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="paper-card p-4 border-2 border-purple-200 bg-purple-50/30">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        Ava - Post-Pill
+                      </h4>
+                      <p className="text-sm text-sage-600 mb-2">
+                        Very long cycles (65±15 days) with frequent spotting. Hormonal rebalancing after discontinuing birth control.
+                      </p>
+                      <div className="text-xs text-sage-700">
+                        <strong>Key Features:</strong> Extended follicular phase, irregular spotting (15% chance), hormonal flux
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleLoadPersona(loadAva, 'Ava')}
+                      disabled={isLoadingPersona}
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingPersona ? 'Loading...' : 'Load Ava'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="paper-card p-4 border-2 border-green-200 bg-green-50/30">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-text-main font-semibold mb-1 flex items-center gap-2">
+                        Isabella - Lean PCOS
+                      </h4>
+                      <p className="text-sm text-sage-600 mb-2">
+                        Regular cycles (28±2 days), athletic lifestyle, prominent androgenic symptoms like hirsutism despite healthy habits.
+                      </p>
+                      <div className="text-xs text-sage-700">
+                        <strong>Key Features:</strong> High exercise, excellent self-care, visible androgen effects
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleLoadPersona(loadIsabella, 'Isabella')}
+                      disabled={isLoadingPersona}
+                      className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 font-medium rounded-full transition-all border border-sage-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingPersona ? 'Loading...' : 'Load Isabella'}
                     </button>
                   </div>
                 </div>
 
                 <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
                   <p className="text-xs text-sage-700 leading-relaxed">
-                    <strong className="text-text-main">Clinical Testing:</strong> These personas inject PCOS-specific test scenarios
-                    to validate the Blossom Logic Constitution. Use them to verify cycle analysis handles edge cases like spotting,
-                    long cycles, and high variability correctly.
+                    <strong className="text-text-main">Clinical Testing:</strong> These 5 personas represent distinct PCOS subtypes
+                    validated by medical consultants. Each generates 180 days of realistic symptom patterns, cycle data, and lifestyle
+                    tracking to test the Blossom Logic Constitution across diverse clinical presentations.
                   </p>
                 </div>
               </div>

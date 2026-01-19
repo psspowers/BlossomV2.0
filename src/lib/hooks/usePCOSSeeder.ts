@@ -1,302 +1,342 @@
 import { db, LogEntry } from '../db';
 
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
+const daysAgo = (n: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+};
 
-function daysAgo(days: number): Date {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date;
-}
+const mapSleep = (quality: number): string => {
+  if (quality <= 2) return '<6h';
+  if (quality === 3) return '6-7h';
+  if (quality === 4) return '7-8h';
+  return '>8h';
+};
 
-async function clearAllLogs() {
-  await db.logs.clear();
+const mapStress = (level: number): string => {
+  if (level <= 2) return 'low';
+  if (level <= 3) return 'medium';
+  return 'high';
+};
+
+const mapAnxiety = (level: number): string => {
+  if (level <= 2) return 'none';
+  if (level <= 3) return 'low';
+  return 'high';
+};
+
+const mapExercise = (level: string): string => {
+  return level;
+};
+
+const randomVariance = (base: number, variance: number) => {
+  return Math.max(0, Math.min(10, base + (Math.random() - 0.5) * variance));
+};
+
+type PersonaName = 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella';
+
+interface PersonaConfig {
+  name: string;
+  type: string;
+  cycleLength: number;
+  cycleVariance: number;
+  baseSymptoms: {
+    cramps: number;
+    acne: number;
+    bloat: number;
+    hirsutism?: number;
+    hairLoss?: number;
+  };
+  basePsych: {
+    stress: number;
+    anxiety: number;
+    mood: number;
+  };
+  baseLifestyle: {
+    sleep: number;
+    exercise: string;
+    waterIntake: number;
+  };
+  spottingChance?: number;
+  improvementRate?: number;
 }
 
 export function usePCOSSeeder() {
-  const loadSarahPersona = async () => {
-    await clearAllLogs();
+  const generateHistory = async (personaName: PersonaName) => {
+    await db.logs.clear();
 
+    const personas: Record<PersonaName, PersonaConfig> = {
+      Emma: {
+        name: 'Emma - Insulin Resistant',
+        type: 'Insulin-Resistant PCOS',
+        cycleLength: 50,
+        cycleVariance: 10,
+        baseSymptoms: {
+          cramps: 4,
+          acne: 3,
+          bloat: 6,
+          hairLoss: 2
+        },
+        basePsych: {
+          stress: 3,
+          anxiety: 2,
+          mood: 50
+        },
+        baseLifestyle: {
+          sleep: 3,
+          exercise: 'light',
+          waterIntake: 5
+        },
+        improvementRate: 0.005
+      },
+      Sophia: {
+        name: 'Sophia - Adrenal PCOS',
+        type: 'Adrenal PCOS',
+        cycleLength: 29,
+        cycleVariance: 3,
+        baseSymptoms: {
+          cramps: 3,
+          acne: 3,
+          bloat: 3,
+          hairLoss: 2
+        },
+        basePsych: {
+          stress: 5,
+          anxiety: 4,
+          mood: 40
+        },
+        baseLifestyle: {
+          sleep: 2,
+          exercise: 'rest',
+          waterIntake: 4
+        },
+        spottingChance: 0.08
+      },
+      Olivia: {
+        name: 'Olivia - Inflammatory',
+        type: 'Inflammatory PCOS',
+        cycleLength: 32,
+        cycleVariance: 4,
+        baseSymptoms: {
+          cramps: 7,
+          acne: 6,
+          bloat: 7,
+          hairLoss: 1
+        },
+        basePsych: {
+          stress: 3,
+          anxiety: 2,
+          mood: 55
+        },
+        baseLifestyle: {
+          sleep: 4,
+          exercise: 'moderate',
+          waterIntake: 6
+        },
+        spottingChance: 0.05
+      },
+      Ava: {
+        name: 'Ava - Post-Pill',
+        type: 'Post-Pill PCOS',
+        cycleLength: 65,
+        cycleVariance: 15,
+        baseSymptoms: {
+          cramps: 4,
+          acne: 3,
+          bloat: 4,
+          hairLoss: 2
+        },
+        basePsych: {
+          stress: 3,
+          anxiety: 3,
+          mood: 60
+        },
+        baseLifestyle: {
+          sleep: 4,
+          exercise: 'moderate',
+          waterIntake: 6
+        },
+        spottingChance: 0.15
+      },
+      Isabella: {
+        name: 'Isabella - Lean PCOS',
+        type: 'Lean PCOS',
+        cycleLength: 28,
+        cycleVariance: 2,
+        baseSymptoms: {
+          cramps: 3,
+          acne: 5,
+          bloat: 2,
+          hirsutism: 6,
+          hairLoss: 1
+        },
+        basePsych: {
+          stress: 2,
+          anxiety: 2,
+          mood: 75
+        },
+        baseLifestyle: {
+          sleep: 5,
+          exercise: 'intense',
+          waterIntake: 8
+        },
+        spottingChance: 0.03
+      }
+    };
+
+    const config = personas[personaName];
     const logs: LogEntry[] = [];
+    const historyLength = 180;
 
-    logs.push({
-      date: formatDate(daysAgo(78)),
-      cyclePhase: 'menstrual',
-      flow: 'heavy',
-      symptoms: { cramps: 6, bloat: 5 },
-      psych: { mood: 4, stress: 'moderate' },
-      lifestyle: { sleep: 'poor', waterIntake: 4, exercise: 'none', diet: 'poor' }
-    });
+    let daysSincePeriod = Math.floor(Math.random() * 10);
+    let nextCycleLength = config.cycleLength;
 
-    logs.push({
-      date: formatDate(daysAgo(77)),
-      cyclePhase: 'menstrual',
-      flow: 'medium',
-      symptoms: { cramps: 4, bloat: 4 },
-      psych: { mood: 5, stress: 'moderate' },
-      lifestyle: { sleep: 'fair', waterIntake: 5, exercise: 'light', diet: 'fair' }
-    });
+    for (let i = historyLength; i >= 0; i--) {
+      const isPeriod = daysSincePeriod <= 3 && daysSincePeriod >= 0;
+      const isSpotting = !isPeriod && Math.random() < (config.spottingChance || 0.05);
 
-    logs.push({
-      date: formatDate(daysAgo(76)),
-      cyclePhase: 'menstrual',
-      flow: 'light',
-      symptoms: { cramps: 2, bloat: 2 },
-      psych: { mood: 6, stress: 'low' },
-      lifestyle: { sleep: 'good', waterIntake: 6, exercise: 'light', diet: 'good' }
-    });
+      const improvementFactor = config.improvementRate
+        ? Math.max(0, 1 - (historyLength - i) * config.improvementRate)
+        : 0;
 
-    logs.push({
-      date: formatDate(daysAgo(32)),
-      cyclePhase: 'menstrual',
-      flow: 'medium',
-      symptoms: { cramps: 5, bloat: 4, acne: 3 },
-      psych: { mood: 5, stress: 'moderate' },
-      lifestyle: { sleep: 'fair', waterIntake: 5, exercise: 'none', diet: 'fair' }
-    });
+      const follicularPhase = daysSincePeriod > 3 && daysSincePeriod <= 14;
+      const ovulatoryPhase = daysSincePeriod > 14 && daysSincePeriod <= 18;
+      const lutealPhase = daysSincePeriod > 18;
 
-    logs.push({
-      date: formatDate(daysAgo(31)),
-      cyclePhase: 'menstrual',
-      flow: 'heavy',
-      symptoms: { cramps: 7, bloat: 6, acne: 4 },
-      psych: { mood: 4, stress: 'high' },
-      lifestyle: { sleep: 'poor', waterIntake: 4, exercise: 'none', diet: 'poor' }
-    });
+      let cyclePhase: LogEntry['cyclePhase'] = 'unknown';
+      if (isPeriod) cyclePhase = 'menstrual';
+      else if (follicularPhase) cyclePhase = 'follicular';
+      else if (ovulatoryPhase) cyclePhase = 'ovulatory';
+      else if (lutealPhase) cyclePhase = 'luteal';
 
-    logs.push({
-      date: formatDate(daysAgo(30)),
-      cyclePhase: 'menstrual',
-      flow: 'light',
-      symptoms: { cramps: 3, bloat: 2 },
-      psych: { mood: 6, stress: 'moderate' },
-      lifestyle: { sleep: 'fair', waterIntake: 6, exercise: 'light', diet: 'fair' }
-    });
+      let flow: LogEntry['flow'] = 'none';
+      if (isPeriod) {
+        if (daysSincePeriod === 0 || daysSincePeriod === 1) flow = 'heavy';
+        else if (daysSincePeriod === 2) flow = 'medium';
+        else flow = 'light';
+      } else if (isSpotting) {
+        flow = 'spotting';
+      }
 
-    logs.push({
-      date: formatDate(daysAgo(7)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 3, bloat: 3 },
-      psych: { mood: 5, stress: 'moderate' },
-      lifestyle: { sleep: '6-7h', waterIntake: 5, exercise: 'light', diet: 'fair' }
-    });
+      const periodMultiplier = isPeriod ? 1.5 : 1.0;
+      const lutealMultiplier = lutealPhase ? 1.2 : 1.0;
 
-    logs.push({
-      date: formatDate(daysAgo(6)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 4, bloat: 2 },
-      psych: { mood: 6, stress: 'moderate' },
-      lifestyle: { sleep: '6-7h', waterIntake: 4, exercise: 'none', diet: 'fair' }
-    });
+      const symptoms: LogEntry['symptoms'] = {
+        cramps: isPeriod ? Math.round(config.baseSymptoms.cramps * periodMultiplier) : Math.round(randomVariance(config.baseSymptoms.cramps * 0.3, 2)),
+        acne: Math.round(randomVariance(config.baseSymptoms.acne * (1 - improvementFactor * 0.4), 2)),
+        bloat: Math.round(randomVariance(config.baseSymptoms.bloat * lutealMultiplier * (1 - improvementFactor * 0.2), 2)),
+      };
 
-    logs.push({
-      date: formatDate(daysAgo(5)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 1 },
-      psych: { mood: 4, stress: 'high' },
-      lifestyle: { sleep: '<6h', waterIntake: 3, exercise: 'none', diet: 'poor' }
-    });
+      if (config.baseSymptoms.hirsutism) {
+        symptoms.hirsutism = Math.round(config.baseSymptoms.hirsutism);
+      }
+      if (config.baseSymptoms.hairLoss) {
+        symptoms.hairLoss = Math.round(config.baseSymptoms.hairLoss);
+      }
 
-    logs.push({
-      date: formatDate(daysAgo(4)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 3, bloat: 2 },
-      psych: { mood: 5, stress: 'high' },
-      lifestyle: { sleep: '<6h', waterIntake: 4, exercise: 'none', diet: 'poor' }
-    });
+      const stressLevel = config.basePsych.stress;
+      const anxietyLevel = config.basePsych.anxiety;
+      const moodBase = config.basePsych.mood + (1 - improvementFactor) * -10;
 
-    logs.push({
-      date: formatDate(daysAgo(3)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 7, stress: 'low' },
-      lifestyle: { sleep: '7-8h', waterIntake: 7, exercise: 'moderate', diet: 'good' }
-    });
+      const psych: LogEntry['psych'] = {
+        stress: mapStress(stressLevel + (isPeriod ? 1 : 0)),
+        anxiety: mapAnxiety(anxietyLevel + (isPeriod ? 1 : 0)),
+        mood: Math.max(20, Math.min(100, moodBase + (Math.random() * 20 - 10))),
+        bodyImage: moodBase > 60 ? 'positive' : moodBase > 40 ? 'neutral' : 'negative'
+      };
 
-    logs.push({
-      date: formatDate(daysAgo(2)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 1, bloat: 1 },
-      psych: { mood: 8, stress: 'low' },
-      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
-    });
+      const sleepQuality = config.baseLifestyle.sleep + (improvementFactor > 0 ? 1 : 0);
+      const waterIntake = config.baseLifestyle.waterIntake + Math.floor(improvementFactor * 2);
 
-    logs.push({
-      date: formatDate(daysAgo(1)),
-      cyclePhase: 'follicular',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 6, stress: 'moderate' },
-      lifestyle: { sleep: '6-7h', waterIntake: 5, exercise: 'light', diet: 'fair' }
-    });
+      const lifestyle: LogEntry['lifestyle'] = {
+        sleep: mapSleep(sleepQuality),
+        exercise: mapExercise(config.baseLifestyle.exercise),
+        waterIntake: Math.min(10, waterIntake),
+        diet: improvementFactor > 0.3 ? 'balanced' : Math.random() > 0.5 ? 'balanced' : 'cravings'
+      };
 
-    for (let i = 25; i >= 8; i--) {
-      if (i % 3 === 0) {
-        logs.push({
-          date: formatDate(daysAgo(i)),
-          cyclePhase: 'follicular',
-          flow: 'none',
-          symptoms: { acne: Math.floor(Math.random() * 3) + 1 },
-          psych: { mood: Math.floor(Math.random() * 3) + 6, stress: 'low' },
-          lifestyle: {
-            sleep: 'good',
-            waterIntake: Math.floor(Math.random() * 3) + 6,
-            exercise: 'moderate',
-            diet: 'good'
-          }
-        });
+      if (personaName === 'Emma') {
+        lifestyle.diet = improvementFactor > 0.4 ? 'balanced' : 'cravings';
+      }
+
+      logs.push({
+        date: daysAgo(i),
+        cyclePhase,
+        flow,
+        symptoms,
+        psych,
+        lifestyle
+      });
+
+      daysSincePeriod++;
+
+      if (daysSincePeriod >= nextCycleLength) {
+        daysSincePeriod = 0;
+        const variance = Math.floor(Math.random() * config.cycleVariance * 2) - config.cycleVariance;
+        nextCycleLength = config.cycleLength + variance;
       }
     }
 
     await db.logs.bulkAdd(logs);
 
     return {
-      persona: 'Sarah',
-      description: 'The Spotter - High Variance',
-      expectedCurrentDay: 32,
-      trapDescription: 'Single light flow day 5 days ago should be ignored'
+      name: config.name,
+      type: config.type,
+      logsCreated: logs.length,
+      cycleInfo: `Average cycle: ${config.cycleLength} days (±${config.cycleVariance} days)`
     };
   };
 
-  const loadAlexPersona = async () => {
-    await clearAllLogs();
-
-    const logs: LogEntry[] = [];
-
-    logs.push({
-      date: formatDate(daysAgo(65)),
-      cyclePhase: 'menstrual',
-      flow: 'heavy',
-      symptoms: { cramps: 6, bloat: 5, acne: 4 },
-      psych: { mood: 5, stress: 'moderate', anxiety: 'moderate' },
-      lifestyle: { sleep: 'fair', waterIntake: 5, exercise: 'none', diet: 'fair' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(64)),
-      cyclePhase: 'menstrual',
-      flow: 'medium',
-      symptoms: { cramps: 5, bloat: 4, acne: 3 },
-      psych: { mood: 5, stress: 'moderate', anxiety: 'moderate' },
-      lifestyle: { sleep: 'fair', waterIntake: 6, exercise: 'light', diet: 'fair' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(63)),
-      cyclePhase: 'menstrual',
-      flow: 'light',
-      symptoms: { cramps: 2, bloat: 2 },
-      psych: { mood: 6, stress: 'low', anxiety: 'low' },
-      lifestyle: { sleep: 'good', waterIntake: 7, exercise: 'light', diet: 'good' }
-    });
-
-    for (let i = 60; i >= 8; i--) {
-      const sleepQuality = i % 7 === 0 ? 'fair' : 'good';
-      const waterIntake = Math.floor(Math.random() * 2) + 7;
-      const exercise = i % 5 === 0 ? 'light' : i % 3 === 0 ? 'moderate' : 'vigorous';
-      const diet = i % 10 === 0 ? 'fair' : 'good';
-      const mood = Math.floor(Math.random() * 2) + 7;
-
-      logs.push({
-        date: formatDate(daysAgo(i)),
-        cyclePhase: i > 45 ? 'follicular' : i > 30 ? 'ovulatory' : 'luteal',
-        flow: 'none',
-        symptoms: {
-          acne: i > 40 ? Math.floor(Math.random() * 2) + 1 : Math.floor(Math.random() * 3) + 2,
-          bloat: i > 40 ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 3) + 2
-        },
-        psych: { mood, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-        lifestyle: {
-          sleep: sleepQuality,
-          waterIntake,
-          exercise,
-          diet
-        }
-      });
-    }
-
-    logs.push({
-      date: formatDate(daysAgo(7)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(6)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(5)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 3 },
-      psych: { mood: 7, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 7, exercise: 'moderate', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(4)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '>8h', waterIntake: 8, exercise: 'light', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(3)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 9, exercise: 'moderate', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(2)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 1, bloat: 2 },
-      psych: { mood: 9, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
-    });
-
-    logs.push({
-      date: formatDate(daysAgo(1)),
-      cyclePhase: 'luteal',
-      flow: 'none',
-      symptoms: { acne: 2, bloat: 2 },
-      psych: { mood: 8, stress: 'low', anxiety: 'low', bodyImage: 'positive' },
-      lifestyle: { sleep: '7-8h', waterIntake: 8, exercise: 'moderate', diet: 'good' }
-    });
-
-    await db.logs.bulkAdd(logs);
-
+  const loadEmma = async () => {
+    const result = await generateHistory('Emma');
     return {
-      persona: 'Alex',
-      description: 'The Long Cycle - Metabolic Focus',
-      expectedCurrentDay: 65,
-      note: 'Consistent lifestyle tracking for 60 days, showing maintenance mode'
+      ...result,
+      description: '180 days of insulin-resistant PCOS data. Long cycles (50±10 days), sugar cravings, gradual lifestyle improvement over time.',
+      expectedPattern: 'Shows metabolic healing trajectory with improving diet and symptoms'
+    };
+  };
+
+  const loadSophia = async () => {
+    const result = await generateHistory('Sophia');
+    return {
+      ...result,
+      description: '180 days of adrenal PCOS data. Regular cycles (29±3 days) but driven by chronic stress and poor sleep patterns.',
+      expectedPattern: 'High stress/anxiety levels, sleep deprivation, occasional spotting'
+    };
+  };
+
+  const loadOlivia = async () => {
+    const result = await generateHistory('Olivia');
+    return {
+      ...result,
+      description: '180 days of inflammatory PCOS data. Moderate cycles (32±4 days) with severe cramps, acne, and bloating.',
+      expectedPattern: 'Elevated inflammatory symptoms, high pain levels during menstruation'
+    };
+  };
+
+  const loadAva = async () => {
+    const result = await generateHistory('Ava');
+    return {
+      ...result,
+      description: '180 days of post-pill PCOS data. Very long cycles (65±15 days) with frequent spotting events.',
+      expectedPattern: 'Extended follicular phase, irregular spotting, hormonal rebalancing'
+    };
+  };
+
+  const loadIsabella = async () => {
+    const result = await generateHistory('Isabella');
+    return {
+      ...result,
+      description: '180 days of lean PCOS data. Regular cycles (28±2 days), high exercise, prominent hirsutism.',
+      expectedPattern: 'Athletic lifestyle, androgenic symptoms, excellent self-care metrics'
     };
   };
 
   return {
-    loadSarahPersona,
-    loadAlexPersona
+    loadEmma,
+    loadSophia,
+    loadOlivia,
+    loadAva,
+    loadIsabella
   };
 }
