@@ -8,21 +8,39 @@ import { SettingsModal } from './SettingsModal';
 import { Plus, Settings, Shield, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
-import { generatePrimaryStory } from '../lib/logic/stories';
+import { calculateBlossomScore } from '../lib/logic/blossomScore';
+import { calculateSeason, SeasonState } from '../lib/logic/seasons';
+import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
 
 export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [bodyStory, setBodyStory] = useState<string>('');
+  const [blossomScore, setBlossomScore] = useState<number>(50);
+  const [season, setSeason] = useState<SeasonState>({
+    currentSeason: 'resting',
+    message: 'Loading your season...',
+    icon: '🌱'
+  });
+  const [wisdom, setWisdom] = useState<WisdomType>({
+    message: 'Listening to your body...',
+    category: 'affirmation',
+    hasData: false
+  });
 
   useEffect(() => {
-    const loadStory = async () => {
-      const story = await generatePrimaryStory();
-      setBodyStory(story);
+    const loadCompassionateData = async () => {
+      const scoreResult = await calculateBlossomScore();
+      setBlossomScore(scoreResult.score);
+
+      const seasonState = await calculateSeason(scoreResult.score);
+      setSeason(seasonState);
+
+      const dailyWisdom = await generateDailyWisdom();
+      setWisdom(dailyWisdom);
     };
-    loadStory();
+    loadCompassionateData();
   }, []);
 
   if (plantLoading || themeLoading) {
@@ -76,7 +94,7 @@ export function Dashboard() {
           </div>
         </header>
 
-        <WellnessLotus health={plantState.health} streak={plantState.streak} mode={themeState.mode} />
+        <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12">
           <div className="glass-card h-80">
@@ -105,13 +123,9 @@ export function Dashboard() {
               </h2>
             </div>
             <div className="p-6 flex items-center justify-center h-[calc(100%-56px)]">
-              {bodyStory ? (
-                <p className="text-slate-700 text-base leading-relaxed text-center italic font-serif">
-                  "{bodyStory}"
-                </p>
-              ) : (
-                <p className="text-slate-500 text-sm animate-pulse">Listening...</p>
-              )}
+              <p className="text-slate-700 text-base leading-relaxed text-center italic font-serif">
+                "{wisdom.message}"
+              </p>
             </div>
           </div>
 

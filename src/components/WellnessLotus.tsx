@@ -1,16 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { SeasonState } from '../lib/logic/seasons';
 
 interface WellnessLotusProps {
   health: number;
-  streak: number;
+  season: SeasonState;
   mode: 'nurture' | 'steady' | 'thrive';
   name?: string;
 }
 
 export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   health,
-  streak,
+  season,
   name = 'Your Journey'
 }) => {
   const bloomFactor = Math.max(0.3, health / 100);
@@ -222,16 +223,16 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3">
-          <div className="px-5 py-2 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-2">
-            <span className="text-sm text-slate-500 font-medium">Season</span>
-            <span className="text-lg font-serif text-slate-800">
-              {streak > 14 ? 'Blooming' : streak > 3 ? 'Growing' : 'Resting'}
-            </span>
-            <span className="text-xl">
-              {streak > 14 ? '🌸' : streak > 3 ? '🌿' : '🍂'}
+        <div className="flex flex-col items-center gap-2">
+          <div className="px-6 py-3 rounded-full bg-white/60 border border-slate-200 shadow-sm flex items-center gap-3">
+            <span className="text-2xl">{season.icon}</span>
+            <span className="text-lg font-serif text-slate-800 capitalize">
+              {season.currentSeason}
             </span>
           </div>
+          <p className="text-sm text-slate-600 italic max-w-md text-center px-4">
+            {season.message}
+          </p>
         </div>
       </div>
     </div>
