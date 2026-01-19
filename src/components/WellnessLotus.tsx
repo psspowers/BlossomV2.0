@@ -66,11 +66,11 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           <div
             className="absolute w-full h-full"
             style={{
-              top: '50%',
+              top: '65%',
               transform: 'scaleY(-1)',
               transformOrigin: 'top',
-              maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.2) 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.2) 60%, transparent 100%)'
+              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.25) 20%, rgba(0,0,0,0.15) 50%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.25) 20%, rgba(0,0,0,0.15) 50%, transparent 100%)'
             }}
           >
             <motion.div
