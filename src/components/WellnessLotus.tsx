@@ -4,6 +4,7 @@ import { SeasonState } from '../lib/logic/seasons';
 
 interface WellnessLotusProps {
   health: number;
+  streak: number;
   season: SeasonState;
   mode: 'nurture' | 'steady' | 'thrive';
   name?: string;
@@ -15,187 +16,163 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   name = 'Your Journey'
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
-  const [isBuffered, setIsBuffered] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const handleLoadedMetadata = () => {
+    video.preload = "auto";
+
+    const handleMetadata = () => {
       setVideoDuration(video.duration);
     };
 
-    const handleCanPlayThrough = () => {
-      setIsLoaded(true);
-      setIsBuffered(true);
-    };
-
-    const handleProgress = () => {
-      if (video.buffered.length > 0) {
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        const duration = video.duration;
-        if (bufferedEnd >= duration * 0.95) {
-          setIsBuffered(true);
-        }
+    const handleCanPlay = () => {
+      if (video.readyState >= 3) {
+        setIsReady(true);
       }
     };
 
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('canplaythrough', handleCanPlayThrough);
-    video.addEventListener('progress', handleProgress);
+    const handleError = () => {
+      console.error("Video failed to load");
+      setHasError(true);
+    };
+
+    video.addEventListener('loadedmetadata', handleMetadata);
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('canplaythrough', handleCanPlay);
+    video.addEventListener('error', handleError);
 
     video.load();
 
     return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('canplaythrough', handleCanPlayThrough);
-      video.removeEventListener('progress', handleProgress);
+      video.removeEventListener('loadedmetadata', handleMetadata);
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('canplaythrough', handleCanPlay);
+      video.removeEventListener('error', handleError);
     };
   }, []);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isLoaded || !isBuffered || videoDuration === 0) return;
+    if (!video || !isReady || !videoDuration) return;
 
-    const targetTime = (health / 100) * videoDuration;
-    const startTime = video.currentTime;
+    const targetTime = Math.max(0.1, Math.min((health / 100) * videoDuration, videoDuration - 0.1));
+
+    let animationFrameId: number;
     const startTimestamp = performance.now();
-    const duration = 3500;
+    const startPosition = video.currentTime;
 
-    const easeInOutCubic = (t: number): number => {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    };
+    const duration = 2500;
 
-    const smoothSeek = (currentTimestamp: number) => {
+    const animateScroll = (currentTimestamp: number) => {
       const elapsed = currentTimestamp - startTimestamp;
       const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeInOutCubic(progress);
 
-      video.currentTime = startTime + (targetTime - startTime) * easedProgress;
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const nextTime = startPosition + (targetTime - startPosition) * ease;
+
+      if (Number.isFinite(nextTime)) {
+        video.currentTime = nextTime;
+      }
 
       if (progress < 1) {
-        requestAnimationFrame(smoothSeek);
+        animationFrameId = requestAnimationFrame(animateScroll);
       }
     };
 
-    requestAnimationFrame(smoothSeek);
-  }, [health, isLoaded, isBuffered, videoDuration]);
+    animationFrameId = requestAnimationFrame(animateScroll);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [health, isReady, videoDuration]);
+
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 min-h-[50vh]">
+        <div className="w-64 h-64 rounded-full bg-rose-100 flex items-center justify-center">
+          <span className="text-4xl">🌸</span>
+        </div>
+        <p className="mt-4 text-slate-500 font-serif">Sanctuary Mode (Offline)</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-8 min-h-screen">
-      {/* Subtle header */}
+    <div className="relative flex flex-col items-center justify-center py-4 min-h-[55vh] overflow-hidden">
+
       <motion.h2
-        className="absolute top-8 left-1/2 -translate-x-1/2 text-sm font-serif text-slate-500 tracking-widest uppercase opacity-60"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 0.6, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        className="absolute top-4 left-0 w-full text-center text-xs font-sans font-medium text-slate-400 tracking-[0.2em] uppercase"
       >
         {name}
       </motion.h2>
 
-      {/* Ambient Glow Background - matches lotus colors */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
-      >
-        <motion.div
-          className="w-[800px] h-[800px] rounded-full blur-[120px] opacity-30"
-          style={{
-            background: `radial-gradient(circle,
-              rgba(77, 208, 225, ${health / 200}) 0%,
-              rgba(134, 239, 172, ${health / 250}) 25%,
-              rgba(167, 243, 208, ${health / 300}) 50%,
-              transparent 70%)`
-          }}
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.4, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </motion.div>
+      <div
+        className="absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40"
+        style={{ background: 'radial-gradient(circle, rgba(255,182,193,0.4) 0%, transparent 70%)' }}
+      />
 
-      {/* Main Lotus Container - MUCH BIGGER */}
-      <div className="relative w-[700px] h-[580px] flex items-center justify-center mb-12">
+      <div className="relative w-[500px] h-[500px] md:w-[700px] md:h-[600px] flex items-center justify-center">
+
+        {!isReady && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-20">
+            <motion.div
+              animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="w-40 h-40 rounded-full bg-gradient-to-tr from-rose-200 to-sage-200 blur-2xl"
+            />
+            <p className="text-sage-600 font-serif italic text-sm animate-pulse tracking-wide">
+              Entering sanctuary...
+            </p>
+          </div>
+        )}
+
         <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isReady ? 1 : 0 }}
+          transition={{ duration: 1.5 }}
           className="relative w-full h-full flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: isBuffered ? 1 : 0.5, scale: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
         >
           <video
             ref={videoRef}
             src="/lotus-bloom.mp4"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain mix-blend-multiply"
             muted
             playsInline
-            preload="auto"
-            style={{
-              filter: 'drop-shadow(0 25px 50px rgba(77, 208, 225, 0.25)) drop-shadow(0 10px 30px rgba(134, 239, 172, 0.2))',
-              opacity: isBuffered ? 1 : 0.3
-            }}
+            disablePictureInPicture
+            style={{ filter: 'contrast(1.05) brightness(1.02)' }}
           />
 
-          {!isBuffered && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-sage-50/50 to-sage-100/50 backdrop-blur-md rounded-3xl">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-16 h-16 border-4 border-sage-200 border-t-sage-500 rounded-full animate-spin"></div>
-                <div className="text-sage-600 text-base font-light">
-                  {!isLoaded ? 'Loading your sanctuary...' : 'Preparing...'}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Glass Badge Score - Floating over lotus */}
-          {isBuffered && (
+          {isReady && (
             <motion.div
-              className="absolute bottom-12 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full backdrop-blur-xl bg-white/20 border border-white/40 shadow-2xl z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="absolute bottom-[12%] z-20 flex flex-col items-center gap-4"
             >
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-serif font-light text-white drop-shadow-lg">
-                  {health}
-                </span>
-                <span className="text-xs font-light text-white/80 uppercase tracking-wider">
-                  Blossom
-                </span>
+              <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg">
+                <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
+                <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
+              </div>
+
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-slate-500 text-sm font-medium uppercase tracking-widest mb-1">
+                  <span className="text-lg">{season.icon}</span>
+                  <span>Season of {season.currentSeason}</span>
+                </div>
+                <p className="font-serif italic text-slate-400 text-sm max-w-xs mx-auto leading-relaxed px-4">
+                  {season.message}
+                </p>
               </div>
             </motion.div>
           )}
         </motion.div>
       </div>
-
-      {/* Season Info - Integrated and Poetic */}
-      <motion.div
-        className="flex flex-col items-center gap-4 max-w-2xl px-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-      >
-        {/* Season Badge - More subtle */}
-        <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/40 backdrop-blur-sm border border-white/60 shadow-sm">
-          <span className="text-xl opacity-80">{season.icon}</span>
-          <span className="text-base font-serif text-slate-700 capitalize tracking-wide">
-            {season.currentSeason}
-          </span>
-        </div>
-
-        {/* Season Message - Larger and more prominent */}
-        <p className="text-lg font-serif text-slate-600 italic text-center leading-relaxed max-w-xl">
-          {season.message}
-        </p>
-      </motion.div>
     </div>
   );
 };
