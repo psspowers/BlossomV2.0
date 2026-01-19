@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { calculatePlantHealth, PlantState } from '../logic/plant';
 import { determineInterfaceMode, ThemeState } from '../logic/mode';
 import { getAllVelocities, VelocityResult } from '../logic/velocity';
-import { calculateAchievements, AchievementData } from '../logic/achievements';
 import { getLastNDays, LogEntry } from '../db';
 
 export function usePlantState() {
@@ -742,32 +741,4 @@ export function useCategoryInsights(category: InsightCategory, days: number) {
   };
 
   return { insights, loading, filterByMetric, resetToComposite };
-}
-
-export function useAchievements() {
-  const [achievements, setAchievements] = useState<AchievementData>({
-    totalStreak: 0,
-    totalLogs: 0,
-    badges: [],
-    nextBadge: null
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadAchievements = async () => {
-      setLoading(true);
-      const data = await calculateAchievements();
-      setAchievements(data);
-      setLoading(false);
-    };
-
-    loadAchievements();
-  }, []);
-
-  const refresh = async () => {
-    const data = await calculateAchievements();
-    setAchievements(data);
-  };
-
-  return { achievements, loading, refresh };
 }

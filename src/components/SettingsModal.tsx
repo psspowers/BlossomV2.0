@@ -1,30 +1,45 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Award, TrendingUp, RefreshCw, Shield, Palette, Beaker, FileText } from 'lucide-react';
-import { useAchievements, usePlantState } from '../lib/hooks/useInsights';
+import { X, Download, Trash2, RefreshCw, Shield, Beaker, FileText, Sparkles } from 'lucide-react';
+import { usePlantState } from '../lib/hooks/useInsights';
 import { db } from '../lib/db';
-import { getPhaseDescription } from '../lib/logic/plant';
 import { resetDatabase } from '../lib/resetData';
-import { useState } from 'react';
-import { useTheme } from '../lib/themes/ThemeContext';
+import { useState, useEffect } from 'react';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
+import { calculateSeason } from '../lib/logic/seasons';
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
-  const { achievements, loading: achievementsLoading } = useAchievements();
   const { plantState, loading: plantLoading } = usePlantState();
-  const { designTheme, themeConfig, setDesignTheme } = useTheme();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingClinical, setIsExportingClinical] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isLoadingPersona, setIsLoadingPersona] = useState(false);
+  const [currentSeason, setCurrentSeason] = useState<string>('Loading...');
+  const [blossomScore, setBlossomScore] = useState<number>(0);
+  const [totalLogs, setTotalLogs] = useState<number>(0);
   const { loadSarahPersona, loadAlexPersona } = usePCOSSeeder();
+
+  useEffect(() => {
+    const loadJourneyData = async () => {
+      const score = await calculateBlossomScore();
+      setBlossomScore(score.score);
+
+      const season = await calculateSeason(score.score);
+      setCurrentSeason(season.currentSeason);
+
+      const logs = await db.logs.count();
+      setTotalLogs(logs);
+    };
+
+    loadJourneyData();
+  }, []);
 
   const handleExportData = async () => {
     try {
@@ -78,7 +93,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       }
 
       const cycleAnalysis = analyzeHistory(logs);
-      const blossomScore = await calculateBlossomScore();
+      const blossomScoreData = await calculateBlossomScore();
       const today = new Date();
       const last30Days = logs.filter(log => {
         const logDate = new Date(log.date);
@@ -169,12 +184,12 @@ SYMPTOM OVERVIEW (Last 30 Days)
 • High Pain Days (7+/10): ${highPainDays} days
 • High Acne Days (7+/10): ${highAcneDays} days
 • Average Mood Score: ${avgMoodScore}/100
-• Wellness Score (Blossom): ${blossomScore.score}/100
+• Wellness Score (Blossom): ${blossomScoreData.score}/100
 
 Symptom Breakdown:
-  - Symptom Factor: ${Math.round(blossomScore.symptomFactor)}/100
-  - Self-Care Factor: ${Math.round(blossomScore.selfCareFactor)}/100
-  - Emotional Factor: ${Math.round(blossomScore.emotionalFactor)}/100
+  - Symptom Factor: ${Math.round(blossomScoreData.symptomFactor)}/100
+  - Self-Care Factor: ${Math.round(blossomScoreData.selfCareFactor)}/100
+  - Emotional Factor: ${Math.round(blossomScoreData.emotionalFactor)}/100
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -218,7 +233,7 @@ ${cycleAnalysis.isLongCycle
   ? `⚠ High cycle variability (±${Math.round(cycleAnalysis.variability)} days). May indicate irregular ovulation.\n`
   : ''}${highPainDays > 5
   ? '⚠ Frequent high pain days. Consider pain management strategies.\n'
-  : ''}${blossomScore.score < 50
+  : ''}${blossomScoreData.score < 50
   ? '⚠ Low wellness score. Increased symptom burden or lifestyle factors affecting wellbeing.\n'
   : ''}${cycleAnalysis.isUntracked
   ? '• Recommend continued tracking to establish cycle baseline.\n'
@@ -314,7 +329,7 @@ For questions about this report, please visit: https://github.com/yourusername/b
     }
   };
 
-  if (plantLoading || achievementsLoading) {
+  if (plantLoading) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -328,8 +343,12 @@ For questions about this report, please visit: https://github.com/yourusername/b
     );
   }
 
-  const unlockedCount = achievements.badges.filter(b => b.unlocked).length;
-  const totalBadges = achievements.badges.length;
+  const seasonIcons = {
+    resting: '🌱',
+    growing: '🌿',
+    blooming: '🌸',
+    thriving: '✨'
+  };
 
   return (
     <AnimatePresence>
@@ -370,139 +389,34 @@ For questions about this report, please visit: https://github.com/yourusername/b
           <div className="overflow-y-auto p-6 pb-8 bg-background" style={{ maxHeight: 'calc(85vh - 88px)' }}>
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-4">
-                <Palette className="w-5 h-5 text-secondary" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Design Theme</h3>
+                <Sparkles className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-serif font-semibold text-text-main">Your Journey</h3>
               </div>
-              <div className="paper-card">
-                <p className="text-sm text-sage-600 mb-4">Choose your preferred aesthetic experience</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setDesignTheme('default')}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      designTheme === 'default'
-                        ? 'border-primary bg-sage-50'
-                        : 'border-border bg-surface hover:bg-sage-50'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center text-center gap-2">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary mb-2" />
-                      <h4 className="text-text-main font-serif font-semibold">Tesla-Apple</h4>
-                      <p className="text-xs text-sage-600">Modern, sleek, precise</p>
+              <div className="paper-card bg-gradient-to-br from-sage-50 to-white border-2 border-primary/30">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center md:text-left">
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Current Season</p>
+                    <div className="flex items-center justify-center md:justify-start gap-2">
+                      <span className="text-3xl">{seasonIcons[currentSeason as keyof typeof seasonIcons] || '🌱'}</span>
+                      <p className="text-xl font-serif font-bold text-primary capitalize">{currentSeason}</p>
                     </div>
-                  </button>
-
-                  <button
-                    onClick={() => setDesignTheme('lotus')}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      designTheme === 'lotus'
-                        ? 'border-secondary bg-pink-50'
-                        : 'border-border bg-surface hover:bg-sage-50'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center text-center gap-2">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-secondary to-primary mb-2" />
-                      <h4 className="text-text-main font-serif font-semibold">Lotus Garden</h4>
-                      <p className="text-xs text-sage-600">Organic, elegant, serene</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Blossom Score</p>
+                    <div className="inline-block px-4 py-2 bg-sage-100 rounded-full border-2 border-sage-300">
+                      <p className="text-2xl font-serif font-bold text-sage-700">{blossomScore}</p>
                     </div>
-                  </button>
-                </div>
-                <div className="mt-4 p-3 bg-sage-50 rounded-lg border border-border">
-                  <p className="text-xs text-sage-600">
-                    <strong className="text-text-main">Current: </strong>
-                    {themeConfig.name}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Your Plant Profile</h3>
-              </div>
-              <div className="paper-card">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div>
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Current Phase</p>
-                    <p className="text-xl font-serif font-bold text-primary capitalize">{plantState.phase}</p>
-                    <p className="text-xs text-sage-600 mt-1">{getPhaseDescription(plantState.phase)}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Health Score</p>
-                    <p className="text-xl font-serif font-bold text-text-main">{plantState.health}%</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Current Streak</p>
-                    <p className="text-xl font-serif font-bold text-sage-600">{achievements.totalStreak} days</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-1 font-medium">Total Logs</p>
-                    <p className="text-xl font-serif font-bold text-text-main">{achievements.totalLogs}</p>
+                  <div className="text-center md:text-right">
+                    <p className="text-xs text-sage-600 uppercase tracking-wide mb-2 font-medium">Total Days Logged</p>
+                    <p className="text-xl font-serif font-bold text-text-main">{totalLogs}</p>
+                    <p className="text-xs text-sage-600 mt-1">{plantState.streak} day streak</p>
                   </div>
                 </div>
               </div>
             </section>
 
             <section className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-sage-600" />
-                  <h3 className="text-lg font-serif font-semibold text-text-main">Achievements</h3>
-                </div>
-                <div className="text-sm text-sage-600 font-medium">
-                  {unlockedCount} / {totalBadges} unlocked
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {achievements.badges.map(badge => (
-                  <div
-                    key={badge.id}
-                    className={`paper-card p-4 flex flex-col items-center text-center transition-all ${
-                      badge.unlocked
-                        ? 'border-2 border-primary bg-sage-50'
-                        : 'opacity-50 grayscale'
-                    }`}
-                  >
-                    <div className="text-4xl mb-2">{badge.icon}</div>
-                    <h4 className="text-sm font-semibold text-text-main mb-1">{badge.name}</h4>
-                    <p className="text-xs text-sage-600 mb-2">{badge.description}</p>
-                    {!badge.unlocked && (
-                      <div className="w-full bg-sage-100 rounded-full h-1.5 mt-2">
-                        <div
-                          className="bg-primary h-1.5 rounded-full transition-all"
-                          style={{ width: `${badge.progress}%` }}
-                        />
-                      </div>
-                    )}
-                    {badge.unlocked && (
-                      <div className="text-xs text-primary font-medium mt-1">✓ Unlocked</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {achievements.nextBadge && (
-                <div className="mt-4 p-4 bg-sage-50 border-2 border-sage-200 rounded-xl">
-                  <p className="text-sm text-sage-700 font-semibold mb-1">Next Achievement</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{achievements.nextBadge.icon}</span>
-                      <div>
-                        <p className="text-text-main font-medium text-sm">{achievements.nextBadge.name}</p>
-                        <p className="text-xs text-sage-600">{achievements.nextBadge.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-serif font-bold text-primary">{Math.round(achievements.nextBadge.progress)}%</p>
-                      <p className="text-xs text-sage-600">Complete</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </section>
-
-            <section>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <div className="w-2 h-2 bg-secondary rounded-full" />
@@ -622,10 +536,10 @@ For questions about this report, please visit: https://github.com/yourusername/b
               </div>
             </section>
 
-            <section className="mt-8">
+            <section>
               <div className="flex items-center gap-2 mb-4">
                 <Beaker className="w-5 h-5 text-sage-700" />
-                <h3 className="text-lg font-serif font-semibold text-text-main">Developer / Clinical Tools</h3>
+                <h3 className="text-lg font-serif font-semibold text-text-main">Developer Tools</h3>
               </div>
 
               <div className="space-y-3">
