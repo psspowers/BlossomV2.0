@@ -67,23 +67,25 @@ export function WellnessRadar() {
           {
             label: 'Current',
             data: currentValues,
-            backgroundColor: 'rgba(107, 143, 78, 0.2)',
-            borderColor: 'rgba(107, 143, 78, 1)',
+            backgroundColor: 'rgba(134, 168, 115, 0.2)',
+            borderColor: '#86A873',
             borderWidth: 2,
-            pointBackgroundColor: 'rgba(107, 143, 78, 1)',
+            tension: 0.4,
+            pointBackgroundColor: '#86A873',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(107, 143, 78, 1)'
+            pointHoverBorderColor: '#86A873'
           },
           {
             label: 'Baseline',
             data: baselineValues,
-            backgroundColor: 'rgba(100, 116, 139, 0.05)',
-            borderColor: 'rgba(100, 116, 139, 0.4)',
+            backgroundColor: 'rgba(229, 224, 216, 0.1)',
+            borderColor: '#E5E0D8',
             borderWidth: 1,
-            borderDash: [5, 5],
-            pointBackgroundColor: 'rgba(100, 116, 139, 0.4)',
-            pointBorderColor: 'rgba(100, 116, 139, 0.4)',
+            borderDash: [4, 4],
+            tension: 0.4,
+            pointBackgroundColor: '#E5E0D8',
+            pointBorderColor: '#E5E0D8',
             pointRadius: 2
           }
         ]
@@ -114,7 +116,7 @@ export function WellnessRadar() {
           color: 'rgba(74, 74, 74, 0.8)',
           font: {
             size: 12,
-            family: 'Inter, system-ui, sans-serif'
+            family: 'Georgia, serif'
           }
         }
       }

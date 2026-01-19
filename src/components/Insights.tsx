@@ -236,6 +236,7 @@ export function Insights() {
         backgroundColor: currentConfig.bgColor,
         borderColor: currentConfig.borderColor,
         borderWidth: 2,
+        tension: 0.4,
         pointBackgroundColor: currentConfig.borderColor,
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
@@ -246,12 +247,13 @@ export function Insights() {
       {
         label: 'Baseline (Ghost)',
         data: insights.radarBaseline.data,
-        backgroundColor: 'rgba(134, 168, 115, 0.05)',
-        borderColor: 'rgba(134, 168, 115, 0.3)',
+        backgroundColor: 'rgba(229, 224, 216, 0.1)',
+        borderColor: '#E5E0D8',
         borderWidth: 1,
-        borderDash: [5, 5],
-        pointBackgroundColor: 'rgba(255, 255, 255, 0.3)',
-        pointBorderColor: 'rgba(255, 255, 255, 0.3)',
+        borderDash: [4, 4],
+        tension: 0.4,
+        pointBackgroundColor: 'rgba(229, 224, 216, 0.5)',
+        pointBorderColor: 'rgba(229, 224, 216, 0.5)',
         pointRadius: 2
       }
     ]
@@ -309,7 +311,7 @@ export function Insights() {
             return {
               size: 13,
               weight: selectedMetric === metric ? 'bold' : 'normal',
-              family: 'Inter, system-ui, sans-serif'
+              family: 'Georgia, serif'
             };
           }
         },
@@ -328,13 +330,13 @@ export function Insights() {
         label: 'Impact %',
         data: insights.factorImpacts.map(f => Math.abs(f.impact)),
         backgroundColor: insights.factorImpacts.map(f =>
-          f.impact > 0 ? currentConfig.color : 'rgba(244, 63, 94, 0.8)'
+          f.impact > 0 ? 'rgba(134, 168, 115, 0.8)' : 'rgba(232, 174, 178, 0.8)'
         ),
         borderColor: insights.factorImpacts.map(f =>
-          f.impact > 0 ? currentConfig.borderColor : 'rgb(244, 63, 94)'
+          f.impact > 0 ? '#86A873' : '#E8AEB2'
         ),
         borderWidth: 1,
-        borderRadius: 6
+        borderRadius: 8
       }
     ]
   };
@@ -364,7 +366,7 @@ export function Insights() {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+        grid: { display: false },
         ticks: {
           color: 'rgba(74, 74, 74, 0.6)',
           callback: (value: any) => `${value}%`
@@ -672,12 +674,14 @@ export function Insights() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                  {insights.targetSymptomLabel ? `Factors Affecting ${insights.targetSymptomLabel}` : 'Factor Analysis'}
+                  What Nourishes You
                 </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  {selectedMetric
-                    ? `How lifestyle choices impact ${insights.targetSymptomLabel.toLowerCase()}`
-                    : `How lifestyle choices impact overall ${insights.targetSymptomLabel.toLowerCase()}`}
+                <p className="text-xs text-slate-600 mt-1 italic">
+                  {insights.velocity?.direction === 'improving'
+                    ? 'Your balance is shifting positively.'
+                    : insights.velocity?.direction === 'stable'
+                    ? 'You are maintaining a steady rhythm.'
+                    : 'Your body is adapting to change.'}
                 </p>
               </div>
               {selectedMetric && (
