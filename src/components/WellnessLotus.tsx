@@ -4,7 +4,6 @@ import { SeasonState } from '../lib/logic/seasons';
 
 interface WellnessLotusProps {
   health: number;
-  streak: number;
   season: SeasonState;
   mode: 'nurture' | 'steady' | 'thrive';
   name?: string;
@@ -18,92 +17,89 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
-  const [hasError, setHasError] = useState(false);
+  const animationFrameRef = useRef<number>();
 
+  // 1. INITIALIZATION
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     video.preload = "auto";
+    video.pause();
 
     const handleMetadata = () => {
       setVideoDuration(video.duration);
+      video.currentTime = 0;
     };
 
     const handleCanPlay = () => {
-      if (video.readyState >= 3) {
-        setIsReady(true);
-      }
-    };
-
-    const handleError = () => {
-      console.error("Video failed to load");
-      setHasError(true);
+      if (video.readyState >= 3) setIsReady(true);
     };
 
     video.addEventListener('loadedmetadata', handleMetadata);
     video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('canplaythrough', handleCanPlay);
-    video.addEventListener('error', handleError);
-
     video.load();
 
     return () => {
       video.removeEventListener('loadedmetadata', handleMetadata);
       video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('canplaythrough', handleCanPlay);
-      video.removeEventListener('error', handleError);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
   }, []);
 
+  // 2. THE "ALWAYS BLOOM" ENGINE
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isReady || !videoDuration) return;
 
-    const targetTime = Math.max(0.1, Math.min((health / 100) * videoDuration, videoDuration - 0.1));
+    // 1. RESET TO START
+    video.currentTime = 0.1;
+    video.play();
 
-    let animationFrameId: number;
-    const startTimestamp = performance.now();
-    const startPosition = video.currentTime;
+    // 2. CALCULATE DESTINATION
+    const targetTime = Math.max(0.1, (health / 100) * (videoDuration * 0.95));
 
-    const duration = 2500;
+    const checkProgress = () => {
+      if (!video) return;
+      const currentTime = video.currentTime;
 
-    const animateScroll = (currentTimestamp: number) => {
-      const elapsed = currentTimestamp - startTimestamp;
-      const progress = Math.min(elapsed / duration, 1);
-
-      const ease = 1 - Math.pow(1 - progress, 3);
-
-      const nextTime = startPosition + (targetTime - startPosition) * ease;
-
-      if (Number.isFinite(nextTime)) {
-        video.currentTime = nextTime;
+      // 3. STOP AT TARGET
+      if (currentTime >= targetTime) {
+        video.pause();
+        video.currentTime = targetTime;
+        return;
       }
 
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(animateScroll);
+      // 4. DYNAMIC SPEED
+      const diff = targetTime - currentTime;
+      if (diff < 0.5) {
+        video.playbackRate = 0.8;
+      } else {
+        video.playbackRate = 1.2;
       }
+
+      animationFrameRef.current = requestAnimationFrame(checkProgress);
     };
 
-    animationFrameId = requestAnimationFrame(animateScroll);
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
-    return () => cancelAnimationFrame(animationFrameId);
+    animationFrameRef.current = requestAnimationFrame(checkProgress);
+
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
   }, [health, isReady, videoDuration]);
-
-  if (hasError) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 min-h-[50vh]">
-        <div className="w-64 h-64 rounded-full bg-rose-100 flex items-center justify-center">
-          <span className="text-4xl">🌸</span>
-        </div>
-        <p className="mt-4 text-slate-500 font-serif">Sanctuary Mode (Offline)</p>
-      </div>
-    );
-  }
 
   return (
     <div className="relative flex flex-col items-center justify-center py-4 min-h-[55vh] overflow-hidden">
 
+      {/* ATMOSPHERE */}
+      <div
+        className="absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40 transition-colors duration-1000"
+        style={{ background: 'radial-gradient(circle, rgba(255,182,193,0.4) 0%, transparent 70%)' }}
+      />
+
+      {/* HEADER */}
       <motion.h2
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.6 }}
@@ -112,13 +108,10 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
         {name}
       </motion.h2>
 
-      <div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40"
-        style={{ background: 'radial-gradient(circle, rgba(255,182,193,0.4) 0%, transparent 70%)' }}
-      />
-
+      {/* MAIN CONTAINER */}
       <div className="relative w-[500px] h-[500px] md:w-[700px] md:h-[600px] flex items-center justify-center">
 
+        {/* LOADING PULSE */}
         {!isReady && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-20">
             <motion.div
@@ -127,11 +120,12 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
               className="w-40 h-40 rounded-full bg-gradient-to-tr from-rose-200 to-sage-200 blur-2xl"
             />
             <p className="text-sage-600 font-serif italic text-sm animate-pulse tracking-wide">
-              Entering sanctuary...
+              Preparing bloom...
             </p>
           </div>
         )}
 
+        {/* THE VIDEO */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: isReady ? 1 : 0 }}
@@ -145,9 +139,9 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             muted
             playsInline
             disablePictureInPicture
-            style={{ filter: 'contrast(1.05) brightness(1.02)' }}
           />
 
+          {/* FLOATING HUD */}
           {isReady && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -155,11 +149,13 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
               transition={{ delay: 0.5, duration: 0.8 }}
               className="absolute bottom-[12%] z-20 flex flex-col items-center gap-4"
             >
+              {/* Score Dewdrop */}
               <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg">
                 <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
                 <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
               </div>
 
+              {/* Narrative */}
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-slate-500 text-sm font-medium uppercase tracking-widest mb-1">
                   <span className="text-lg">{season.icon}</span>
