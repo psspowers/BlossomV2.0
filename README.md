@@ -1,12 +1,65 @@
-# Blossom - Your PCOS Companion
+# Blossom - PCOS Companion
 
-A compassionate, privacy-first PCOS companion that transforms symptom tracking into a journey of self-discovery and empowerment. Built on evidence-based research and body-positive principles, Blossom helps you understand your patterns without judgment or guilt.
+**A privacy-first, body-positive sanctuary for PCOS management.**
 
-## Overview
+A compassionate PCOS companion that transforms symptom tracking into a journey of self-discovery and empowerment. Built on evidence-based research and body-positive principles, Blossom helps you understand your patterns without judgment or guilt.
+
+---
+
+## Mission
 
 Living with PCOS often means navigating an invisible weight of symptoms, uncertainty, and a healthcare system that doesn't always understand. Blossom is different. It meets you where you are, validates your experience, and helps you discover what works for your unique body through gentle daily logging and personalized pattern discovery.
 
-This is not another fitness app demanding streaks or perfect days. This is a companion that understands **"Guilt to Grace"** - transforming shame into self-knowledge, chaos into clarity, and isolation into being truly seen.
+This is not another fitness app demanding streaks or perfect days. This is a companion that embodies our core philosophies:
+
+---
+
+## Core Philosophies: True North
+
+### 1. "The Unseen Weight" - Mental Health Focus
+
+PCOS comes with invisible burdens that traditional health apps ignore entirely: anxiety spirals, body image struggles, feeling broken or defective. Worse, some apps add shame through missed-streak notifications.
+
+**How Blossom Addresses This:**
+- Body-positive affirmations grounded in self-compassion research
+- Resting seasons that validate low-energy periods as productive
+- No gamification, no streaks, no punishment mechanics
+- Emotional well-being weighted equally to physical symptoms (30% of Blossom Score)
+- Mental health tracking: mood, anxiety, stress, body image
+
+**The Philosophy:** Your mental health is not secondary to your physical symptoms - it's an equal partner in your wellness journey.
+
+---
+
+### 2. "Guilt to Grace" - Seasons, Not Streaks
+
+Many PCOS journeys are marked by guilt: guilt for symptoms you can't control, guilt for "imperfect" choices, guilt for not doing enough. Traditional apps punish you for missed days and broken streaks.
+
+**How Blossom Transforms This:**
+- **Seasons System** replaces linear progress with cyclical wellness:
+  - **Resting (🍂)**: "Winter is necessary for Spring. Rest is productive."
+  - **Growing (🌱)**: "Your roots are deepening. Consistency is magic."
+  - **Blooming (🌸)**: "You are radiant. Your efforts are bearing fruit."
+- Pattern Stories show what **actually works for your body** (not generic advice)
+- Clinical Snapshots turn chaos into clarity for doctor conversations
+- No streak counters, no missed-day guilt, no binary success/failure
+
+**The Philosophy:** Healing is not linear. Rest is part of progress, not failure.
+
+---
+
+### 3. "Proof and Heart" - Evidence-Based Logic
+
+Compassionate doesn't mean unscientific. Blossom integrates rigorous research with warmth.
+
+**How Blossom Delivers Both:**
+- **Monash University Research** (PCOS gold standard) integrated into Daily Wisdom
+- **Pattern Detection Algorithms** that find sleep-mood and stress-symptom correlations
+- **Compassionate Language** that avoids medical judgment
+- **Statistical Rigor**: 15%+ difference thresholds, n≥3 samples per group
+- **Blossom Score Formula**: Symptom factor (40%) + Self-care (30%) + Emotional (30%)
+
+**The Philosophy:** Science + Kindness. Evidence-based doesn't mean cold.
 
 ## Core Features
 

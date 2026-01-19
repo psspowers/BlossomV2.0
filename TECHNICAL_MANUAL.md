@@ -175,6 +175,103 @@ App (ThemeProvider, QueryClientProvider)
 
 ---
 
+---
+
+## Cycle Logic: True Period vs Spotting
+
+**File**: `src/lib/logic/cycle.ts`
+
+One of Blossom's most clinically important features is differentiating **true periods** from **spotting episodes**. This distinction is critical for PCOS diagnosis and hyperandrogenism tracking.
+
+### The Problem
+
+Many PCOS patients experience irregular bleeding patterns:
+- Spotting episodes (1 day, light flow)
+- True periods (2+ days, medium/heavy flow)
+- Mixed patterns that confuse fertility tracking
+
+**Clinical Impact:** Mistaking spotting for periods leads to:
+- Incorrect cycle length calculations
+- Failed ovulation predictions
+- Misdiagnosis of cycle regularity
+
+---
+
+### The Solution: True Period Detection
+
+**Algorithm:**
+
+```typescript
+function isTruePeriod(logs: LogEntry[]): boolean {
+  // Requires at least 2 consecutive days
+  if (logs.length < 2) return false;
+
+  // Must have medium or heavy flow
+  const hasSignificantFlow = logs.some(log =>
+    log.flow === 'medium' || log.flow === 'heavy'
+  );
+
+  // Days must be within 24 hours of each other
+  const isConsecutive = checkConsecutiveDays(logs);
+
+  return hasSignificantFlow && isConsecutive;
+}
+```
+
+**Logic:**
+1. **2+ Day Rule**: True periods last multiple days
+2. **Flow Threshold**: At least one day of medium or heavy flow
+3. **Consecutive Days**: Days within 24 hours (allows for same-day logging)
+
+**Example:**
+- ✅ True Period: Day 1 (medium), Day 2 (heavy), Day 3 (light)
+- ❌ Spotting: Day 1 (light), [gap], Day 5 (light)
+
+---
+
+### Cycle Analysis Output
+
+```typescript
+interface CycleAnalysis {
+  currentDay: number;           // Days since last TRUE period
+  isLongCycle: boolean;         // >35 days (PCOS indicator)
+  variability: number;          // Cycle length standard deviation
+  lastTruePeriod: CycleEvent;   // Most recent confirmed period
+  cycleHistory: CycleEvent[];   // All detected true periods
+  isUntracked: boolean;         // No periods logged yet
+}
+```
+
+**Stability Score:**
+```typescript
+stabilityScore = 100 - (variability × 5)
+// Example: 7-day variability = 65% stability score
+```
+
+**Variance Days:** Standard deviation of recent cycle lengths
+
+---
+
+### Clinical Insights Generated
+
+Based on cycle analysis, Blossom flags:
+
+1. **Long Cycles**: >35 days (Rotterdam PCOS criteria)
+2. **High Variability**: Standard deviation >7 days
+3. **Spotting Patterns**: Frequent light flow without true periods
+4. **Maintenance Mode**: Extended cycles requiring metabolic support
+
+**Example Output:**
+```
+CYCLE CONTEXT: Day 42 - Extended Cycle
+Stability: 68%
+Variance: ±8 days
+Phase: Maintenance Mode
+Insight: "Long cycles are common with PCOS. You're not broken."
+```
+
+---
+
 ## Database Architecture
 
 ### Storage Technology
@@ -202,35 +299,57 @@ db.version(1).stores({
 
 ### Data Models
 
-#### LogEntry
+---
+
+#### LogEntry (Core Data Structure)
+
+**Purpose:** Stores daily wellness snapshots with PCOS-specific tracking
+
 ```typescript
 interface LogEntry {
-  id?: number;                    // Auto-increment
+  // Identity
+  id?: number;                    // Auto-increment (Dexie managed)
   date: string;                   // ISO date (YYYY-MM-DD)
+
+  // Cycle Tracking (PCOS-critical)
   cyclePhase: 'follicular' | 'ovulatory' | 'luteal' | 'menstrual' | 'unknown';
   flow?: 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
+
+  // Physical Symptoms (40% of Blossom Score)
   symptoms: {
-    acne?: number;                // 0-10 scale
-    hirsutism?: number;           // 0-10 scale
-    hairLoss?: number;            // 0-10 scale
-    bloat?: number;               // 0-10 scale
-    cramps?: number;              // 0-10 scale
+    acne?: number;                // 0-10 scale (hyperandrogenism marker)
+    hirsutism?: number;           // 0-10 scale (hyperandrogenism marker)
+    hairLoss?: number;            // 0-10 scale (hyperandrogenism marker)
+    bloat?: number;               // 0-10 scale (digestive/hormonal)
+    cramps?: number;              // 0-10 scale (menstrual symptom)
   };
+
+  // Psychological State (30% of Blossom Score - "The Unseen Weight")
   psych: {
     stress?: string;              // 'low' | 'medium' | 'high'
     bodyImage?: string;           // 'positive' | 'neutral' | 'negative'
-    mood?: number;                // 0-10 scale
+    mood?: number;                // 0-10 scale (primary emotional metric)
     anxiety?: string;             // 'low' | 'medium' | 'high'
   };
+
+  // Lifestyle Factors (30% of Blossom Score)
   lifestyle: {
     sleep?: string;               // Hours (e.g., '7')
     waterIntake?: number;         // Glasses (0-12)
     exercise?: string;            // 'none' | 'light' | 'moderate' | 'intense'
     diet?: string;                // 'poor' | 'fair' | 'good' | 'excellent'
   };
-  customValues?: Record<string, number>;  // User-defined metrics
+
+  // User-Defined Metrics (Sovereignty)
+  customValues?: Record<string, number>;  // e.g., { "libido": 5, "medication_side_effects": 3 }
 }
 ```
+
+**Design Philosophy:**
+- **Holistic:** Physical + Mental + Lifestyle = Complete picture
+- **Flexible:** Custom values allow personalization
+- **Clinical:** Tracks Rotterdam PCOS criteria (cycle, hyperandrogenism)
+- **Private:** Stored locally in IndexedDB, never transmitted
 
 #### Settings
 ```typescript
@@ -415,13 +534,22 @@ The "Soul Injection" represents the compassionate intelligence layer of Blossom.
 
 **File**: `src/lib/logic/blossomScore.ts`
 
-The Blossom Score (0-100) is a composite wellness metric that replaces traditional health scores. It's weighted to prioritize symptom trends over lifestyle perfectionism.
+The Blossom Score (0-100) is a composite wellness metric that replaces traditional health scores. It's weighted to prioritize symptom trends over lifestyle perfectionism, embodying the "Proof and Heart" philosophy.
 
-#### Formula
+---
+
+#### **The Formula**
 
 ```typescript
-score = (symptomFactor × 0.4) + (selfCareFactor × 0.3) + (emotionalFactor × 0.3)
+BlossomScore = (SymptomFactor × 0.4) + (SelfCareFactor × 0.3) + (EmotionalFactor × 0.3)
 ```
+
+**Why These Weights?**
+- **40% Symptoms**: Physical manifestations are primary diagnostic criteria
+- **30% Self-Care**: Lifestyle factors directly impact insulin resistance
+- **30% Emotional**: Mental health burden is equal to lifestyle factors (validates "The Unseen Weight")
+
+---
 
 #### Component Breakdown
 
@@ -453,7 +581,7 @@ if (percentChange < -10) return 50;    // Worsening symptoms
 else                     return 75;    // Stable symptoms
 ```
 
-**Key Design Choice**: We use week-over-week trends, not absolute values. A user with high baseline symptoms who improves by 10% gets a perfect symptom score. This avoids punishing chronic conditions.
+**Key Design Choice (Guilt to Grace):** We use week-over-week trends, not absolute values. A user with high baseline symptoms who improves by 10% gets a perfect symptom score. This avoids punishing chronic conditions - improvement is celebrated regardless of starting point.
 
 **2. Self-Care Factor (30% weight)**
 
@@ -471,7 +599,7 @@ const nourishingDays = last7Days.filter(log => {
 selfCareFactor = (nourishingDays.length / 7) * 100;
 ```
 
-**Key Design Choice**: It's an OR condition, not AND. You don't need perfect sleep AND exercise AND hydration. One nourishing choice counts.
+**Key Design Choice (Guilt to Grace):** It's an OR condition, not AND. You don't need perfect sleep AND exercise AND hydration. One nourishing choice counts. This celebrates small wins instead of demanding perfection.
 
 **3. Emotional Factor (30% weight)**
 
@@ -482,7 +610,7 @@ const moodScores = last7Days.map(log => log.psych.mood || 50);
 const emotionalFactor = calculateAverage(moodScores);
 ```
 
-**Key Design Choice**: Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. This validates the mental health burden of PCOS.
+**Key Design Choice (The Unseen Weight):** Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. This validates the mental health burden of PCOS - your mood matters as much as your metformin.
 
 #### Edge Cases
 

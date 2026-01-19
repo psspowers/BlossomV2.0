@@ -12,9 +12,13 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 
 ## Core Pages
 
-### 1. Dashboard (Main View)
+---
 
-**Purpose**: At-a-glance wellness overview with emotional resonance
+### 1. Sanctuary (Dashboard/Home)
+
+**Purpose**: Your daily sanctuary - at-a-glance wellness overview with emotional resonance
+
+**Philosophy:** This is your safe space, not a judgment zone. Every element validates your experience.
 
 **Components**:
 
@@ -134,9 +138,13 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 
 ---
 
-### 3. Insights & Trends
+---
+
+### 3. Insights (Pattern Stories, Not Just Charts)
 
 **Purpose**: Pattern discovery through data visualization and narrative insights
+
+**Philosophy:** Your patterns tell stories. We translate data into human understanding, not just charts.
 
 #### Pattern Stories
 - **What it does**: Analyzes 30 days of logs for correlations
@@ -169,7 +177,50 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 
 ---
 
-### 4. Settings Modal
+---
+
+### 4. Learn (Evidence-Aligned Education)
+
+**Purpose**: Evidence-based PCOS education and resources
+
+**Philosophy:** Education grounded in Monash University research (world leaders in PCOS) and NIH guidelines.
+
+**Content Categories:**
+
+#### Understanding PCOS
+- What is PCOS? (Rotterdam criteria)
+- PCOS phenotypes (hyperandrogenic, metabolic, lean)
+- Insulin resistance explained
+- Hormone balance basics
+
+#### Nutrition & Metabolism
+- Low-GI diet principles (Monash evidence)
+- Anti-inflammatory foods
+- Meal timing and blood sugar
+- Supplement evidence (inositol, vitamin D)
+
+#### Lifestyle Interventions
+- Exercise for insulin sensitivity
+- Sleep hygiene for hormone balance
+- Stress management techniques
+- Mind-body connection
+
+#### Medical Management
+- Metformin and insulin sensitizers
+- Birth control for cycle regulation
+- Ovulation induction (if trying to conceive)
+- When to see an endocrinologist
+
+**Files**: `src/components/Learn.tsx`
+
+**True North Tie:**
+- **Seen**: Validates your symptoms as real and treatable
+- **Supported**: Evidence-based guidance without judgment
+- **Sovereign**: Empowers informed conversations with your doctor
+
+---
+
+### 5. Settings & Privacy Vault
 
 **Purpose**: Customization and data sovereignty
 
