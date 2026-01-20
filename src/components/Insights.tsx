@@ -115,7 +115,9 @@ export function Insights() {
         </div>
       </div>
 
-      <InsightsNavigation view={view} onViewChange={setView} />
+      <div className="sticky top-0 z-20 py-4 -mx-6 px-6 bg-gradient-to-b from-[#FDFBF7] via-[#FDFBF7] to-transparent backdrop-blur-sm">
+        <InsightsNavigation view={view} onViewChange={setView} />
+      </div>
 
       <div className="relative">
         <div
