@@ -92,8 +92,8 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
   }, []);
 
   return (
-    <div className="w-full flex justify-center mb-6">
-      <div className="flex items-center p-1.5 gap-2 bg-white/70 backdrop-blur-md border border-stone-200/60 rounded-full shadow-sm">
+    <div className="w-full flex justify-center mb-6 sticky top-4 z-50 pointer-events-none">
+      <div className="pointer-events-auto flex items-center p-1.5 gap-2 bg-white/90 backdrop-blur-xl border border-stone-200/60 rounded-full shadow-md">
         {views.map((viewKey) => {
           const config = viewConfig[viewKey];
           const Icon = config.icon;
