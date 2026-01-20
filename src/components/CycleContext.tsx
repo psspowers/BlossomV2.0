@@ -142,8 +142,8 @@ export function CycleContext() {
             {isLongCycle ? 'Metabolic Maintenance' : 'Cycle Context'}
           </h3>
 
-          <div className="flex items-baseline gap-3 mb-3">
-            <span className={`text-5xl font-serif font-bold ${isLongCycle ? 'text-sage-700' : 'text-primary'}`}>
+          <div className="flex items-baseline gap-3 mb-2">
+            <span className={`text-4xl font-serif font-bold ${isLongCycle ? 'text-sage-700' : 'text-primary'}`}>
               Day {currentDay}
             </span>
 
@@ -154,7 +154,7 @@ export function CycleContext() {
             )}
           </div>
 
-          <p className="text-sm text-sage-700 leading-relaxed max-w-md">
+          <p className="text-sm text-sage-700 leading-relaxed">
             {getPhaseInsight()}
           </p>
 
@@ -186,16 +186,6 @@ export function CycleContext() {
             </div>
           )}
 
-          {recentSpotting && (
-            <div className="mt-3 p-3 bg-sage-50 rounded-lg border border-sage-200">
-              <div className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-sage-500 mt-1.5 flex-shrink-0" />
-                <p className="text-xs text-sage-600">
-                  <span className="text-sage-700 font-medium">Spotting detected</span> {recentSpotting.daysAgo} days ago (No Reset)
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="ml-6 flex-shrink-0">
@@ -262,6 +252,17 @@ export function CycleContext() {
           )}
         </div>
       </div>
+
+      {recentSpotting && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-start gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-sage-500 mt-1.5 flex-shrink-0" />
+            <p className="text-xs text-sage-600">
+              <span className="text-sage-700 font-medium">Spotting detected</span> {recentSpotting.daysAgo} days ago (No Reset)
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
