@@ -94,7 +94,7 @@ export function Dashboard() {
           </div>
 
           {/* WHISPERS CARD (Internal Data Only) */}
-          <div className="glass-card h-80 bg-stone-50 border border-stone-200 shadow-sm">
+          <div className="glass-card bg-stone-50 border border-stone-200 shadow-sm">
             <div className="p-4 border-b border-stone-100 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-sage-600" />
               <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
@@ -102,7 +102,7 @@ export function Dashboard() {
               </h2>
             </div>
 
-            <div className="p-6 flex flex-col justify-center h-[calc(100%-56px)]">
+            <div className="p-6 flex flex-col">
               {/* Category Badge */}
               <div className="mb-4">
                 <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
