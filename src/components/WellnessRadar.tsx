@@ -159,7 +159,12 @@ export function WellnessRadar() {
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: 20
+      padding: {
+        top: 30,
+        bottom: 20,
+        left: 20,
+        right: 20
+      }
     },
     scales: {
       r: {
@@ -216,8 +221,10 @@ export function WellnessRadar() {
   }
 
   return (
-    <div className="h-[350px] p-6">
-      <Radar data={chartData} options={options} />
+    <div className="flex items-center justify-center h-[calc(100%-56px)] px-4 py-2">
+      <div className="w-full h-full max-h-[280px]">
+        <Radar data={chartData} options={options} />
+      </div>
     </div>
   );
 }
