@@ -68,7 +68,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
       <Navbar onOpenSettings={() => setShowSettings(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
