@@ -43,6 +43,7 @@ export interface Settings {
 export class BlossomDB extends Dexie {
   logs!: Table<LogEntry>;
   settings!: Table<Settings>;
+  backupLogs!: Table<LogEntry>;
 
   constructor() {
     super('BlossomDB');
@@ -50,10 +51,38 @@ export class BlossomDB extends Dexie {
       logs: '++id, date',
       settings: '++id'
     });
+    this.version(2).stores({
+      logs: '++id, date',
+      settings: '++id',
+      backupLogs: '++id, date'
+    });
   }
 }
 
 export const db = new BlossomDB();
+
+export const DEMO_PREVIEW_KEY = 'demoPreviewActive';
+export const USER_DELETED_KEY = 'userDeletedData';
+
+export async function backupUserLogs(): Promise<void> {
+  const allLogs = await db.logs.toArray();
+  await db.backupLogs.clear();
+  if (allLogs.length > 0) {
+    const cleaned = allLogs.map(({ id, ...rest }) => rest);
+    await db.backupLogs.bulkAdd(cleaned);
+  }
+}
+
+export async function restoreUserLogs(): Promise<void> {
+  const backup = await db.backupLogs.toArray();
+  await db.logs.clear();
+  if (backup.length > 0) {
+    const cleaned = backup.map(({ id, ...rest }) => rest);
+    await db.logs.bulkAdd(cleaned);
+  }
+  await db.backupLogs.clear();
+  localStorage.removeItem(DEMO_PREVIEW_KEY);
+}
 
 export async function getOrCreateSettings(): Promise<Settings> {
   const existing = await db.settings.toArray();

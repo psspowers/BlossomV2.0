@@ -4,7 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
-import { db } from "./lib/db";
+import { db, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
 import { supabase } from "./lib/supabase";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
@@ -77,6 +77,12 @@ const App = () => {
     const initializeApp = async () => {
       try {
         await db.open();
+
+        const wasInDemo = localStorage.getItem(DEMO_PREVIEW_KEY);
+        if (wasInDemo) {
+          await restoreUserLogs();
+        }
+
         await seedDatabase();
         setSeeded(true);
       } catch (initError) {
@@ -148,7 +154,10 @@ const App = () => {
   if (!onboardingComplete) {
     return (
       <PrioritySelector
-        onNext={() => setOnboardingComplete(true)}
+        onNext={() => {
+          localStorage.removeItem(USER_DELETED_KEY);
+          setOnboardingComplete(true);
+        }}
         onBack={async () => {
           await supabase.auth.signOut();
           setOnboardingStep('welcome');

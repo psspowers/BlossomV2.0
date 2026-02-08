@@ -7,12 +7,14 @@ import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
 import { Learn } from './Learn';
 import { Navbar } from './Navbar';
+import { DemoPreviewPill } from './DemoPreviewPill';
 import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
+import { DEMO_PREVIEW_KEY } from '../lib/db';
 
 export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
@@ -20,6 +22,11 @@ export function Dashboard() {
   const [showDailyLog, setShowDailyLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
+  const [demoPersona, setDemoPersona] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDemoPersona(localStorage.getItem(DEMO_PREVIEW_KEY));
+  }, []);
   const [blossomScore, setBlossomScore] = useState<number>(50);
   const [season, setSeason] = useState<SeasonState>({
     currentSeason: 'resting',
@@ -138,6 +145,13 @@ export function Dashboard() {
       >
         <Plus className="w-8 h-8 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
       </button>
+
+      {demoPersona && (
+        <DemoPreviewPill
+          personaName={demoPersona}
+          onReturn={() => setShowSettings(true)}
+        />
+      )}
 
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}

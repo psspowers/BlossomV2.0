@@ -1,0 +1,43 @@
+import { motion } from 'framer-motion';
+import { Eye, ArrowLeft } from 'lucide-react';
+
+interface DemoPreviewPillProps {
+  personaName: string;
+  onReturn: () => void;
+}
+
+const PERSONA_LABELS: Record<string, string> = {
+  Emma: 'Emma (Insulin Resistant)',
+  Sophia: 'Sophia (Adrenal)',
+  Olivia: 'Olivia (Inflammatory)',
+  Ava: 'Ava (Post-Pill)',
+  Isabella: 'Isabella (Lean)',
+};
+
+export function DemoPreviewPill({ personaName, onReturn }: DemoPreviewPillProps) {
+  const label = PERSONA_LABELS[personaName] || personaName;
+
+  return (
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.3 }}
+      className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+    >
+      <button
+        onClick={onReturn}
+        className="flex items-center gap-3 px-5 py-3 bg-stone-800 text-white rounded-full shadow-lg hover:bg-stone-700 transition-colors group"
+        style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}
+      >
+        <Eye className="w-4 h-4 text-stone-300 flex-shrink-0" />
+        <span className="text-sm font-medium whitespace-nowrap">
+          Viewing: {label}
+        </span>
+        <span className="flex items-center gap-1 text-xs text-stone-300 group-hover:text-white transition-colors border-l border-stone-600 pl-3 ml-1">
+          <ArrowLeft className="w-3 h-3" />
+          Return
+        </span>
+      </button>
+    </motion.div>
+  );
+}
