@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Dashboard } from "./components/Dashboard";
@@ -6,24 +5,42 @@ import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
 import { db } from "./lib/db";
+import { supabase } from "./lib/supabase";
+import { WelcomeStep } from "./components/onboarding/WelcomeStep";
+import { AuthStep } from "./components/onboarding/AuthStep";
+import type { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
+
+type OnboardingStep = 'welcome' | 'auth';
 
 const App = () => {
   const [seeded, setSeeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleReset = async () => {
     try {
       setIsResetting(true);
-      console.log('[App] Resetting database...');
-
       await db.delete();
       localStorage.clear();
-
-      console.log('[App] Database reset complete. Reloading...');
       window.location.reload();
     } catch (err) {
       console.error('[App] Reset failed:', err);
@@ -35,17 +52,12 @@ const App = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        console.log('[App] Starting database initialization...');
-
         await db.open();
-        console.log('[App] Database opened successfully');
-
         await seedDatabase();
-        console.log('[App] Database initialization complete');
         setSeeded(true);
-      } catch (error) {
-        console.error('[App] Database initialization failed:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      } catch (initError) {
+        console.error('[App] Database initialization failed:', initError);
+        const errorMessage = initError instanceof Error ? initError.message : 'Unknown error';
         setError(errorMessage);
         setSeeded(true);
       }
@@ -60,23 +72,23 @@ const App = () => {
     return () => clearTimeout(troubleshootingTimer);
   }, []);
 
-  if (!seeded) {
+  if (!seeded || authLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <div className="text-teal-400 text-xl font-medium mb-2">Blossom</div>
+          <div className="text-sage-600 text-xl font-serif font-medium mb-2">Blossom</div>
           <div className="text-slate-400 text-sm animate-pulse mb-4">
-            {isResetting ? 'Resetting database...' : 'Initializing database...'}
+            {isResetting ? 'Resetting database...' : 'Preparing your sanctuary...'}
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
-              <div className="text-red-400 text-sm font-medium mb-1">Database Error</div>
-              <div className="text-red-300 text-xs mb-3">{error}</div>
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-4">
+              <div className="text-rose-600 text-sm font-medium mb-1">Something went wrong</div>
+              <div className="text-rose-500 text-xs mb-3">{error}</div>
               <button
                 onClick={handleReset}
                 disabled={isResetting}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-800 text-white text-xs rounded transition-colors"
+                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white text-xs rounded-lg transition-colors"
               >
                 {isResetting ? 'Resetting...' : 'Reset Database'}
               </button>
@@ -84,18 +96,28 @@ const App = () => {
           )}
 
           {showTroubleshooting && !error && (
-            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-left">
-              <div className="text-slate-300 text-sm font-medium mb-2">Taking longer than usual?</div>
-              <div className="text-slate-400 text-xs space-y-1">
-                <p>• Check browser console (F12) for errors</p>
-                <p>• Try refreshing the page (Ctrl/Cmd + R)</p>
-                <p>• Make sure cookies/storage is enabled</p>
-                <p>• Try a different browser</p>
+            <div className="bg-sage-50 border border-sage-200 rounded-2xl p-4 text-left">
+              <div className="text-slate-700 text-sm font-medium mb-2">Taking longer than usual?</div>
+              <div className="text-slate-500 text-xs space-y-1">
+                <p>Try refreshing the page or clearing browser data.</p>
               </div>
             </div>
           )}
         </div>
       </div>
+    );
+  }
+
+  if (!session) {
+    if (onboardingStep === 'welcome') {
+      return <WelcomeStep onNext={() => setOnboardingStep('auth')} />;
+    }
+
+    return (
+      <AuthStep
+        onNext={() => {}}
+        onBack={() => setOnboardingStep('welcome')}
+      />
     );
   }
 
