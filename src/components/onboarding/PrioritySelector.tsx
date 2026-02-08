@@ -5,7 +5,6 @@ import {
   Droplet, Frown, Sun, Plus, Check, ArrowLeft, ArrowRight,
 } from 'lucide-react';
 import clsx from 'clsx';
-import { MiniLotus } from './MiniLotus';
 import { BloomLotus } from './BloomLotus';
 import { supabase } from '../../lib/supabase';
 
@@ -220,13 +219,7 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
               className="overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="pt-4 mt-3 border-t border-sage-200/50">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-serif italic text-sage-700">
-                    Happiness Impact
-                  </label>
-                  <MiniLotus progress={scores[item.id] ?? 5} />
-                </div>
+              <div className="pt-2 mt-2 border-t border-sage-200/50">
                 <input
                   type="range"
                   min="0"
@@ -236,9 +229,10 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
                   onChange={(e) => handleScoreChange(item.id, parseInt(e.target.value))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-[10px] text-sage-500 mt-1 font-medium tracking-wider">
-                  <span>None</span>
-                  <span>Life Changing</span>
+                <div className="flex justify-between items-center mt-0.5">
+                  <span className="text-[10px] text-sage-500 font-medium tracking-wider">None</span>
+                  <label className="text-[10px] font-serif italic text-sage-600">Happiness Impact</label>
+                  <span className="text-[10px] text-sage-500 font-medium tracking-wider">Life Changing</span>
                 </div>
               </div>
             </motion.div>
@@ -342,13 +336,7 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
                     transition={{ duration: 0.25 }}
                     className="overflow-hidden"
                   >
-                    <div className="pt-4 mt-3 border-t border-sage-200/50">
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-xs font-serif italic text-sage-700">
-                          Happiness Impact
-                        </label>
-                        <MiniLotus progress={scores['custom'] ?? 5} />
-                      </div>
+                    <div className="pt-2 mt-2 border-t border-sage-200/50">
                       <input
                         type="range"
                         min="0"
@@ -358,9 +346,10 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
                         onChange={(e) => handleScoreChange('custom', parseInt(e.target.value))}
                         className="w-full"
                       />
-                      <div className="flex justify-between text-[10px] text-sage-500 mt-1 font-medium tracking-wider">
-                        <span>None</span>
-                        <span>Life Changing</span>
+                      <div className="flex justify-between items-center mt-0.5">
+                        <span className="text-[10px] text-sage-500 font-medium tracking-wider">None</span>
+                        <label className="text-[10px] font-serif italic text-sage-600">Happiness Impact</label>
+                        <span className="text-[10px] text-sage-500 font-medium tracking-wider">Life Changing</span>
                       </div>
                     </div>
                   </motion.div>

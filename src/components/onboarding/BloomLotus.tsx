@@ -9,9 +9,6 @@ export function BloomLotus({ progress }: BloomLotusProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
-  const animationFrameRef = useRef<number>();
-
-  const health = (progress / 10) * 100;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -36,7 +33,6 @@ export function BloomLotus({ progress }: BloomLotusProps) {
     return () => {
       video.removeEventListener('loadedmetadata', handleMetadata);
       video.removeEventListener('canplay', handleCanPlay);
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
   }, []);
 
@@ -44,33 +40,9 @@ export function BloomLotus({ progress }: BloomLotusProps) {
     const video = videoRef.current;
     if (!video || !isReady || !videoDuration) return;
 
-    video.currentTime = 0.1;
-    video.play();
-
-    const targetTime = Math.max(0.1, (health / 100) * (videoDuration * 0.95));
-
-    const checkProgress = () => {
-      if (!video) return;
-
-      if (video.currentTime >= targetTime) {
-        video.pause();
-        video.currentTime = targetTime;
-        return;
-      }
-
-      const diff = targetTime - video.currentTime;
-      video.playbackRate = diff < 0.5 ? 0.8 : 1.2;
-
-      animationFrameRef.current = requestAnimationFrame(checkProgress);
-    };
-
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    animationFrameRef.current = requestAnimationFrame(checkProgress);
-
-    return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    };
-  }, [health, isReady, videoDuration]);
+    const targetTime = (progress / 10) * (videoDuration * 0.95);
+    video.currentTime = Math.max(0, targetTime);
+  }, [progress, isReady, videoDuration]);
 
   const t = progress / 10;
   const label =
@@ -86,7 +58,7 @@ export function BloomLotus({ progress }: BloomLotusProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-[180px] h-[140px] flex items-center justify-center">
+      <div className="relative w-[240px] h-[180px] flex items-center justify-center">
         {!isReady && (
           <motion.div
             animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.3, 0.6, 0.3] }}
