@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { MiniLotus } from './MiniLotus';
+import { BloomLotus } from './BloomLotus';
 import { supabase } from '../../lib/supabase';
 
 export interface UserPriority {
@@ -254,32 +255,23 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
         style={{ background: 'radial-gradient(circle, rgba(134,168,115,0.4) 0%, transparent 70%)' }}
       />
 
-      <div className="sticky top-0 z-20 bg-[#FDFBF7]/95 backdrop-blur-sm border-b border-slate-100 px-6 pt-6 pb-4">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm mb-4 group"
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-          Back
-        </button>
-
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-serif text-2xl text-slate-800">Your Priorities</h2>
+      <div className="sticky top-0 z-20 bg-[#FDFBF7]/95 backdrop-blur-sm border-b border-slate-100 px-6 pt-4 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors text-sm group"
+          >
+            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+            Back
+          </button>
           <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">
             {totalSelected} / {MAX_SELECTION}
           </span>
         </div>
 
-        <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-sage-400 to-terracotta-400 rounded-full"
-            animate={{ width: `${Math.max(averageBloom * 10, 2)}%` }}
-            transition={{ type: 'spring', bounce: 0, duration: 0.5 }}
-          />
-        </div>
-        <p className="text-center text-[10px] text-slate-400 mt-1.5 italic">
-          Potential Happiness: {Math.round(averageBloom * 10)}%
-        </p>
+        <h2 className="font-serif text-2xl text-slate-800 text-center mb-1">Your Priorities</h2>
+
+        <BloomLotus progress={averageBloom} />
       </div>
 
       <div className="w-full max-w-md mx-auto px-6 pt-6 pb-32">
