@@ -78,7 +78,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
         <img
           src="/logo-icon.png"
           alt=""
-          className="w-[500px] h-[500px] object-contain opacity-[0.08]"
+          className="w-[500px] h-[500px] object-contain opacity-[0.18]"
         />
       </motion.div>
 
