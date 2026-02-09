@@ -4,15 +4,16 @@ import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
-import { db } from "./lib/db";
+import { db, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
 import { supabase } from "./lib/supabase";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
+import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import type { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
-type OnboardingStep = 'welcome' | 'auth';
+type OnboardingStep = 'welcome' | 'auth' | 'priorities';
 
 const App = () => {
   const [seeded, setSeeded] = useState(false);
@@ -22,6 +23,7 @@ const App = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
@@ -31,10 +33,32 @@ const App = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
+      if (newSession) {
+        setOnboardingStep('priorities');
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setOnboardingComplete(null);
+      return;
+    }
+
+    const checkOnboarding = async () => {
+      const { data } = await supabase
+        .from('user_priorities')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .limit(1);
+
+      setOnboardingComplete(!!data && data.length > 0);
+    };
+
+    checkOnboarding();
+  }, [session]);
 
   const handleReset = async () => {
     try {
@@ -53,7 +77,12 @@ const App = () => {
     const initializeApp = async () => {
       try {
         await db.open();
-        await seedDatabase();
+
+        const isInDemo = !!localStorage.getItem(DEMO_PREVIEW_KEY);
+        if (!isInDemo) {
+          await seedDatabase();
+        }
+
         setSeeded(true);
       } catch (initError) {
         console.error('[App] Database initialization failed:', initError);
@@ -72,7 +101,7 @@ const App = () => {
     return () => clearTimeout(troubleshootingTimer);
   }, []);
 
-  if (!seeded || authLoading) {
+  if (!seeded || authLoading || (session && onboardingComplete === null)) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -115,8 +144,23 @@ const App = () => {
 
     return (
       <AuthStep
-        onNext={() => {}}
+        onNext={() => setOnboardingStep('priorities')}
         onBack={() => setOnboardingStep('welcome')}
+      />
+    );
+  }
+
+  if (!onboardingComplete) {
+    return (
+      <PrioritySelector
+        onNext={() => {
+          localStorage.removeItem(USER_DELETED_KEY);
+          setOnboardingComplete(true);
+        }}
+        onBack={async () => {
+          await supabase.auth.signOut();
+          setOnboardingStep('welcome');
+        }}
       />
     );
   }
