@@ -4,7 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
-import { db, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
+import { db, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
 import { supabase } from "./lib/supabase";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
@@ -78,12 +78,11 @@ const App = () => {
       try {
         await db.open();
 
-        const wasInDemo = localStorage.getItem(DEMO_PREVIEW_KEY);
-        if (wasInDemo) {
-          await restoreUserLogs();
+        const isInDemo = !!localStorage.getItem(DEMO_PREVIEW_KEY);
+        if (!isInDemo) {
+          await seedDatabase();
         }
 
-        await seedDatabase();
         setSeeded(true);
       } catch (initError) {
         console.error('[App] Database initialization failed:', initError);
