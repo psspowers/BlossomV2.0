@@ -1,5 +1,22 @@
 import Dexie, { Table } from 'dexie';
 
+export type PriorityId =
+  | 'cycle_regularity'
+  | 'fertility'
+  | 'weight_metabolic'
+  | 'mood_energy'
+  | 'skin_hair'
+  | 'pain_cramps'
+  | 'sleep_fatigue'
+  | 'anxiety'
+  | 'body_image'
+  | 'acne'
+  | 'hirsutism'
+  | 'hair_loss'
+  | 'bloating'
+  | 'cramps'
+  | 'custom';
+
 export interface LogEntry {
   id?: number;
   date: string;
@@ -38,6 +55,8 @@ export interface Settings {
   designTheme: 'default' | 'lotus';
   notifications: boolean;
   customSymptomDefinitions: CustomSymptom[];
+  priorities: PriorityId[];
+  happinessWeights: Record<string, number>;
 }
 
 export class BlossomDB extends Dexie {
@@ -87,14 +106,25 @@ export async function restoreUserLogs(): Promise<void> {
 export async function getOrCreateSettings(): Promise<Settings> {
   const existing = await db.settings.toArray();
   if (existing.length > 0) {
-    return existing[0];
+    const settings = existing[0];
+    if (!settings.priorities || !settings.happinessWeights) {
+      await db.settings.update(settings.id!, {
+        priorities: settings.priorities || [],
+        happinessWeights: settings.happinessWeights || {}
+      });
+      settings.priorities = settings.priorities || [];
+      settings.happinessWeights = settings.happinessWeights || {};
+    }
+    return settings;
   }
 
   const defaultSettings: Settings = {
     theme: 'dark',
     designTheme: 'default',
     notifications: true,
-    customSymptomDefinitions: []
+    customSymptomDefinitions: [],
+    priorities: [],
+    happinessWeights: {}
   };
 
   const id = await db.settings.add(defaultSettings);
