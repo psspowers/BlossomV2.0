@@ -1,5 +1,11 @@
 import { LogEntry, getLastNDays, db } from '../db';
 import { analyzeCycleState } from './cycle';
+import { supabase } from '../supabase';
+
+interface UserPriority {
+  priority_id: string;
+  happiness_impact: number;
+}
 
 function convertLifestyleToNumber(value: string | undefined, field: string): number {
   if (!value) return 0;
@@ -43,7 +49,83 @@ export interface BlossomScoreResult {
   stabilityFactor: number;
 }
 
+const PRIORITY_MAP: Record<string, keyof BlossomScoreResult> = {
+  'mood_energy': 'emotionalFactor',
+  'anxiety': 'emotionalFactor',
+  'body_image': 'emotionalFactor',
+  'weight_metabolic': 'selfCareFactor',
+  'sleep_fatigue': 'selfCareFactor',
+  'acne': 'symptomFactor',
+  'hirsutism': 'symptomFactor',
+  'hair_loss': 'symptomFactor',
+  'bloating': 'symptomFactor',
+  'cramps': 'symptomFactor',
+  'pain_cramps': 'symptomFactor',
+  'skin_hair': 'symptomFactor',
+  'cycle_regularity': 'stabilityFactor',
+  'fertility': 'stabilityFactor'
+};
+
+async function fetchUserPriorities(): Promise<UserPriority[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('user_priorities')
+    .select('priority_id, happiness_impact')
+    .eq('user_id', user.id);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data;
+}
+
+function calculatePersonalizedWeights(priorities: UserPriority[]): Record<keyof BlossomScoreResult, number> {
+  const baseWeights = {
+    symptomFactor: 0.25,
+    selfCareFactor: 0.25,
+    emotionalFactor: 0.25,
+    stabilityFactor: 0.25
+  };
+
+  if (priorities.length === 0) {
+    return baseWeights;
+  }
+
+  const BOOST_PER_PRIORITY = 0.10;
+  const MAX_WEIGHT = 0.60;
+
+  priorities.forEach(priority => {
+    const factor = PRIORITY_MAP[priority.priority_id];
+    if (factor && baseWeights[factor]) {
+      baseWeights[factor] = Math.min(
+        baseWeights[factor] + BOOST_PER_PRIORITY,
+        MAX_WEIGHT
+      );
+    }
+  });
+
+  const currentSum = Object.values(baseWeights).reduce((a, b) => a + b, 0);
+
+  if (currentSum !== 1.0) {
+    const keys = Object.keys(baseWeights) as (keyof typeof baseWeights)[];
+    keys.forEach(k => {
+      baseWeights[k] = baseWeights[k] / currentSum;
+    });
+  }
+
+  return baseWeights;
+}
+
 export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
+  const priorities = await fetchUserPriorities();
+  const weights = calculatePersonalizedWeights(priorities);
+
   const allLogs = await getLastNDays(14);
 
   if (allLogs.length < 3) {
@@ -113,7 +195,10 @@ export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
   const stabilityFactor = cycleState.stabilityScore > 0 ? cycleState.stabilityScore : 50;
 
   const score = Math.round(
-    (symptomFactor * 0.35) + (selfCareFactor * 0.25) + (emotionalFactor * 0.25) + (stabilityFactor * 0.15)
+    (symptomFactor * weights.symptomFactor) +
+    (selfCareFactor * weights.selfCareFactor) +
+    (emotionalFactor * weights.emotionalFactor) +
+    (stabilityFactor * weights.stabilityFactor)
   );
 
   return {
