@@ -1,5 +1,5 @@
 import { getLastNDays, LogEntry } from '../db';
-import { getRawValue, calculateChange } from './conversions';
+import { getNormalizedValue, calculateChange } from './conversions';
 
 export type VelocityDirection = 'improving' | 'worsening' | 'stable';
 
@@ -31,10 +31,10 @@ const METRIC_PATHS: Record<string, MetricPath> = {
   diet: { category: 'lifestyle', field: 'diet' }
 };
 
-function extractMetricValue(log: LogEntry, path: MetricPath): number | undefined {
+function extractNormalizedValue(log: LogEntry, path: MetricPath): number | undefined {
   const categoryData = log[path.category];
   const rawValue = categoryData?.[path.field as keyof typeof categoryData] as string | number | undefined;
-  return getRawValue(path.field, rawValue);
+  return getNormalizedValue(path.field, rawValue);
 }
 
 function calculateAverage(values: number[]): number {
@@ -62,11 +62,11 @@ export async function getVelocity(metric: string): Promise<VelocityResult | null
   const currentPeriod = sortedLogs.slice(midpoint);
 
   const previousValues = previousPeriod
-    .map(log => extractMetricValue(log, path))
+    .map(log => extractNormalizedValue(log, path))
     .filter((val): val is number => val !== undefined);
 
   const currentValues = currentPeriod
-    .map(log => extractMetricValue(log, path))
+    .map(log => extractNormalizedValue(log, path))
     .filter((val): val is number => val !== undefined);
 
   if (previousValues.length === 0 || currentValues.length === 0) {
@@ -87,15 +87,11 @@ export async function getVelocity(metric: string): Promise<VelocityResult | null
 
   const percentChange = calculateChange(currentAvg, previousAvg);
 
-  const isPositiveMetric = ['mood', 'bodyImage', 'sleep', 'waterIntake', 'diet', 'exercise'].includes(metric);
-
   let direction: VelocityDirection;
   if (Math.abs(percentChange) < 5) {
     direction = 'stable';
-  } else if (isPositiveMetric) {
-    direction = percentChange > 0 ? 'improving' : 'worsening';
   } else {
-    direction = percentChange < 0 ? 'improving' : 'worsening';
+    direction = percentChange > 0 ? 'improving' : 'worsening';
   }
 
   return {

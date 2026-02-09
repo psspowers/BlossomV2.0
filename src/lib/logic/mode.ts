@@ -46,12 +46,13 @@ export async function determineInterfaceMode(): Promise<ThemeState> {
     };
   }
 
-  const latestLog = recentLogs[0];
-  const avgSymptomWellness = getSymptomWellness(latestLog);
-  const sleepWellness = normalizeSleep(latestLog.lifestyle.sleep);
-  const moodWellness = normalizeMood(latestLog.psych.mood);
-  const stressWellness = normalizeStress(latestLog.psych.stress);
-  const anxietyWellness = normalizeAnxiety(latestLog.psych.anxiety);
+  const window = recentLogs.slice(0, 3);
+
+  const avgSymptomWellness = window.reduce((sum, log) => sum + getSymptomWellness(log), 0) / window.length;
+  const sleepWellness = window.reduce((sum, log) => sum + normalizeSleep(log.lifestyle.sleep), 0) / window.length;
+  const moodWellness = window.reduce((sum, log) => sum + normalizeMood(log.psych.mood), 0) / window.length;
+  const stressWellness = window.reduce((sum, log) => sum + normalizeStress(log.psych.stress), 0) / window.length;
+  const anxietyWellness = window.reduce((sum, log) => sum + normalizeAnxiety(log.psych.anxiety), 0) / window.length;
 
   const avgPsychWellness = (stressWellness + anxietyWellness) / 2;
   const needsSupport = avgSymptomWellness < 4 || avgPsychWellness < 4 || sleepWellness < 4 || moodWellness < 4;

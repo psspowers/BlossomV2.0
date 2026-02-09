@@ -82,13 +82,14 @@ function isSelfCareDay(log: LogEntry): boolean {
   const sleepWellness = normalizeSleep(log.lifestyle.sleep);
   const exerciseWellness = normalizeExercise(log.lifestyle.exercise);
   const dietWellness = normalizeDiet(log.lifestyle.diet);
-  return sleepWellness >= 6 || exerciseWellness >= 7 || dietWellness >= 9;
+  if (sleepWellness <= 3) return false;
+  return sleepWellness >= 9 || exerciseWellness >= 7 || dietWellness >= 9;
 }
 
 export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<BlossomScoreResult> {
   const profile = await db.settings.toCollection().first();
   const allLogs = providedLogs || await getLastNDays(14);
-  const cycleLogs = await db.logs.toArray();
+  const cycleLogs = providedLogs || await db.logs.toArray();
 
   if (allLogs.length < 3) {
     return {
@@ -107,10 +108,10 @@ export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<
   const recent = sortedLogs.slice(-7);
   const symptomFactor = calculateAverage(recent.map(getSymptomWellness));
 
-  const nourishingDays = sortedLogs.filter(isSelfCareDay);
-  const selfCareFactor = (nourishingDays.length / sortedLogs.length) * 100;
+  const nourishingDays = recent.filter(isSelfCareDay);
+  const selfCareFactor = (nourishingDays.length / recent.length) * 100;
 
-  const emotionalFactor = calculateAverage(sortedLogs.map(getEmotionalWellness));
+  const emotionalFactor = calculateAverage(recent.map(getEmotionalWellness));
 
   let stabilityFactor = 50;
   if (analyzeCycleState) {
