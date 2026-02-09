@@ -1,4 +1,4 @@
-import { db, LogEntry, USER_DELETED_KEY } from './db';
+import { db, LogEntry } from './db';
 import { format, subDays } from 'date-fns';
 
 function randomInRange(min: number, max: number): number {
@@ -231,20 +231,20 @@ function generateLutealDay(daysAgo: number, isLate: boolean): LogEntry {
 }
 
 export async function seedDatabase(): Promise<void> {
-  if (localStorage.getItem(USER_DELETED_KEY)) {
-    return;
-  }
-
   let existingLogs = 0;
 
   try {
+    console.log('[Seed] Checking existing logs...');
     existingLogs = await db.logs.count();
 
     if (existingLogs > 0) {
+      console.log('[Seed] Database already has data. Skipping seed.');
       return;
     }
+    console.log('[Seed] No existing logs found, creating seed data...');
   } catch (error) {
     console.error('[Seed] Error checking logs:', error);
+    console.log('[Seed] Attempting to continue with seeding...');
   }
 
   const syntheticData: LogEntry[] = [];

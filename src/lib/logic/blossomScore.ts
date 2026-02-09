@@ -1,53 +1,20 @@
-import { LogEntry, getLastNDays, db, Settings } from '../db';
+import { LogEntry, getLastNDays, db } from '../db';
 import { analyzeCycleState } from './cycle';
-
-export interface BlossomScoreResult {
-  score: number;
-  symptomFactor: number;
-  selfCareFactor: number;
-  emotionalFactor: number;
-  stabilityFactor: number;
-  activeWeights: {
-    symptom: number;
-    selfCare: number;
-    emotional: number;
-    stability: number;
-  };
-}
-
-const PRIORITY_MAP: Record<string, keyof Omit<BlossomScoreResult, 'score' | 'activeWeights'>> = {
-  'mood_energy': 'emotionalFactor',
-  'anxiety': 'emotionalFactor',
-  'body_image': 'emotionalFactor',
-
-  'weight_metabolic': 'selfCareFactor',
-  'sleep_fatigue': 'selfCareFactor',
-
-  'acne': 'symptomFactor',
-  'hirsutism': 'symptomFactor',
-  'hair_loss': 'symptomFactor',
-  'bloating': 'symptomFactor',
-  'cramps': 'symptomFactor',
-  'pain_cramps': 'symptomFactor',
-  'skin_hair': 'symptomFactor',
-
-  'cycle_regularity': 'stabilityFactor',
-  'fertility': 'stabilityFactor'
-};
 
 function convertLifestyleToNumber(value: string | undefined, field: string): number {
   if (!value) return 0;
+
   if (field === 'sleep') {
-    if (value === '<6h') return 4;
-    if (value === '6-7h') return 6;
-    if (value === '7-8h') return 8;
-    if (value === '>8h') return 10;
+    if (value === '<6h') return 5;
+    if (value === '6-7h') return 6.5;
+    if (value === '7-8h') return 7.5;
+    if (value === '>8h') return 8.5;
   }
   if (field === 'exercise') {
-    if (value === 'rest') return 5;
-    if (value === 'light') return 7;
-    if (value === 'moderate') return 9;
-    if (value === 'intense') return 10;
+    if (value === 'rest') return 1;
+    if (value === 'light') return 3;
+    if (value === 'moderate') return 6;
+    if (value === 'intense') return 9;
   }
   return 0;
 }
@@ -65,90 +32,95 @@ function getSymptomScore(log: LogEntry): number {
     log.symptoms.bloat || 0,
     log.symptoms.cramps || 0
   ];
-  const avgSeverity = calculateAverage(symptoms);
-  return Math.max(0, 100 - (avgSeverity * 20));
+  return calculateAverage(symptoms);
+}
+
+export interface BlossomScoreResult {
+  score: number;
+  symptomFactor: number;
+  selfCareFactor: number;
+  emotionalFactor: number;
+  stabilityFactor: number;
 }
 
 export async function calculateBlossomScore(): Promise<BlossomScoreResult> {
-  const profile = await db.settings.toCollection().first();
   const allLogs = await getLastNDays(14);
-  const cycleLogs = await db.logs.toArray();
 
   if (allLogs.length < 3) {
     return {
       score: 50,
       symptomFactor: 50,
-      selfCareFactor: 50,
+      selfCareFactor: 0,
       emotionalFactor: 50,
-      stabilityFactor: 50,
-      activeWeights: { symptom: 0.25, selfCare: 0.25, emotional: 0.25, stability: 0.25 }
+      stabilityFactor: 50
     };
   }
 
   const sortedLogs = allLogs.sort((a, b) => a.date.localeCompare(b.date));
-  const recent = sortedLogs.slice(-3);
-  const symptomFactor = calculateAverage(recent.map(getSymptomScore));
 
-  const nourishingDays = sortedLogs.filter(log => {
-    const sleepScore = convertLifestyleToNumber(log.lifestyle.sleep, 'sleep');
-    const hasMovement = log.lifestyle.exercise && log.lifestyle.exercise !== 'none';
-    return sleepScore >= 6 || hasMovement;
-  });
-  const selfCareFactor = (nourishingDays.length / sortedLogs.length) * 100;
+  const last7Days = sortedLogs.slice(-7);
+  const previous7Days = sortedLogs.slice(-14, -7);
 
-  const moodScores = sortedLogs.map(l => (l.psych.mood || 3) * 20);
-  const emotionalFactor = calculateAverage(moodScores);
+  let symptomFactor = 75;
 
-  let stabilityFactor = 50;
-  if (analyzeCycleState) {
-      const cycleState = analyzeCycleState(cycleLogs);
-      stabilityFactor = cycleState.stabilityScore || 50;
-  }
+  if (previous7Days.length >= 3 && last7Days.length >= 3) {
+    const prevSymptomAvg = calculateAverage(previous7Days.map(getSymptomScore));
+    const currSymptomAvg = calculateAverage(last7Days.map(getSymptomScore));
 
-  let weights = {
-    symptomFactor: 0.25,
-    selfCareFactor: 0.25,
-    emotionalFactor: 0.25,
-    stabilityFactor: 0.25
-  };
+    if (prevSymptomAvg > 0) {
+      const percentChange = ((prevSymptomAvg - currSymptomAvg) / prevSymptomAvg) * 100;
 
-  if (profile && profile.priorities) {
-    const BOOST = 0.15;
-
-    profile.priorities.forEach(pId => {
-      const target = PRIORITY_MAP[pId];
-      if (target && target in weights) {
-        weights[target] += BOOST;
+      if (percentChange > 10) {
+        symptomFactor = 100;
+      } else if (percentChange < -10) {
+        symptomFactor = 50;
+      } else {
+        symptomFactor = 75;
       }
-    });
-
-    const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
-    if (totalWeight > 0) {
-      weights.symptomFactor /= totalWeight;
-      weights.selfCareFactor /= totalWeight;
-      weights.emotionalFactor /= totalWeight;
-      weights.stabilityFactor /= totalWeight;
+    } else {
+      symptomFactor = currSymptomAvg < 3 ? 100 : 75;
     }
   }
 
-  const finalScore = Math.round(
-    (symptomFactor * weights.symptomFactor) +
-    (selfCareFactor * weights.selfCareFactor) +
-    (emotionalFactor * weights.emotionalFactor) +
-    (stabilityFactor * weights.stabilityFactor)
+  const nourishingDays = last7Days.filter(log => {
+    const sleepHours = convertLifestyleToNumber(log.lifestyle.sleep, 'sleep');
+    const hasGoodSleep = sleepHours >= 7;
+
+    const hasMovement = log.lifestyle.exercise && log.lifestyle.exercise !== 'rest';
+
+    const hasHydration = log.lifestyle.waterIntake && log.lifestyle.waterIntake >= 6;
+
+    return hasGoodSleep || hasMovement || hasHydration;
+  });
+
+  const selfCareFactor = last7Days.length > 0
+    ? (nourishingDays.length / last7Days.length) * 100
+    : 0;
+
+  const moodScores = last7Days
+    .map(log => {
+      const mood = log.psych.mood;
+      if (typeof mood === 'number') return mood;
+      return 50;
+    });
+
+  const emotionalFactor = moodScores.length > 0
+    ? calculateAverage(moodScores)
+    : 50;
+
+  const allLogsForCycle = await db.logs.toArray();
+  const cycleState = analyzeCycleState(allLogsForCycle);
+  const stabilityFactor = cycleState.stabilityScore > 0 ? cycleState.stabilityScore : 50;
+
+  const score = Math.round(
+    (symptomFactor * 0.35) + (selfCareFactor * 0.25) + (emotionalFactor * 0.25) + (stabilityFactor * 0.15)
   );
 
   return {
-    score: Math.max(0, Math.min(100, finalScore)),
+    score: Math.max(0, Math.min(100, score)),
     symptomFactor,
     selfCareFactor,
     emotionalFactor,
-    stabilityFactor,
-    activeWeights: {
-      symptom: weights.symptomFactor,
-      selfCare: weights.selfCareFactor,
-      emotional: weights.emotionalFactor,
-      stability: weights.stabilityFactor
-    }
+    stabilityFactor
   };
 }
