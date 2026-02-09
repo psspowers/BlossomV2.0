@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, Shield, FileText, UserCircle, Beaker } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
-import { db } from '../lib/db';
+import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason } from '../lib/logic/seasons';
+import { supabase } from '../lib/supabase';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -23,8 +24,20 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isExportingClinical, setIsExportingClinical] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [demoActive, setDemoActive] = useState<string | null>(null);
 
   useEffect(() => {
+    const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
+    if (preview) {
+      setDemoActive(preview);
+      setIsRestoring(true);
+      restoreUserLogs().then(() => {
+        window.location.reload();
+      });
+      return;
+    }
+
     const loadJourneyData = async () => {
       const score = await calculateBlossomScore();
       setBlossomScore(score.score);
@@ -256,8 +269,17 @@ support@blossomhealth.app
     try {
       setIsDeleting(true);
       await db.logs.clear();
+      await db.settings.clear();
+      await db.backupLogs.clear();
+      localStorage.setItem(USER_DELETED_KEY, 'true');
+      localStorage.removeItem(DEMO_PREVIEW_KEY);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('user_priorities').delete().eq('user_id', user.id);
+      }
+
       setShowDeleteConfirm(false);
-      alert('All data has been deleted successfully.');
       window.location.reload();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -269,9 +291,31 @@ support@blossomhealth.app
 
   const handleLoadPersona = async (name: 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella') => {
     setLoadingPersona(name);
+    const isAlreadyPreviewing = !!localStorage.getItem(DEMO_PREVIEW_KEY);
+    if (!isAlreadyPreviewing) {
+      await backupUserLogs();
+    }
     await generateHistory(name);
+    localStorage.setItem(DEMO_PREVIEW_KEY, name);
+    localStorage.removeItem(USER_DELETED_KEY);
     window.location.reload();
   };
+
+  if (isRestoring) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      >
+        <div className="bg-white rounded-2xl p-8 text-center shadow-xl max-w-sm">
+          <RotateCcw className="w-8 h-8 text-sage-600 animate-spin mx-auto mb-4" />
+          <p className="font-serif text-stone-800 text-lg mb-1">Restoring Your Profile</p>
+          <p className="text-sm text-stone-500">Switching back from {demoActive} demo...</p>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <AnimatePresence>

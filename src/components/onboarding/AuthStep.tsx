@@ -63,11 +63,24 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-[#FDFBF7] relative">
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-[#FDFBF7] relative overflow-hidden">
       <div
         className="absolute w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none opacity-20 top-1/4"
         style={{ background: 'radial-gradient(circle, rgba(134,168,115,0.3) 0%, transparent 70%)' }}
       />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+      >
+        <img
+          src="/logo-icon.png"
+          alt=""
+          className="w-[500px] h-[500px] object-contain opacity-[0.18]"
+        />
+      </motion.div>
 
       <div className="w-full max-w-sm relative z-10">
         <button
