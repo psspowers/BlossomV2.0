@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { differenceInDays } from 'date-fns';
-import { calculateBlossomScore } from './score';
+import { calculateBlossomScore } from './blossomScore';
 
 export type PlantPhase = 'seed' | 'sprout' | 'bloom' | 'flourish';
 
@@ -52,8 +52,8 @@ export async function calculatePlantHealth(): Promise<PlantState> {
     }
   }
 
-  const blossomScore = await calculateBlossomScore(logs);
-  const health = blossomScore;
+  const blossomResult = await calculateBlossomScore(logs);
+  const health = blossomResult.score;
 
   let phase: PlantPhase;
   if (health < 30) {

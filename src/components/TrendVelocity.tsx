@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { db } from '../lib/db';
 import { getVelocity } from '../lib/logic/velocity';
+import { getRawStress, getRawAnxiety } from '../lib/logic/conversions';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -32,25 +33,9 @@ export function TrendVelocity() {
 
       const last30 = logs.slice(-30);
 
-      const stressToNumber = (stress?: string) => {
-        if (!stress) return 5;
-        if (stress === 'low') return 3;
-        if (stress === 'medium') return 5;
-        if (stress === 'high') return 8;
-        return 5;
-      };
-
-      const anxietyToNumber = (anxiety?: string) => {
-        if (!anxiety) return 5;
-        if (anxiety === 'none') return 0;
-        if (anxiety === 'low') return 3;
-        if (anxiety === 'high') return 8;
-        return 5;
-      };
-
       const labels = last30.map(log => format(new Date(log.date), 'MMM d'));
-      const stressData = last30.map(log => stressToNumber(log.psych.stress));
-      const anxietyData = last30.map(log => anxietyToNumber(log.psych.anxiety));
+      const stressData = last30.map(log => getRawStress(log.psych.stress));
+      const anxietyData = last30.map(log => getRawAnxiety(log.psych.anxiety));
 
       const velocityResult = await getVelocity('anxiety');
       setVelocity(velocityResult);

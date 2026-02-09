@@ -11,57 +11,22 @@ import {
 } from 'chart.js';
 import { db, LogEntry } from '../lib/db';
 import { analyzeCycleState } from '../lib/logic/cycle';
+import {
+  normalizeSymptom,
+  normalizeSleep,
+  normalizeDiet,
+  normalizeMood,
+  normalizeStress,
+  normalizeAnxiety,
+  normalizeExercise,
+  normalizeWater
+} from '../lib/logic/conversions';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-// Helper functions to convert string values to 0-10 scale
-function stressToNumber(stress?: string): number {
-  if (!stress) return 5;
-  if (stress === 'low') return 2;
-  if (stress === 'medium') return 5;
-  if (stress === 'high') return 8;
-  return 5;
-}
-
-function anxietyToNumber(anxiety?: string): number {
-  if (!anxiety) return 5;
-  if (anxiety === 'low') return 2;
-  if (anxiety === 'medium') return 5;
-  if (anxiety === 'high') return 8;
-  return 5;
-}
-
-function sleepToNumber(sleep?: string): number {
-  if (!sleep) return 7;
-  if (sleep === '<6h') return 4;
-  if (sleep === '6-7h') return 6;
-  if (sleep === '7-8h') return 8;
-  if (sleep === '>8h') return 9;
-  return 7;
-}
-
-function dietToNumber(diet?: string): number {
-  if (!diet) return 5;
-  if (diet === 'poor') return 3;
-  if (diet === 'okay') return 5;
-  if (diet === 'good') return 7;
-  if (diet === 'excellent') return 9;
-  return 5;
-}
-
-function exerciseToNumber(exercise?: string): number {
-  if (!exercise) return 5;
-  if (exercise === 'none') return 2;
-  if (exercise === 'light') return 5;
-  if (exercise === 'moderate') return 7;
-  if (exercise === 'intense') return 9;
-  return 5;
-}
-
-// Calculate average from array of numbers, ignoring undefined/null values
 function calculateAverage(values: (number | undefined)[]): number {
   const validValues = values.filter((v): v is number => v !== undefined && v !== null && !isNaN(v));
-  if (validValues.length === 0) return 5; // Default to midpoint if no valid values
+  if (validValues.length === 0) return 5;
   return validValues.reduce((sum, val) => sum + val, 0) / validValues.length;
 }
 
@@ -79,36 +44,31 @@ export function WellnessRadar() {
       const latest = logs[0];
       const cycleState = analyzeCycleState(logs);
 
-      // 1. Physical: Average of (10 - cramps), (10 - acne), (10 - bloat), (10 - hirsutism)
       const physicalScore = calculateAverage([
-        latest.symptoms.cramps !== undefined ? 10 - latest.symptoms.cramps : undefined,
-        latest.symptoms.acne !== undefined ? 10 - latest.symptoms.acne : undefined,
-        latest.symptoms.bloat !== undefined ? 10 - latest.symptoms.bloat : undefined,
-        latest.symptoms.hirsutism !== undefined ? 10 - latest.symptoms.hirsutism : undefined
+        latest.symptoms.cramps !== undefined ? normalizeSymptom(latest.symptoms.cramps) : undefined,
+        latest.symptoms.acne !== undefined ? normalizeSymptom(latest.symptoms.acne) : undefined,
+        latest.symptoms.bloat !== undefined ? normalizeSymptom(latest.symptoms.bloat) : undefined,
+        latest.symptoms.hirsutism !== undefined ? normalizeSymptom(latest.symptoms.hirsutism) : undefined
       ]);
 
-      // 2. Metabolic: Average of energy (customVal), sleep (converted), diet (converted)
       const energyValue = latest.customValues?.['energy'];
       const metabolicScore = calculateAverage([
         energyValue,
-        sleepToNumber(latest.lifestyle.sleep),
-        dietToNumber(latest.lifestyle.diet)
+        normalizeSleep(latest.lifestyle.sleep),
+        normalizeDiet(latest.lifestyle.diet)
       ]);
 
-      // 3. Emotional: Average of (mood / 10), (10 - stress), (10 - anxiety)
       const emotionalScore = calculateAverage([
-        latest.psych.mood !== undefined ? latest.psych.mood / 10 : undefined,
-        10 - stressToNumber(latest.psych.stress),
-        10 - anxietyToNumber(latest.psych.anxiety)
+        latest.psych.mood !== undefined ? normalizeMood(latest.psych.mood) : undefined,
+        normalizeStress(latest.psych.stress),
+        normalizeAnxiety(latest.psych.anxiety)
       ]);
 
-      // 4. Cycle: Use stabilityScore / 10
       const cycleScore = cycleState.stabilityScore / 10;
 
-      // 5. Lifestyle: Average of exercise (converted), waterIntake
       const lifestyleScore = calculateAverage([
-        exerciseToNumber(latest.lifestyle.exercise),
-        latest.lifestyle.waterIntake
+        normalizeExercise(latest.lifestyle.exercise),
+        latest.lifestyle.waterIntake !== undefined ? normalizeWater(latest.lifestyle.waterIntake) : undefined
       ]);
 
       const currentValues = [

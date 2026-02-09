@@ -1,4 +1,11 @@
 import { db, LogEntry } from '../db';
+import {
+  normalizeSymptom,
+  normalizeStress,
+  normalizeAnxiety,
+  normalizeSleep,
+  normalizeMood
+} from './conversions';
 
 export type InterfaceMode = 'nurture' | 'steady' | 'thrive';
 
@@ -9,7 +16,7 @@ export interface ThemeState {
   message: string;
 }
 
-function calculateAverageSymptomSeverity(log: LogEntry): number {
+function getSymptomWellness(log: LogEntry): number {
   const symptoms = [
     log.symptoms.acne,
     log.symptoms.hirsutism,
@@ -18,34 +25,9 @@ function calculateAverageSymptomSeverity(log: LogEntry): number {
     log.symptoms.cramps
   ].filter((val): val is number => val !== undefined);
 
-  if (symptoms.length === 0) return 0;
+  if (symptoms.length === 0) return 10;
 
-  return symptoms.reduce((sum, val) => sum + val, 0) / symptoms.length;
-}
-
-function sleepToHours(sleep?: string): number {
-  if (!sleep) return 7;
-  if (sleep === '<6h') return 5;
-  if (sleep === '6-7h') return 6.5;
-  if (sleep === '7-8h') return 7.5;
-  if (sleep === '>8h') return 8.5;
-  return 7;
-}
-
-function stressToNumber(stress?: string): number {
-  if (!stress) return 5;
-  if (stress === 'low') return 3;
-  if (stress === 'medium') return 5;
-  if (stress === 'high') return 8;
-  return 5;
-}
-
-function anxietyToNumber(anxiety?: string): number {
-  if (!anxiety) return 5;
-  if (anxiety === 'none') return 0;
-  if (anxiety === 'low') return 3;
-  if (anxiety === 'high') return 8;
-  return 5;
+  return symptoms.reduce((sum, val) => sum + normalizeSymptom(val), 0) / symptoms.length;
 }
 
 export async function determineInterfaceMode(): Promise<ThemeState> {
@@ -65,15 +47,15 @@ export async function determineInterfaceMode(): Promise<ThemeState> {
   }
 
   const latestLog = recentLogs[0];
-  const avgSymptomSeverity = calculateAverageSymptomSeverity(latestLog);
-  const sleepHours = sleepToHours(latestLog.lifestyle.sleep);
-  const mood = latestLog.psych.mood || 5;
-  const stress = stressToNumber(latestLog.psych.stress);
-  const anxiety = anxietyToNumber(latestLog.psych.anxiety);
+  const avgSymptomWellness = getSymptomWellness(latestLog);
+  const sleepWellness = normalizeSleep(latestLog.lifestyle.sleep);
+  const moodWellness = normalizeMood(latestLog.psych.mood);
+  const stressWellness = normalizeStress(latestLog.psych.stress);
+  const anxietyWellness = normalizeAnxiety(latestLog.psych.anxiety);
 
-  const avgPsych = (stress + anxiety) / 2;
-  const needsSupport = avgSymptomSeverity > 6 || avgPsych > 6 || sleepHours < 6 || mood < 4;
-  const thriving = avgSymptomSeverity < 3 && avgPsych < 3 && sleepHours >= 7 && mood > 7;
+  const avgPsychWellness = (stressWellness + anxietyWellness) / 2;
+  const needsSupport = avgSymptomWellness < 4 || avgPsychWellness < 4 || sleepWellness < 4 || moodWellness < 4;
+  const thriving = avgSymptomWellness > 7 && avgPsychWellness > 7 && sleepWellness > 7 && moodWellness > 7;
 
   if (needsSupport) {
     return {
