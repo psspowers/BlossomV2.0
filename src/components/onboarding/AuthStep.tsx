@@ -79,6 +79,37 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
         </button>
 
         <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="flex justify-center mb-8"
+        >
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-sage-500"
+          >
+            <path
+              d="M12 2C12 2 14 6 14 10C14 14 12 17 12 17C12 17 10 14 10 10C10 6 12 2 12 2Z"
+              fill="currentColor"
+            />
+            <path
+              d="M12 17C12 17 15 16 18 12C21 8 19 4 19 4C19 4 17 7 15 10C13 13 12 17 12 17Z"
+              fill="currentColor"
+              opacity="0.8"
+            />
+            <path
+              d="M12 17C12 17 9 16 6 12C3 8 5 4 5 4C5 4 7 7 9 10C11 13 12 17 12 17Z"
+              fill="currentColor"
+              opacity="0.8"
+            />
+            <circle cx="12" cy="18" r="1.5" fill="currentColor" opacity="0.6" />
+          </svg>
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
