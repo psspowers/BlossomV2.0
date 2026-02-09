@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Flower2, Shield, Bell, Clock, MessageCircle } from 'lucide-react';
+import { Settings, Flower2, Shield, Bell, Clock, MessageCircle, Stethoscope } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSettings: () => void;
+  onOpenClinicalGuide: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -53,7 +54,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings }) => {
       {/* Icons Right */}
       <div className="flex items-center gap-3 relative" ref={dropdownRef}>
 
-        {/* Bell Button with Notification Dot */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          onClick={onOpenClinicalGuide}
+          className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+          aria-label="Clinical Guide"
+        >
+          <Stethoscope className="w-5 h-5" />
+        </motion.button>
+
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

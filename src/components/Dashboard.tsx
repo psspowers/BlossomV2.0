@@ -11,6 +11,7 @@ import { DemoPreviewPill } from './DemoPreviewPill';
 import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
+import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
@@ -22,6 +23,7 @@ export function Dashboard() {
   const [showDailyLog, setShowDailyLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
+  const [showClinicalGuide, setShowClinicalGuide] = useState(false);
   const [demoPersona, setDemoPersona] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-x-hidden">
-      <Navbar onOpenSettings={() => setShowSettings(true)} />
+      <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
@@ -156,6 +158,7 @@ export function Dashboard() {
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showLearn && <Learn onClose={() => setShowLearn(false)} />}
+      {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
     </div>
   );
 }
