@@ -62,16 +62,6 @@ export function SeasonTimeline({ season, score }: SeasonTimelineProps) {
                 )}>
                   {step.label}
                 </span>
-
-                {isActive && (
-                  <motion.div
-                    initial={{ y: 5, opacity: 0 }}
-                    animate={{ y: -20, opacity: 1 }}
-                    className={clsx("absolute -top-6", step.color)}
-                  >
-                    <Icon size={16} />
-                  </motion.div>
-                )}
               </div>
             );
           })}
