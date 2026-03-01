@@ -32,15 +32,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
         <div className="flex items-center gap-3">
           {/* Animated Lotus Logo */}
           <motion.div
-            whileHover={{ scale: 1.1, rotate: 10 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             className="cursor-pointer"
           >
-            <span className="text-3xl filter drop-shadow-sm">🌸</span>
+            <span className="text-4xl filter drop-shadow-md">🌸</span>
           </motion.div>
 
           <div className="flex flex-col">
-            <h1 className="font-serif text-xl font-bold text-stone-800 leading-tight tracking-tight">
+            <h1 className="font-serif text-2xl font-bold bg-gradient-to-r from-[#E07A9A] to-[#D96B8A] bg-clip-text text-transparent leading-tight tracking-tight">
               Blossom
             </h1>
             <span className="hidden sm:block text-[10px] font-sans text-stone-500 font-medium tracking-wide uppercase">
@@ -53,16 +53,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
         <div className="flex items-center gap-3 sm:gap-5">
 
           {/* Privacy Badge (The "Sovereign" Promise) */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100/50 rounded-full cursor-help"
-            title="Your data stays on this device."
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              alert('Your health data stays on this device.\n\nNo cloud sync. No tracking. No third parties.\n\nYou own your story.');
+            }}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200/70 rounded-full cursor-pointer hover:bg-emerald-100/70 transition-colors"
+            aria-label="Learn about privacy"
           >
             <ShieldCheck size={14} className="text-emerald-600" />
             <span className="text-[10px] font-bold text-emerald-700 tracking-wide uppercase">
-              100% Private
+              Private
             </span>
-          </motion.div>
+          </motion.button>
 
           {/* Icons Group */}
           <div className="flex items-center gap-3 border-l border-stone-200 pl-3 sm:pl-5" ref={dropdownRef}>
@@ -82,9 +86,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               className="relative group p-2 rounded-full hover:bg-rose-50 transition-colors"
               aria-label="Notifications"
             >
-              <Bell size={22} className="text-stone-500 group-hover:text-rose-500 transition-colors" />
-              {/* Notification Dot */}
-              <span className="absolute top-2 right-2.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-[#FDFBF7]" />
+              <Bell size={22} className="text-stone-500 group-hover:text-[#E07A9A] transition-colors" />
+              {/* Notification Dot with Pulse */}
+              <motion.span
+                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-2 right-2.5 h-2 w-2 bg-rose-500 rounded-full ring-2 ring-[#FDFBF7]"
+              />
             </button>
 
             {/* Notification Dropdown */}
@@ -188,10 +196,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
             {/* Settings */}
             <button
               onClick={onOpenSettings}
-              className="group p-2 rounded-full hover:bg-stone-100 transition-colors"
+              className="group p-2 rounded-full hover:bg-rose-50 transition-colors"
               aria-label="Settings"
             >
-              <Settings size={22} className="text-stone-500 group-hover:text-stone-800 transition-colors" />
+              <Settings size={22} className="text-stone-500 group-hover:text-[#E07A9A] transition-colors" />
             </button>
           </div>
         </div>
