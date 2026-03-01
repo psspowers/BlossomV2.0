@@ -33,6 +33,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isSavingPriorities, setIsSavingPriorities] = useState(false);
   const [showRecalibrateWarning, setShowRecalibrateWarning] = useState(false);
   const [pendingPriorities, setPendingPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
+  const [maxPrioritiesMessage, setMaxPrioritiesMessage] = useState(false);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -157,7 +158,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const exists = priorities.find(p => p.id === priorityId);
     if (exists) {
       setPriorities(priorities.filter(p => p.id !== priorityId));
+      setMaxPrioritiesMessage(false);
     } else {
+      if (priorities.length >= 3) {
+        setMaxPrioritiesMessage(true);
+        setTimeout(() => setMaxPrioritiesMessage(false), 3000);
+        return;
+      }
       setPriorities([...priorities, { id: priorityId, label, happiness: 5 }]);
     }
   };
@@ -801,20 +808,48 @@ support@blossomhealth.app
 
             <div className="space-y-6">
               <div>
-                <p className="text-sm text-stone-600 mb-4">
-                  Select the priorities that matter most to you, then adjust their happiness impact. Higher values personalize your insights to focus on what matters.
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-stone-600">
+                    Choose up to 3 priorities that matter most to you
+                  </p>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    priorities.length >= 3
+                      ? 'bg-sage-100 text-sage-700'
+                      : 'bg-stone-100 text-stone-600'
+                  }`}>
+                    {priorities.length}/3
+                  </span>
+                </div>
+
+                <AnimatePresence>
+                  {maxPrioritiesMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg"
+                    >
+                      <p className="text-xs text-amber-800">
+                        Maximum of 3 priorities reached. Remove one to add another.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="grid grid-cols-2 gap-2 mb-6">
                   {allAvailablePriorities.map(p => {
                     const isSelected = priorities.some(pr => pr.id === p.id);
+                    const isDisabled = !isSelected && priorities.length >= 3;
                     return (
                       <button
                         key={p.id}
                         onClick={() => togglePriority(p.id, p.label)}
+                        disabled={isDisabled}
                         className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                           isSelected
                             ? 'bg-sage-50 border-sage-300 text-sage-800'
+                            : isDisabled
+                            ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed'
                             : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300'
                         }`}
                       >
