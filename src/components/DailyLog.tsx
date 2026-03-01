@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Shield } from 'lucide-react';
-import { LogEntry } from '../lib/db';
-import { dbAdapter as db } from '../lib/dbAdapter';
+import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 
 interface DailyLogProps {

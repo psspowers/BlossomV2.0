@@ -9,8 +9,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import { LogEntry } from '../lib/db';
-import { dbAdapter as db } from '../lib/dbAdapter';
+import { db, LogEntry } from '../lib/db';
 import { analyzeCycleState } from '../lib/logic/cycle';
 import {
   normalizeSymptom,

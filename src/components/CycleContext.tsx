@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LogEntry } from '../lib/db';
-import { dbAdapter as db } from '../lib/dbAdapter';
+import { db, LogEntry } from '../lib/db';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { Activity, TrendingUp } from 'lucide-react';
 

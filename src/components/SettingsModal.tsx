@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Trash2, FileText, Beaker, RotateCcw } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
-import { backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
-import { dbAdapter as db, migrateLocalToSupabase } from '../lib/dbAdapter';
+import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
@@ -27,8 +26,6 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [demoActive, setDemoActive] = useState<string | null>(null);
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [migrationComplete, setMigrationComplete] = useState(false);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -292,31 +289,6 @@ support@blossomhealth.app
     }
   };
 
-  const handleMigrateToCloud = async () => {
-    try {
-      setIsMigrating(true);
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        alert('You must be signed in to migrate data to the cloud.');
-        return;
-      }
-
-      const result = await migrateLocalToSupabase();
-      setMigrationComplete(true);
-
-      setTimeout(() => {
-        alert(`Migration complete! ${result.logsCount} logs and settings synced to cloud.`);
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      console.error('Migration failed:', error);
-      alert('Failed to migrate data. Please try again.');
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   const handleLoadPersona = async (name: 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella') => {
     setLoadingPersona(name);
     const isAlreadyPreviewing = !!localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -421,24 +393,6 @@ support@blossomhealth.app
                       {isExporting ? 'Exporting...' : 'Export Data (JSON)'}
                     </p>
                     <p className="text-xs text-stone-500">Download all your tracking data</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={handleMigrateToCloud}
-                  disabled={isMigrating || migrationComplete}
-                  className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-left hover:bg-blue-100 transition-colors group disabled:opacity-50"
-                >
-                  <div className="p-2 bg-white rounded-lg text-blue-600 shadow-sm">
-                    <Shield size={20} />
-                  </div>
-                  <div>
-                    <p className="font-serif text-stone-800 font-medium group-hover:text-blue-800">
-                      {isMigrating ? 'Migrating...' : migrationComplete ? 'Migration Complete' : 'Sync to Cloud'}
-                    </p>
-                    <p className="text-xs text-stone-500">
-                      {migrationComplete ? 'Your data is now synced' : 'Backup your data to Supabase'}
-                    </p>
                   </div>
                 </button>
 

@@ -1,5 +1,4 @@
-import { LogEntry } from '../db';
-import { dbAdapter as db } from '../dbAdapter';
+import { db, LogEntry } from '../db';
 import {
   normalizeSymptom,
   normalizeStress,

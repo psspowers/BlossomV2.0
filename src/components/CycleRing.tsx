@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { dbAdapter as db } from '../lib/dbAdapter';
+import { db } from '../lib/db';
 import { differenceInDays } from 'date-fns';
 import { motion } from 'framer-motion';
 
