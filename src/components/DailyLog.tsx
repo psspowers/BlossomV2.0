@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Shield } from 'lucide-react';
+import { X, Plus, Shield, Quote } from 'lucide-react';
 import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 
@@ -11,11 +11,13 @@ interface DailyLogProps {
 type CyclePhase = 'follicular' | 'ovulatory' | 'luteal' | 'menstrual' | 'unknown';
 type Flow = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
 
-const RITUAL_AFFIRMATIONS = [
-  "Rough mornings are valid.",
-  "Today I choose rest.",
-  "My body is listening.",
-  "Healing is a daily relationship."
+const GRACE_AFFIRMATIONS = [
+  "Rough days are valid. You are still blooming.",
+  "Your body is listening. Speak kindly.",
+  "Rest is a productive action.",
+  "Healing is non-linear. You are doing enough.",
+  "Small steps create the biggest shifts.",
+  "You are safe in this season."
 ];
 
 export function DailyLog({ onClose }: DailyLogProps) {
@@ -45,6 +47,12 @@ export function DailyLog({ onClose }: DailyLogProps) {
   const [newTagScore, setNewTagScore] = useState<number>(5);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [ritualAffirmation, setRitualAffirmation] = useState('');
+  const [intention, setIntention] = useState('');
+  const [affirmation, setAffirmation] = useState('');
+
+  useEffect(() => {
+    setAffirmation(GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)]);
+  }, []);
 
   useEffect(() => {
     if (isSubmitted) {
@@ -65,12 +73,13 @@ export function DailyLog({ onClose }: DailyLogProps) {
       symptoms,
       psych,
       lifestyle,
-      customValues: Object.keys(customValues).length > 0 ? customValues : undefined
+      customValues: Object.keys(customValues).length > 0 ? customValues : undefined,
+      intention: intention.trim() || undefined
     };
 
     await db.logs.add(entry);
 
-    const randomAffirmation = RITUAL_AFFIRMATIONS[Math.floor(Math.random() * RITUAL_AFFIRMATIONS.length)];
+    const randomAffirmation = GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)];
     setRitualAffirmation(randomAffirmation);
     setIsSubmitted(true);
   };
@@ -254,6 +263,33 @@ export function DailyLog({ onClose }: DailyLogProps) {
           </div>
 
           <div className="overflow-y-auto p-6 pb-32 bg-background" style={{ maxHeight: 'calc(85vh - 80px)' }}>
+
+            <section className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100/50 mb-8">
+              <div className="flex items-start gap-3 mb-4">
+                <Quote size={18} className="text-emerald-600 shrink-0 mt-1" />
+                <p className="font-serif italic text-base text-emerald-800/80 leading-relaxed">
+                  "{affirmation}"
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-emerald-100">
+                <label className="block text-xs font-bold text-emerald-700/60 uppercase tracking-widest mb-3">
+                  Daily Intention
+                </label>
+                <input
+                  type="text"
+                  placeholder="Today I choose..."
+                  value={intention}
+                  onChange={(e) => setIntention(e.target.value)}
+                  className="w-full bg-white/80 border-b-2 border-emerald-200 focus:border-emerald-500 outline-none text-center py-3 text-stone-700 placeholder:text-stone-400 placeholder:italic transition-colors rounded-t-lg px-4"
+                  maxLength={80}
+                />
+                <p className="text-[10px] text-emerald-600/60 text-center mt-2 uppercase tracking-wider">
+                  Optional • Set your intention for today
+                </p>
+              </div>
+            </section>
+
             <section className="mb-8">
               <h3 className="text-sm font-serif font-semibold text-primary uppercase tracking-wide mb-4">
                 1. Cycle

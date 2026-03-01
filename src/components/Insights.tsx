@@ -18,6 +18,10 @@ import {
 import { TrendingDown, Minus, Leaf, Sparkles } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { db } from '../lib/db';
+import { SeasonTimeline } from './SeasonTimeline';
+import { calculateBlossomScore } from '../lib/logic/blossomScore';
+import { calculateSeason } from '../lib/logic/seasons';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 ChartJS.register(
   CategoryScale,
@@ -37,6 +41,9 @@ export function Insights() {
   const [timeframe, setTimeframe] = useState<7 | 30>(7);
   const [cycleAnalysis, setCycleAnalysis] = useState<CycleAnalysis | null>(null);
   const [cycleLoading, setCycleLoading] = useState(true);
+  const [seasonData, setSeasonData] = useState<{ score: number; season: any } | null>(null);
+
+  const logsTrigger = useLiveQuery(() => db.logs.orderBy('date').last());
 
   const getCategoryFromView = (v: InsightView): InsightCategory => {
     switch (v) {
@@ -60,6 +67,16 @@ export function Insights() {
 
     loadCycleHistory();
   }, []);
+
+  useEffect(() => {
+    const loadSeasonData = async () => {
+      const { score } = await calculateBlossomScore();
+      const season = await calculateSeason(score);
+      setSeasonData({ score, season });
+    };
+
+    loadSeasonData();
+  }, [logsTrigger]);
 
   const currentConfig = viewConfig[view];
 
@@ -90,6 +107,10 @@ export function Insights() {
 
   return (
     <div className="mt-6">
+      {seasonData && (
+        <SeasonTimeline season={seasonData.season} score={seasonData.score} />
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-serif font-bold text-slate-800">Pattern Explorer</h2>

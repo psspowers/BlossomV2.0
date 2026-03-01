@@ -42,6 +42,8 @@ export interface LogEntry {
     diet?: string;
   };
   customValues?: Record<string, number>;
+  intention?: string;
+  note?: string;
 }
 
 export interface CustomSymptom {
