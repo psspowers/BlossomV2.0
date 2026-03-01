@@ -66,6 +66,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ['jspdf'],
+    include: ['jspdf', 'html2canvas'],
   },
 }));
