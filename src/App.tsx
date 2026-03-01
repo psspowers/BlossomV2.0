@@ -26,10 +26,21 @@ const App = () => {
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setAuthLoading(false);
-    });
+    const initAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('[Auth] Session retrieval error:', error);
+        }
+        setSession(currentSession);
+      } catch (err) {
+        console.error('[Auth] Failed to get session:', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);

@@ -34,22 +34,45 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
 
     try {
       if (mode === 'signup') {
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
         });
         if (signUpError) throw signUpError;
+        if (data?.user) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (signInError) throw signInError;
+        if (data?.session) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
 
       onNext(email);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Authentication failed.';
+      console.error('[Auth] Authentication error:', err);
+      let message = 'Authentication failed. Please try again.';
+
+      if (err instanceof Error) {
+        if (err.message.includes('Invalid login credentials')) {
+          message = 'Invalid email or password.';
+        } else if (err.message.includes('User already registered')) {
+          message = 'This email is already registered. Try signing in.';
+        } else if (err.message.includes('Email not confirmed')) {
+          message = 'Please check your email to confirm your account.';
+        } else {
+          message = err.message;
+        }
+      }
+
       setError(message);
     } finally {
       setLoading(false);
@@ -112,11 +135,15 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input
               type="email"
+              inputMode="email"
               placeholder="Email Address"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(null); }}
               className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sage-400/30 focus:border-sage-400 text-slate-800 placeholder:text-slate-300 transition-all text-sm"
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
 
