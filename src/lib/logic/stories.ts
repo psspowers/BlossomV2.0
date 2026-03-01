@@ -1,4 +1,5 @@
 import { LogEntry, getLastNDays } from '../db';
+import { normalizeSleep, normalizeMood, normalizeSymptom, normalizeExercise, normalizeStress, normalizeAnxiety } from './conversions';
 
 function convertLifestyleToNumber(value: string | undefined, field: string): number {
   if (!value) return 0;
@@ -56,6 +57,8 @@ export interface PatternStory {
   story: string;
   category: 'sleep' | 'movement' | 'diet' | 'stress' | 'education';
   confidence: 'high' | 'medium' | 'low';
+  sampleSize?: number;
+  badge?: string;
 }
 
 export async function generatePatternStories(logs?: LogEntry[]): Promise<PatternStory[]> {
@@ -92,16 +95,22 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     const anxietyDifference = ((badSleepAnxiety - goodSleepAnxiety) / badSleepAnxiety) * 100;
 
     if (anxietyDifference > 15) {
+      const sampleSize = goodSleepLogs.length + badSleepLogs.length;
       stories.push({
         story: `On nights you sleep 7h+, your anxiety is noticeably lower. Rest is your medicine.`,
         category: 'sleep',
-        confidence: 'high'
+        confidence: sampleSize >= 12 ? 'high' : 'medium',
+        sampleSize,
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
       });
     } else if (anxietyDifference < -15) {
+      const sampleSize = goodSleepLogs.length + badSleepLogs.length;
       stories.push({
         story: `Interestingly, your anxiety patterns don't seem strongly linked to sleep duration. Let's explore other factors.`,
         category: 'sleep',
-        confidence: 'medium'
+        confidence: 'medium',
+        sampleSize,
+        badge: `based on ${sampleSize} days`
       });
     }
   }
@@ -123,16 +132,22 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     const energyDifference = ((movementEnergy - restEnergy) / restEnergy) * 100;
 
     if (energyDifference > 15) {
+      const sampleSize = movementLogs.length + restLogs.length;
       stories.push({
         story: `Movement fuels you. You reported ${Math.round(energyDifference)}% more energy on active days.`,
         category: 'movement',
-        confidence: 'high'
+        confidence: sampleSize >= 12 ? 'high' : 'medium',
+        sampleSize,
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
       });
     } else if (energyDifference < -15) {
+      const sampleSize = movementLogs.length + restLogs.length;
       stories.push({
         story: `Your body is telling you it needs more rest. Energy levels are higher on lighter activity days.`,
         category: 'movement',
-        confidence: 'high'
+        confidence: sampleSize >= 12 ? 'high' : 'medium',
+        sampleSize,
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
       });
     }
   }
@@ -151,10 +166,13 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     const moodDifference = ((balancedMood - cravingsMood) / cravingsMood) * 100;
 
     if (moodDifference > 10) {
+      const sampleSize = balancedDietLogs.length + cravingsDietLogs.length;
       stories.push({
         story: `Balanced nutrition stabilizes your mood. You feel ${Math.round(moodDifference)}% better on those days.`,
         category: 'diet',
-        confidence: 'high'
+        confidence: sampleSize >= 12 ? 'high' : 'medium',
+        sampleSize,
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
       });
     }
   }
@@ -188,10 +206,13 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     const symptomDifference = ((highStressSymptoms - lowStressSymptoms) / highStressSymptoms) * 100;
 
     if (symptomDifference > 15) {
+      const sampleSize = lowStressLogs.length + highStressLogs.length;
       stories.push({
         story: `Lower stress days correlate with fewer physical symptoms. Your mind-body connection is strong.`,
         category: 'stress',
-        confidence: 'high'
+        confidence: sampleSize >= 12 ? 'high' : 'medium',
+        sampleSize,
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
       });
     }
   }
