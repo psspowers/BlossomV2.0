@@ -31,6 +31,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [showPriorityEditor, setShowPriorityEditor] = useState(false);
   const [priorities, setPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
   const [isSavingPriorities, setIsSavingPriorities] = useState(false);
+  const [showRecalibrateWarning, setShowRecalibrateWarning] = useState(false);
+  const [pendingPriorities, setPendingPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -70,6 +72,21 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     }
   };
 
+  const allAvailablePriorities = [
+    { id: 'acne', label: 'Acne' },
+    { id: 'hirsutism', label: 'Facial Hair' },
+    { id: 'hair_loss', label: 'Hair Loss' },
+    { id: 'bloating', label: 'Bloating' },
+    { id: 'cramps', label: 'Pain & Cramps' },
+    { id: 'cravings', label: 'Cravings' },
+    { id: 'mood', label: 'Mood Swings' },
+    { id: 'sleep', label: 'Sleep Quality' },
+    { id: 'cycle', label: 'Cycle Regularity' },
+    { id: 'fertility', label: 'Fertility' },
+    { id: 'weight', label: 'Weight & Metabolism' },
+    { id: 'energy', label: 'Daily Energy' }
+  ];
+
   const getPriorityLabel = (id: string): string => {
     const labels: Record<string, string> = {
       acne: 'Acne',
@@ -88,24 +105,60 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     return labels[id] || id;
   };
 
+  const handleSavePriorities = () => {
+    const settings = db.settings.toCollection().first();
+    settings.then(s => {
+      if (s) {
+        const originalIds = s.priorities || [];
+        const newIds = priorities.map(p => p.id);
+        const prioritiesChanged =
+          originalIds.length !== newIds.length ||
+          originalIds.some(id => !newIds.includes(id));
+
+        if (prioritiesChanged) {
+          setPendingPriorities(priorities);
+          setShowRecalibrateWarning(true);
+        } else {
+          handleUpdatePriorities();
+        }
+      }
+    });
+  };
+
   const handleUpdatePriorities = async () => {
     try {
       setIsSavingPriorities(true);
       const settings = await db.settings.toCollection().first();
       if (!settings) return;
 
+      const priorityIds = priorities.map(p => p.id);
       const happinessWeights: Record<string, number> = {};
       priorities.forEach(p => {
         happinessWeights[p.id] = p.happiness;
       });
 
-      await db.settings.update(settings.id!, { happinessWeights });
+      await db.settings.update(settings.id!, {
+        priorities: priorityIds,
+        happinessWeights
+      });
+
       setShowPriorityEditor(false);
+      setShowRecalibrateWarning(false);
+      await loadPriorities();
     } catch (error) {
       console.error('Failed to update priorities:', error);
       alert('Failed to save priorities. Please try again.');
     } finally {
       setIsSavingPriorities(false);
+    }
+  };
+
+  const togglePriority = (priorityId: string, label: string) => {
+    const exists = priorities.find(p => p.id === priorityId);
+    if (exists) {
+      setPriorities(priorities.filter(p => p.id !== priorityId));
+    } else {
+      setPriorities([...priorities, { id: priorityId, label, happiness: 5 }]);
     }
   };
 
@@ -668,6 +721,61 @@ support@blossomhealth.app
         </motion.div>
       )}
 
+      {showRecalibrateWarning && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          onClick={() => setShowRecalibrateWarning(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-sage-100 rounded-lg">
+                <Heart size={24} className="text-sage-700" />
+              </div>
+              <h3 className="text-xl font-serif text-stone-800">Recalibrating Your Journey</h3>
+            </div>
+            <p className="text-sm text-stone-600 mb-4">
+              You've updated your priorities. This will refresh your wellness patterns and insights to better align with what matters most to you now.
+            </p>
+            <div className="bg-sage-50 border border-sage-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-sage-800 font-medium mb-2">
+                Your personalized journey continues
+              </p>
+              <p className="text-xs text-sage-700">
+                Blossom will recalculate your wellness score and insights based on your new priorities. This helps surface the patterns most relevant to your current goals.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowRecalibrateWarning(false);
+                  setPendingPriorities([]);
+                }}
+                className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  setPriorities(pendingPriorities);
+                  handleUpdatePriorities();
+                }}
+                disabled={isSavingPriorities}
+                className="flex-1 px-4 py-3 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isSavingPriorities ? 'Updating...' : 'Continue'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       {showPriorityEditor && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -691,61 +799,83 @@ support@blossomhealth.app
               </button>
             </div>
 
-            {priorities.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-stone-500 mb-2">No priorities set yet</p>
-                <p className="text-xs text-stone-400">Complete onboarding to set your priorities</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
+            <div className="space-y-6">
+              <div>
                 <p className="text-sm text-stone-600 mb-4">
-                  Adjust how much happiness improving each priority would bring you. Higher values personalize your insights and patterns to focus on what matters most.
+                  Select the priorities that matter most to you, then adjust their happiness impact. Higher values personalize your insights to focus on what matters.
                 </p>
 
-                {priorities.map((priority, idx) => (
-                  <div key={priority.id} className="bg-white p-4 rounded-xl border border-stone-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-stone-800">{priority.label}</span>
-                      <span className="text-2xl font-serif text-sage-700">{priority.happiness}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="10"
-                      step="1"
-                      value={priority.happiness}
-                      onChange={(e) => {
-                        const newPriorities = [...priorities];
-                        newPriorities[idx].happiness = parseInt(e.target.value);
-                        setPriorities(newPriorities);
-                      }}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-[10px] text-stone-500 font-medium tracking-wider">None</span>
-                      <label className="text-[10px] font-serif italic text-sage-600">Happiness Impact</label>
-                      <span className="text-[10px] text-stone-500 font-medium tracking-wider">Life Changing</span>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowPriorityEditor(false)}
-                    className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleUpdatePriorities}
-                    disabled={isSavingPriorities}
-                    className="flex-1 px-4 py-3 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
-                  >
-                    {isSavingPriorities ? 'Saving...' : 'Save Changes'}
-                  </button>
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {allAvailablePriorities.map(p => {
+                    const isSelected = priorities.some(pr => pr.id === p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePriority(p.id, p.label)}
+                        className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                          isSelected
+                            ? 'bg-sage-50 border-sage-300 text-sage-800'
+                            : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+
+              {priorities.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-stone-700">Happiness Impact</h4>
+                  {priorities.map((priority, idx) => (
+                    <div key={priority.id} className="bg-white p-4 rounded-xl border border-stone-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-stone-800">{priority.label}</span>
+                        <span className="text-2xl font-serif text-sage-700">{priority.happiness}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value={priority.happiness}
+                        onChange={(e) => {
+                          const newPriorities = [...priorities];
+                          newPriorities[idx].happiness = parseInt(e.target.value);
+                          setPriorities(newPriorities);
+                        }}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[10px] text-stone-500 font-medium tracking-wider">None</span>
+                        <label className="text-[10px] font-serif italic text-sage-600">Happiness Impact</label>
+                        <span className="text-[10px] text-stone-500 font-medium tracking-wider">Life Changing</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowPriorityEditor(false);
+                    loadPriorities();
+                  }}
+                  className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSavePriorities}
+                  disabled={isSavingPriorities || priorities.length === 0}
+                  className="flex-1 px-4 py-3 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isSavingPriorities ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
           </motion.div>
         </motion.div>
       )}
