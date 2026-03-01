@@ -1,5 +1,5 @@
 import { Activity, Zap, Sparkles, Droplet, LucideIcon } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type InsightView = 'physical' | 'emotional' | 'metabolic' | 'cycle';
@@ -59,37 +59,21 @@ interface InsightsNavigationProps {
 }
 
 export function InsightsNavigation({ view, onViewChange }: InsightsNavigationProps) {
-  const [pressedView, setPressedView] = useState<InsightView | null>(null);
   const [showLabel, setShowLabel] = useState<InsightView | null>(null);
-  const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const views: InsightView[] = ['physical', 'metabolic', 'emotional', 'cycle'];
 
-  const handlePressStart = (viewKey: InsightView) => {
-    setPressedView(viewKey);
-    setShowLabel(viewKey);
-
-    pressTimerRef.current = setTimeout(() => {
-      onViewChange(viewKey);
-      setPressedView(null);
-      setShowLabel(null);
-    }, 800);
+  const handleClick = (viewKey: InsightView) => {
+    onViewChange(viewKey);
   };
 
-  const handlePressEnd = () => {
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-    }
-    setPressedView(null);
+  const handleMouseEnter = (viewKey: InsightView) => {
+    setShowLabel(viewKey);
+  };
+
+  const handleMouseLeave = () => {
     setShowLabel(null);
   };
 
-  useEffect(() => {
-    return () => {
-      if (pressTimerRef.current) {
-        clearTimeout(pressTimerRef.current);
-      }
-    };
-  }, []);
 
   return (
     <div className="w-full flex justify-center mb-6 sticky top-4 z-50 pointer-events-none">
@@ -98,24 +82,20 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
           const config = viewConfig[viewKey];
           const Icon = config.icon;
           const isActive = view === viewKey;
-          const isPressed = pressedView === viewKey;
           const shouldShowLabel = showLabel === viewKey;
 
           return (
             <div key={viewKey} className="relative">
               <button
-                onMouseDown={() => handlePressStart(viewKey)}
-                onMouseUp={handlePressEnd}
-                onMouseLeave={handlePressEnd}
-                onTouchStart={() => handlePressStart(viewKey)}
-                onTouchEnd={handlePressEnd}
+                onClick={() => handleClick(viewKey)}
+                onMouseEnter={() => handleMouseEnter(viewKey)}
+                onMouseLeave={handleMouseLeave}
                 className={`
                   relative flex items-center justify-center w-14 h-14 rounded-full
                   transition-all duration-300 ease-out focus:outline-none
                   ${isActive
                     ? `${config.activeClass} scale-105`
                     : `${config.inactiveClass} hover:shadow-sm`}
-                  ${isPressed ? 'scale-95' : ''}
                 `}
                 aria-label={config.label}
               >
