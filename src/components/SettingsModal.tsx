@@ -8,6 +8,7 @@ import { analyzeHistory } from '../lib/logic/cycle';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason } from '../lib/logic/seasons';
 import { supabase } from '../lib/supabase';
+import { jsPDF } from 'jspdf';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -223,6 +224,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       const cycleAnalysis = analyzeHistory(logs);
       const blossomScoreData = await calculateBlossomScore();
       const today = new Date();
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPos = margin;
       const last30Days = logs.filter(log => {
         const logDate = new Date(log.date);
         const daysDiff = Math.floor((today.getTime() - logDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -274,106 +282,188 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         ? Math.round(((avgGoodSleepMood - avgMoodScore) / avgMoodScore) * 100)
         : 0;
 
-      const report = `
-BLOSSOM CLINICAL SNAPSHOT
-Generated: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      pdf.setFillColor(134, 168, 115);
+      pdf.rect(0, 0, pageWidth, 120, 'F');
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      try {
+        const imgData = await fetch('/logo-icon.png').then(r => r.blob()).then(b => new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(b);
+        }));
+        pdf.addImage(imgData, 'PNG', (pageWidth - 60) / 2, 35, 60, 60);
+      } catch (e) {
+        console.warn('Logo loading failed, continuing without it');
+      }
 
-PATIENT TRACKING SUMMARY
-• Total Days Tracked: ${logs.length} days
-• Data Range: ${logs[0]?.date || 'N/A'} to ${logs[logs.length - 1]?.date || 'N/A'}
-• Current Streak: ${plantState.streak} consecutive days
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(28);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Blossom Clinical Summary', pageWidth / 2, 105, { align: 'center' });
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Patient-Reported Outcomes & Symptom Trajectory', pageWidth / 2, 112, { align: 'center' });
 
-CYCLE HISTORY
-${cycleAnalysis.isUntracked ? '• Status: Insufficient cycle data (less than 2 periods tracked)' : `• Last Period Start: ${cycleAnalysis.lastTruePeriod?.startDate || 'N/A'}
-• Last Period Duration: ${cycleAnalysis.lastTruePeriod ? Math.round((new Date(cycleAnalysis.lastTruePeriod.endDate).getTime() - new Date(cycleAnalysis.lastTruePeriod.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0} days
-• Current Cycle Day: Day ${cycleAnalysis.currentDay}
-• Average Cycle Length (Last 3): ${avgCycleLength > 0 ? `${avgCycleLength} days` : 'N/A'}
-• Cycle Stability: ${cycleAnalysis.variability <= 7 ? 'Stable' : 'Dynamic'} (±${Math.round(cycleAnalysis.variability)} days)
-• Cycle Pattern: ${cycleAnalysis.isLongCycle ? 'Extended Cycle (>35 days)' : 'Regular Pattern'}
-• Total Cycles Tracked: ${cycleAnalysis.cycleHistory.length} cycles`}
+      pdf.setFontSize(9);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text(`Generated: ${today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
 
-Recent Cycle Lengths:
-${cycleAnalysis.cycleHistory.length > 0
-  ? cycleAnalysis.cycleHistory
-      .slice(-5)
-      .reverse()
-      .map((c, idx) => `  ${idx + 1}. ${c.startDate}${c.daysFromPrevious ? ` (${c.daysFromPrevious} days from previous)` : ' (first tracked cycle)'}`)
-      .join('\n')
-  : '  No cycles tracked yet'}
+      pdf.addPage();
+      yPos = margin;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Patient Tracking Summary', margin, yPos);
+      yPos += 10;
 
-SYMPTOM OVERVIEW (Last 30 Days)
-• Average Pain Level: ${avgPainLevel}${typeof avgPainLevel === 'string' ? '' : '/10'}
-• High Pain Days (7+/10): ${highPainDays} days
-• High Acne Days (7+/10): ${highAcneDays} days
-• Average Mood Score: ${avgMoodScore}/100
-• Wellness Score (Blossom): ${blossomScoreData.score}/100
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Total Days Tracked: ${logs.length} days`, margin, yPos);
+      yPos += 6;
+      pdf.text(`Data Range: ${logs[0]?.date || 'N/A'} to ${logs[logs.length - 1]?.date || 'N/A'}`, margin, yPos);
+      yPos += 6;
+      pdf.text(`Current Streak: ${plantState.streak} consecutive days`, margin, yPos);
+      yPos += 15;
 
-Symptom Breakdown:
-  - Symptom Factor: ${Math.round(blossomScoreData.symptomFactor)}/100
-  - Self-Care Factor: ${Math.round(blossomScoreData.selfCareFactor)}/100
-  - Emotional Factor: ${Math.round(blossomScoreData.emotionalFactor)}/100
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Cycle History', margin, yPos);
+      yPos += 10;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      if (cycleAnalysis.isUntracked) {
+        pdf.text('Status: Insufficient cycle data (less than 2 periods tracked)', margin, yPos);
+        yPos += 6;
+      } else {
+        pdf.text(`Last Period Start: ${cycleAnalysis.lastTruePeriod?.startDate || 'N/A'}`, margin, yPos);
+        yPos += 6;
+        const periodDuration = cycleAnalysis.lastTruePeriod ? Math.round((new Date(cycleAnalysis.lastTruePeriod.endDate).getTime() - new Date(cycleAnalysis.lastTruePeriod.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0;
+        pdf.text(`Last Period Duration: ${periodDuration} days`, margin, yPos);
+        yPos += 6;
+        pdf.text(`Current Cycle Day: Day ${cycleAnalysis.currentDay}`, margin, yPos);
+        yPos += 6;
+        pdf.text(`Average Cycle Length (Last 3): ${avgCycleLength > 0 ? `${avgCycleLength} days` : 'N/A'}`, margin, yPos);
+        yPos += 6;
+        pdf.text(`Cycle Stability: ${cycleAnalysis.variability <= 7 ? 'Stable' : 'Dynamic'} (±${Math.round(cycleAnalysis.variability)} days)`, margin, yPos);
+        yPos += 6;
+        pdf.text(`Cycle Pattern: ${cycleAnalysis.isLongCycle ? 'Extended Cycle (>35 days)' : 'Regular Pattern'}`, margin, yPos);
+        yPos += 6;
+        pdf.text(`Total Cycles Tracked: ${cycleAnalysis.cycleHistory.length} cycles`, margin, yPos);
+        yPos += 10;
 
-LIFESTYLE CORRELATIONS (Last 30 Days)
-• Days with Good Sleep (7+ hours): ${goodSleepDays} days (${Math.round((goodSleepDays / Math.max(last30Days.length, 1)) * 100)}%)
-${moodImprovement > 0
-  ? `• Sleep-Mood Correlation: ${moodImprovement}% better mood on days with 7+ hours of sleep`
-  : '• Sleep-Mood Correlation: Insufficient data or no improvement detected'}
+        pdf.setFont('helvetica', 'italic');
+        pdf.text('Recent Cycle Lengths:', margin, yPos);
+        yPos += 6;
+        pdf.setFont('helvetica', 'normal');
+        if (cycleAnalysis.cycleHistory.length > 0) {
+          cycleAnalysis.cycleHistory.slice(-5).reverse().forEach((c, idx) => {
+            pdf.text(`${idx + 1}. ${c.startDate}${c.daysFromPrevious ? ` (${c.daysFromPrevious} days from previous)` : ' (first tracked cycle)'}`, margin + 5, yPos);
+            yPos += 6;
+          });
+        }
+      }
 
-Exercise Frequency:
-${(() => {
-  const exerciseCounts = {
-    rest: last30Days.filter(l => l.lifestyle.exercise === 'rest').length,
-    light: last30Days.filter(l => l.lifestyle.exercise === 'light').length,
-    moderate: last30Days.filter(l => l.lifestyle.exercise === 'moderate').length,
-    intense: last30Days.filter(l => l.lifestyle.exercise === 'intense').length
-  };
-  return `  - Rest: ${exerciseCounts.rest} days
-  - Light: ${exerciseCounts.light} days
-  - Moderate: ${exerciseCounts.moderate} days
-  - Intense: ${exerciseCounts.intense} days`;
-})()}
+      yPos += 10;
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Symptom Overview (Last 30 Days)', margin, yPos);
+      yPos += 10;
 
-Hydration:
-${(() => {
-  const waterIntakes = last30Days
-    .map(l => l.lifestyle.waterIntake || 0)
-    .filter(w => w > 0);
-  const avgWater = waterIntakes.length > 0
-    ? (waterIntakes.reduce((a, b) => a + b, 0) / waterIntakes.length).toFixed(1)
-    : 'N/A';
-  return `  - Average Daily Water: ${avgWater} glasses`;
-})()}
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Average Pain Level: ${avgPainLevel}${typeof avgPainLevel === 'string' ? '' : '/10'}`, margin, yPos);
+      yPos += 6;
+      pdf.text(`High Pain Days (7+/10): ${highPainDays} days`, margin, yPos);
+      yPos += 6;
+      pdf.text(`High Acne Days (7+/10): ${highAcneDays} days`, margin, yPos);
+      yPos += 6;
+      pdf.text(`Average Mood Score: ${avgMoodScore}/100`, margin, yPos);
+      yPos += 6;
+      pdf.text(`Wellness Score (Blossom): ${blossomScoreData.score}/100`, margin, yPos);
+      yPos += 10;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      pdf.setFont('helvetica', 'italic');
+      pdf.text('Wellness Score Breakdown:', margin, yPos);
+      yPos += 6;
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Symptom Factor: ${Math.round(blossomScoreData.symptomFactor)}/100`, margin + 5, yPos);
+      yPos += 6;
+      pdf.text(`Self-Care Factor: ${Math.round(blossomScoreData.selfCareFactor)}/100`, margin + 5, yPos);
+      yPos += 6;
+      pdf.text(`Emotional Factor: ${Math.round(blossomScoreData.emotionalFactor)}/100`, margin + 5, yPos);
+      yPos += 15;
 
-NOTES FOR HEALTHCARE PROVIDER
-This report is generated from self-tracked menstrual and wellness data.
-All symptom ratings use a 0-10 scale unless otherwise specified.
-Mood scores range from 0-100.
+      pdf.addPage();
+      yPos = margin;
 
-For questions about this data or the Blossom Health app, please contact:
-support@blossomhealth.app
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Lifestyle Correlations (Last 30 Days)', margin, yPos);
+      yPos += 10;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Days with Good Sleep (7+ hours): ${goodSleepDays} days (${Math.round((goodSleepDays / Math.max(last30Days.length, 1)) * 100)}%)`, margin, yPos);
+      yPos += 6;
+      if (moodImprovement > 0) {
+        pdf.text(`Sleep-Mood Correlation: ${moodImprovement}% better mood on days with 7+ hours of sleep`, margin, yPos);
+      } else {
+        pdf.text('Sleep-Mood Correlation: Insufficient data or no improvement detected', margin, yPos);
+      }
+      yPos += 10;
 
-      const blob = new Blob([report], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `blossom-clinical-snapshot-${new Date().toISOString().split('T')[0]}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      pdf.setFont('helvetica', 'italic');
+      pdf.text('Exercise Frequency:', margin, yPos);
+      yPos += 6;
+      pdf.setFont('helvetica', 'normal');
+      const exerciseCounts = {
+        rest: last30Days.filter(l => l.lifestyle.exercise === 'rest').length,
+        light: last30Days.filter(l => l.lifestyle.exercise === 'light').length,
+        moderate: last30Days.filter(l => l.lifestyle.exercise === 'moderate').length,
+        intense: last30Days.filter(l => l.lifestyle.exercise === 'intense').length
+      };
+      pdf.text(`Rest: ${exerciseCounts.rest} days`, margin + 5, yPos);
+      yPos += 6;
+      pdf.text(`Light: ${exerciseCounts.light} days`, margin + 5, yPos);
+      yPos += 6;
+      pdf.text(`Moderate: ${exerciseCounts.moderate} days`, margin + 5, yPos);
+      yPos += 6;
+      pdf.text(`Intense: ${exerciseCounts.intense} days`, margin + 5, yPos);
+      yPos += 10;
+
+      pdf.setFont('helvetica', 'italic');
+      pdf.text('Hydration:', margin, yPos);
+      yPos += 6;
+      pdf.setFont('helvetica', 'normal');
+      const waterIntakes = last30Days.map(l => l.lifestyle.waterIntake || 0).filter(w => w > 0);
+      const avgWater = waterIntakes.length > 0 ? (waterIntakes.reduce((a, b) => a + b, 0) / waterIntakes.length).toFixed(1) : 'N/A';
+      pdf.text(`Average Daily Water: ${avgWater} glasses`, margin + 5, yPos);
+      yPos += 15;
+
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Notes for Healthcare Provider', margin, yPos);
+      yPos += 8;
+
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      const disclaimer = pdf.splitTextToSize(
+        'This report is generated from self-tracked menstrual and wellness data. All symptom ratings use a 0-10 scale unless otherwise specified. Mood scores range from 0-100. This is patient-generated data for clinical discussion purposes only and should not be used as a standalone diagnostic tool.',
+        contentWidth
+      );
+      disclaimer.forEach((line: string) => {
+        pdf.text(line, margin, yPos);
+        yPos += 5;
+      });
+
+      pdf.setTextColor(100, 100, 100);
+      pdf.setFontSize(8);
+      pdf.text(`Page 3 of 3`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+      pdf.save(`blossom-clinical-snapshot-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error('Clinical report generation failed:', error);
       alert('Failed to generate clinical report. Please try again.');
@@ -408,16 +498,30 @@ support@blossomhealth.app
       await db.logs.clear();
       await db.settings.clear();
       await db.backupLogs.clear();
-      localStorage.clear();
 
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) throw signOutError;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`;
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+
+      localStorage.clear();
+      await supabase.auth.signOut();
 
       setShowDeleteAccountConfirm(false);
       window.location.href = '/';
     } catch (error) {
       console.error('Account deletion failed:', error);
-      alert('Failed to delete account. Please try again or contact support.');
+      alert('Local data cleared. If server deletion failed, please contact support.');
+      localStorage.clear();
+      await supabase.auth.signOut();
+      window.location.href = '/';
     } finally {
       setIsDeletingAccount(false);
     }
@@ -702,8 +806,13 @@ support@blossomhealth.app
               <h3 className="text-xl font-serif text-stone-800">Delete Account?</h3>
             </div>
             <p className="text-sm text-stone-600 mb-4">
-              This will permanently delete your account and all associated data from both this device and our servers.
+              This will permanently delete your login credentials from our servers and wipe all local health data from this device.
             </p>
+            <div className="bg-sage-50 border border-sage-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-sage-800">
+                <strong>Your Privacy:</strong> Only your email and login credentials are stored on our servers. All health data (logs, symptoms, priorities) is already 100% local on this device.
+              </p>
+            </div>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
               <p className="text-xs text-amber-800 font-medium">
                 Warning: This action cannot be undone. You will need to create a new account to use Blossom again.

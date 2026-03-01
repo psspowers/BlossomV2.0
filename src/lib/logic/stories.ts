@@ -1,4 +1,4 @@
-import { LogEntry, getLastNDays } from '../db';
+import { LogEntry, getLastNDays, getOrCreateSettings } from '../db';
 import { normalizeSleep, normalizeMood, normalizeSymptom, normalizeExercise, normalizeStress, normalizeAnxiety } from './conversions';
 
 function convertLifestyleToNumber(value: string | undefined, field: string): number {
@@ -59,6 +59,7 @@ export interface PatternStory {
   confidence: 'high' | 'medium' | 'low';
   sampleSize?: number;
   badge?: string;
+  priorityScore?: number;
 }
 
 export async function generatePatternStories(logs?: LogEntry[]): Promise<PatternStory[]> {
@@ -70,6 +71,20 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
       category: 'education',
       confidence: 'low'
     }];
+  }
+
+  const settings = await getOrCreateSettings();
+  const priorities = settings.priorities || [];
+  const happinessWeights = settings.happinessWeights || {};
+
+  function calculatePriorityScore(relatedPriorities: string[]): number {
+    let score = 0;
+    for (const priority of relatedPriorities) {
+      if (priorities.includes(priority)) {
+        score += (happinessWeights[priority] || 5);
+      }
+    }
+    return score;
   }
 
   const stories: PatternStory[] = [];
@@ -101,7 +116,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'sleep',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
-        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
+        priorityScore: calculatePriorityScore(['sleep', 'mood', 'energy'])
       });
     } else if (anxietyDifference < -15) {
       const sampleSize = goodSleepLogs.length + badSleepLogs.length;
@@ -110,7 +126,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'sleep',
         confidence: 'medium',
         sampleSize,
-        badge: `based on ${sampleSize} days`
+        badge: `based on ${sampleSize} days`,
+        priorityScore: calculatePriorityScore(['sleep', 'mood'])
       });
     }
   }
@@ -138,7 +155,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'movement',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
-        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
+        priorityScore: calculatePriorityScore(['energy', 'mood', 'weight'])
       });
     } else if (energyDifference < -15) {
       const sampleSize = movementLogs.length + restLogs.length;
@@ -147,7 +165,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'movement',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
-        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
+        priorityScore: calculatePriorityScore(['energy', 'sleep'])
       });
     }
   }
@@ -172,7 +191,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'diet',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
-        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
+        priorityScore: calculatePriorityScore(['mood', 'energy', 'bloating', 'cravings'])
       });
     }
   }
@@ -212,7 +232,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
         category: 'stress',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
-        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern'
+        badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
+        priorityScore: calculatePriorityScore(['mood', 'acne', 'bloating', 'cramps'])
       });
     }
   }
@@ -222,9 +243,16 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     stories.push({
       story: randomTip,
       category: 'education',
-      confidence: 'low'
+      confidence: 'low',
+      priorityScore: 0
     });
   }
+
+  stories.sort((a, b) => {
+    if (a.confidence === 'high' && b.confidence !== 'high') return -1;
+    if (b.confidence === 'high' && a.confidence !== 'high') return 1;
+    return (b.priorityScore || 0) - (a.priorityScore || 0);
+  });
 
   return stories;
 }
