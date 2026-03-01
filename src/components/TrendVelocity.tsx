@@ -11,7 +11,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { db } from '../lib/db';
+import { dbAdapter as db } from '../lib/dbAdapter';
 import { getVelocity } from '../lib/logic/velocity';
 import { getRawStress, getRawAnxiety } from '../lib/logic/conversions';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';

@@ -17,7 +17,7 @@ import {
 } from 'chart.js';
 import { TrendingDown, Minus, Leaf, Sparkles } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
-import { db } from '../lib/db';
+import { dbAdapter as db } from '../lib/dbAdapter';
 
 ChartJS.register(
   CategoryScale,

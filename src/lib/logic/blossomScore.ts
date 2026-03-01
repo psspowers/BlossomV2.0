@@ -1,4 +1,5 @@
-import { LogEntry, getLastNDays, db } from '../db';
+import { LogEntry } from '../db';
+import { getLastNDays, dbAdapter as db } from '../dbAdapter';
 import { analyzeCycleState } from './cycle';
 import {
   normalizeSymptom,
@@ -24,17 +25,6 @@ export interface BlossomScoreResult {
   };
 }
 
-export interface BlossomScoreBreakdown {
-  total: number;
-  componentA: number;
-  componentB: number;
-  componentC: number;
-  details: {
-    symptomImprovement: string;
-    selfCareConsistency: string;
-    emotionalWellbeing: string;
-  };
-}
 
 const PRIORITY_MAP: Record<string, keyof Omit<BlossomScoreResult, 'score' | 'activeWeights'>> = {
   'mood_energy': 'emotionalFactor',
@@ -186,71 +176,3 @@ export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<
   };
 }
 
-export async function calculateBlossomScoreWithBreakdown(): Promise<BlossomScoreBreakdown> {
-  const allLogs = await getLastNDays(14);
-
-  if (allLogs.length < 7) {
-    return {
-      total: 50,
-      componentA: 50,
-      componentB: 0,
-      componentC: 50,
-      details: {
-        symptomImprovement: 'Not enough data yet',
-        selfCareConsistency: 'Keep logging to see your consistency',
-        emotionalWellbeing: 'Your emotional journey is just beginning'
-      }
-    };
-  }
-
-  const sortedLogs = allLogs.sort((a, b) => a.date.localeCompare(b.date));
-  const midpoint = Math.ceil(sortedLogs.length / 2);
-
-  const previousPeriod = sortedLogs.slice(0, midpoint);
-  const currentPeriod = sortedLogs.slice(midpoint);
-
-  const prevSymptomAvg = calculateAverage(previousPeriod.map(getSymptomWellness));
-  const currSymptomAvg = calculateAverage(currentPeriod.map(getSymptomWellness));
-
-  let componentA = 0;
-  let symptomDetail = '';
-
-  if (prevSymptomAvg > 0) {
-    const improvement = ((currSymptomAvg - prevSymptomAvg) / prevSymptomAvg) * 100;
-    componentA = Math.max(0, Math.min(100, 50 + improvement));
-
-    if (improvement > 10) {
-      symptomDetail = `Your symptoms improved by ${Math.round(improvement)}%`;
-    } else if (improvement < -10) {
-      symptomDetail = `Symptoms increased by ${Math.round(Math.abs(improvement))}%`;
-    } else {
-      symptomDetail = 'Symptoms remain stable';
-    }
-  } else {
-    componentA = currSymptomAvg === 0 ? 100 : 50;
-    symptomDetail = 'Baseline established';
-  }
-
-  const selfCareDays = currentPeriod.filter(isSelfCareDay);
-  const componentB = (selfCareDays.length / currentPeriod.length) * 100;
-  const selfCareDetail = `${selfCareDays.length} of ${currentPeriod.length} days with self-care`;
-
-  const componentC = calculateAverage(currentPeriod.map(getEmotionalWellness));
-  const emotionalDetail = `Average emotional wellness: ${Math.round(componentC)}/100`;
-
-  const total = Math.round(
-    (componentA * 0.4) + (componentB * 0.3) + (componentC * 0.3)
-  );
-
-  return {
-    total: Math.max(0, Math.min(100, total)),
-    componentA: Math.round(componentA),
-    componentB: Math.round(componentB),
-    componentC: Math.round(componentC),
-    details: {
-      symptomImprovement: symptomDetail,
-      selfCareConsistency: selfCareDetail,
-      emotionalWellbeing: emotionalDetail
-    }
-  };
-}

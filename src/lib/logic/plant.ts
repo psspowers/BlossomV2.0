@@ -1,6 +1,6 @@
-import { db } from '../db';
 import { differenceInDays } from 'date-fns';
 import { calculateBlossomScore } from './blossomScore';
+import { dbAdapter as db } from '../dbAdapter';
 
 export type PlantPhase = 'seed' | 'sprout' | 'bloom' | 'flourish';
 
