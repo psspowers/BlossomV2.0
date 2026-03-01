@@ -4,8 +4,8 @@
 
 | Issue | Status | Action Required |
 |-------|--------|----------------|
-| RLS Performance | ✅ Fixed | None - automatically resolved |
-| Function Security | ✅ Fixed | None - automatically resolved |
+| RLS Performance (profiles table) | ✅ Fixed | None - automatically resolved |
+| Function Security (handle_new_user) | ✅ Fixed | None - automatically resolved |
 | Leaked Password Protection | 🔴 **Manual** | **You must enable this** |
 | Auth Connection Strategy | 🟡 **Manual** | **You must configure this** |
 
