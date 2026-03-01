@@ -5,71 +5,40 @@ import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
 import { db, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
-import { supabase } from "./lib/supabase";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
-import { AuthStep } from "./components/onboarding/AuthStep";
+import { NameStep } from "./components/onboarding/NameStep";
 import { PrioritySelector } from "./components/onboarding/PrioritySelector";
-import type { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
-type OnboardingStep = 'welcome' | 'auth' | 'priorities';
+type OnboardingStep = 'welcome' | 'name' | 'priorities';
 
 const App = () => {
   const [seeded, setSeeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [session, setSession] = useState<Session | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [hasPriorities, setHasPriorities] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('[Auth] Session retrieval error:', error);
-        }
-        setSession(currentSession);
-      } catch (err) {
-        console.error('[Auth] Failed to get session:', err);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      if (newSession) {
-        setOnboardingStep('priorities');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!session) {
-      setOnboardingComplete(null);
-      return;
-    }
-
     const checkOnboarding = async () => {
-      const { data } = await supabase
-        .from('user_priorities')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .limit(1);
+      try {
+        const profile = await db.settings.get('user-profile');
+        setHasProfile(!!profile);
 
-      setOnboardingComplete(!!data && data.length > 0);
+        const prioritiesCount = await db.settings.where('id').startsWith('priority-').count();
+        setHasPriorities(prioritiesCount > 0);
+      } catch (err) {
+        console.error('[App] Failed to check onboarding status:', err);
+        setHasProfile(false);
+        setHasPriorities(false);
+      }
     };
 
     checkOnboarding();
-  }, [session]);
+  }, []);
 
   const handleReset = async () => {
     try {
@@ -112,7 +81,7 @@ const App = () => {
     return () => clearTimeout(troubleshootingTimer);
   }, []);
 
-  if (!seeded || authLoading || (session && onboardingComplete === null)) {
+  if (!seeded || hasProfile === null || hasPriorities === null) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -148,29 +117,34 @@ const App = () => {
     );
   }
 
-  if (!session) {
+  if (!hasProfile) {
     if (onboardingStep === 'welcome') {
-      return <WelcomeStep onNext={() => setOnboardingStep('auth')} />;
+      return <WelcomeStep onNext={() => setOnboardingStep('name')} />;
     }
 
-    return (
-      <AuthStep
-        onNext={() => setOnboardingStep('priorities')}
-        onBack={() => setOnboardingStep('welcome')}
-      />
-    );
+    if (onboardingStep === 'name') {
+      return (
+        <NameStep
+          onNext={() => {
+            setHasProfile(true);
+            setOnboardingStep('priorities');
+          }}
+          onBack={() => setOnboardingStep('welcome')}
+        />
+      );
+    }
   }
 
-  if (!onboardingComplete) {
+  if (!hasPriorities) {
     return (
       <PrioritySelector
         onNext={() => {
           localStorage.removeItem(USER_DELETED_KEY);
-          setOnboardingComplete(true);
+          setHasPriorities(true);
         }}
-        onBack={async () => {
-          await supabase.auth.signOut();
-          setOnboardingStep('welcome');
+        onBack={() => {
+          setOnboardingStep('name');
+          setHasProfile(false);
         }}
       />
     );
