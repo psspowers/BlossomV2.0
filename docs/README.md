@@ -2,7 +2,12 @@
 
 **A privacy-first, body-positive sanctuary for PCOS management.**
 
+**Version**: 3.0 (Cloud Sync & Priority System)
+**Last Updated**: March 2026
+
 A compassionate PCOS companion that transforms symptom tracking into a journey of self-discovery and empowerment. Built on evidence-based research and body-positive principles, Blossom helps you understand your patterns without judgment or guilt.
+
+**New in v3.0**: Multi-device cloud sync, personalized priority system, and user authentication while maintaining privacy-first principles through Row Level Security.
 
 ---
 
@@ -62,6 +67,28 @@ Compassionate doesn't mean unscientific. Blossom integrates rigorous research wi
 **The Philosophy:** Science + Kindness. Evidence-based doesn't mean cold.
 
 ## Core Features
+
+### 0. Onboarding & Priority System (New in v3.0)
+**Your Journey Starts Here**
+
+#### Multi-Step Onboarding:
+1. **Welcome**: Introduction to True North principles
+2. **Authentication**: Secure account creation with email/password
+3. **Priority Selection**: Choose up to 3 priorities that matter most to you
+4. **Dashboard**: Enter your personalized sanctuary
+
+#### Priority & Happiness System:
+Select from 12 pre-defined priorities across symptoms and goals, or add your own custom priority:
+- **Symptoms**: Acne, Facial Hair, Hair Loss, Bloating, Pain & Cramps, Cravings, Mood Swings/Sleep
+- **Goals**: Cycle Regularity, Fertility, Weight & Metabolism, Daily Energy
+
+Rate each priority's impact on your happiness (0-10 scale). Blossom adapts insights and wisdom based on YOUR priorities.
+
+**BloomLotus Visualization**: Watch an interactive lotus bloom as you select priorities, reflecting your progress.
+
+**Privacy**: All data stored securely in Supabase with Row Level Security. Only you can access your information.
+
+---
 
 ### 1. Blossom Score: Your Holistic Health Snapshot
 Unlike binary metrics or shame-inducing point systems, the Blossom Score (0-100) reflects three dimensions of wellness:
@@ -124,12 +151,14 @@ Grounded in evidence from Monash University (world leaders in PCOS research):
 - Anti-inflammatory lifestyle strategies
 - Mind-body connection for hormone balance
 
-### 9. Complete Privacy & Data Control
-- **100% local storage**: No cloud, no servers, no tracking
-- **No account required**: Start using immediately
+### 9. Complete Privacy & Data Control (Updated in v3.0)
+- **Row Level Security (RLS)**: Your data is isolated from all other users at the database level
+- **Secure Authentication**: Email/password with PKCE flow and optional password leak detection
+- **Multi-Device Sync**: Access your data from any device while maintaining complete privacy
 - **Export anytime**: JSON backup of all your data
-- **Delete anytime**: Complete data portability and control
-- **No ads, no analytics**: Your data never leaves your device
+- **Delete Account**: One-click deletion of ALL local and cloud data permanently
+- **No ads, no analytics**: No tracking, no third-party SDKs, no telemetry
+- **Open Source Transparency**: All code visible, auditable security
 
 ## How to Use
 

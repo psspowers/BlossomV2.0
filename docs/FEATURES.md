@@ -2,11 +2,120 @@
 
 **Complete breakdown of pages, features, and True North alignment**
 
+**Last Updated**: March 2026 (Cloud Sync & Priority System)
+
 ---
 
 ## Feature Philosophy
 
 Every feature in Blossom supports the "True North" mission: **Seen, Supported, Sovereign**. This isn't feature creep - it's intentional design where each element validates the user's experience, provides compassionate support, or honors their autonomy.
+
+---
+
+## Onboarding Flow (New in March 2026)
+
+### Step 1: Welcome Step
+**Purpose**: Introduce True North principles and set expectations
+
+**Key Messages**:
+- "Your journey with PCOS is unique"
+- "We're here to help you understand your body"
+- Privacy-first messaging
+
+**Components**:
+- Animated lotus bloom introduction
+- True North philosophy explanation
+- Call-to-action: "Begin Your Journey"
+
+**Files**: `src/components/onboarding/WelcomeStep.tsx`
+
+---
+
+### Step 2: Authentication Step
+**Purpose**: Secure user account creation with privacy emphasis
+
+**Key Messages**:
+- "Secure Space" - Your data is protected
+- "Your data is sovereign"
+- "Sign up to save your journey across devices"
+
+**Features**:
+- Email/password authentication via Supabase
+- Dual mode: Sign-up and Sign-in
+- Password visibility toggle
+- 6-character minimum password
+- Comprehensive error handling
+- PKCE auth flow for security
+
+**Validation**:
+- Email format checking
+- Password strength requirements
+- Already-registered detection
+- Invalid credentials handling
+
+**Files**: `src/components/onboarding/AuthStep.tsx`, `src/lib/supabase.ts`
+
+**True North tie**: **Sovereign** - Secure authentication while maintaining privacy promises
+
+---
+
+### Step 3: Priority Selector (Happiness Impact System)
+**Purpose**: Identify what matters most to you and how much it affects your happiness
+
+**Philosophy**: Your priorities are unique. Blossom adapts to what YOU care about most.
+
+**Features**:
+
+#### Priority Selection (Choose up to 3)
+**Symptom Priorities (7 options)**:
+- Acne
+- Facial Hair
+- Hair Loss
+- Bloating
+- Pain & Cramps
+- Cravings
+- Mood Swings/Sleep Quality
+
+**Goal Priorities (4 options)**:
+- Cycle Regularity
+- Fertility
+- Weight & Metabolism
+- Daily Energy
+
+**Custom Priority**:
+- User can add one custom priority
+
+#### Happiness Impact Scale
+For each selected priority, user rates:
+- **Scale**: 0-10 slider
+- **Question**: "How much does this affect your happiness?"
+- **Purpose**: Personalize insights and wisdom recommendations
+
+#### BloomLotus Visualization
+- Interactive lotus that blooms as priorities are selected
+- Video-based animation with 10 frames
+- States: "Select priorities" → "Budding" → "Opening" → "Almost blooming" → "Full bloom"
+- Reflects progress visually and emotionally
+
+**Data Storage**: Saves to `user_priorities` table in Supabase
+- Columns: priority_id, label, category, happiness_impact (0-10)
+- One record per priority per user
+- Unique constraint on (user_id, priority_id)
+
+**Files**:
+- `src/components/onboarding/PrioritySelector.tsx`
+- `src/components/onboarding/BloomLotus.tsx`
+- `src/components/onboarding/MiniLotus.tsx`
+
+**True North tie**: **Seen** - Your priorities are recognized and weighted in all insights
+
+---
+
+### Step 4: Enter Dashboard
+After onboarding completion, user enters the main app with:
+- Saved authentication session
+- Personalized priorities loaded
+- Ready to start logging
 
 ---
 
@@ -229,6 +338,11 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 - Lotus Garden (organic, emotionally resonant)
 - **True North tie**: **Sovereign** - Choose the aesthetic that feels right for you
 
+#### Journey Metrics (New in March 2026)
+- **Blossom Score**: Current holistic wellness score (0-100)
+- **Current Season**: Resting, Growing, or Blooming state
+- Visual display of current health status
+
 #### Privacy Vault
 - **Clinical Snapshot Export**:
   - Downloads human-readable .txt report
@@ -238,11 +352,16 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 - **Export All Data** (JSON):
   - Complete backup of logs and settings
   - **True North tie**: **Sovereign** - Your data, portable forever
-- **Delete All Data**:
-  - One-click nuclear option
-  - **True North tie**: **Sovereign** - No lock-in, no questions asked
-- **Reset Demo Data**:
-  - For testing/onboarding
+- **Delete Account** (New in March 2026):
+  - Permanently deletes all local AND cloud data
+  - Removes user_logs, user_settings, user_priorities from Supabase
+  - Clears IndexedDB and localStorage
+  - Signs out and returns to welcome screen
+  - **True North tie**: **Sovereign** - Complete data control, no lock-in
+- **Demo Profiles** (New in March 2026):
+  - 5 clinical personas for testing
+  - Each represents different PCOS phenotypes
+  - Quick-load realistic symptom patterns
 
 **Files**: `src/components/SettingsModal.tsx`
 
@@ -291,18 +410,22 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 
 ## Technical Feature Map
 
-| Feature | Component | Logic | Database |
+| Feature | Component | Logic | Database (Supabase) |
 |---------|-----------|-------|----------|
-| Blossom Score | `Dashboard.tsx` | `blossomScore.ts` | Aggregates `logs` table |
+| Authentication | `AuthStep.tsx` | Supabase Auth | `auth.users` |
+| Onboarding | `App.tsx` | Session + localStorage | - |
+| Priority Selection | `PrioritySelector.tsx` | Priority mapping | `user_priorities` |
+| Blossom Score | `Dashboard.tsx` | `blossomScore.ts` | Aggregates `user_logs` |
 | Seasons | `CycleContext.tsx` | `seasons.ts` | Uses Blossom Score |
-| Pattern Stories | `Insights.tsx` | `stories.ts` | Analyzes `logs` (30 days) |
-| Daily Wisdom | `DailyWisdom.tsx` | `narratives.ts` | Analyzes `logs` (14 days) |
+| Pattern Stories | `Insights.tsx` | `stories.ts` | Analyzes `user_logs` (30 days) |
+| Daily Wisdom | `DailyWisdom.tsx` | `narratives.ts` + `wisdom_cards` | `wisdom_cards` table |
 | Lotus Bloom | `BioOrb.tsx`, `WellnessLotus.tsx` | `blossomScore.ts` | Visual mapping of score |
-| Daily Log | `DailyLog.tsx` | - | Writes to `logs` table |
-| Clinical Snapshot | `SettingsModal.tsx` | Aggregation logic | Reads all `logs` |
-| Theme Switch | `SettingsModal.tsx` | `ThemeContext.tsx` | `settings` table |
-| Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `logs.cyclePhase` |
+| Daily Log | `DailyLog.tsx` | - | Writes to `user_logs` |
+| Clinical Snapshot | `SettingsModal.tsx` | Aggregation logic | Reads all `user_logs` |
+| Theme Switch | `SettingsModal.tsx` | `ThemeContext.tsx` | `user_settings` |
+| Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `user_logs.cyclePhase` |
 | Wellness Radar | `WellnessRadar.tsx` | Aggregation | Last 7 days avg |
+| Account Deletion | `SettingsModal.tsx` | Supabase + IndexedDB cleanup | Deletes from all tables |
 
 ---
 

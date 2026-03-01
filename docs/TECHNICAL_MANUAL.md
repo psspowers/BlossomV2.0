@@ -1,7 +1,7 @@
 # Blossom - Technical Manual
 
-**Version**: 2.0 (Soul Injection Update)
-**Last Updated**: January 2026
+**Version**: 3.0 (Cloud Sync & Priority System)
+**Last Updated**: March 2026
 **Target Audience**: Developers, DevOps, Technical Operators, Documentation Architects
 
 ---
@@ -12,20 +12,28 @@
 2. [Development Setup](#development-setup)
 3. [Project Structure](#project-structure)
 4. [Database Architecture](#database-architecture)
-5. [Component Architecture](#component-architecture)
-6. [Soul Injection: Core Logic](#soul-injection-core-logic)
-   - 6.1 [Blossom Score Algorithm](#blossom-score-algorithm)
-   - 6.2 [Seasons Engine](#seasons-engine)
-   - 6.3 [Narratives & Daily Wisdom](#narratives--daily-wisdom)
-   - 6.4 [Pattern Stories Generator](#pattern-stories-generator)
-7. [State Management](#state-management)
-8. [Theme System](#theme-system)
-9. [Build & Deployment](#build--deployment)
-10. [Testing & Debugging](#testing--debugging)
-11. [Extending the App](#extending-the-app)
-12. [Performance Optimization](#performance-optimization)
-13. [Troubleshooting](#troubleshooting)
-14. [API Reference](#api-reference)
+   - 4.1 [Supabase Cloud Database](#supabase-cloud-database)
+   - 4.2 [Local IndexedDB Storage](#local-indexeddb-storage)
+   - 4.3 [Hybrid Architecture Strategy](#hybrid-architecture-strategy)
+5. [Authentication System](#authentication-system)
+   - 5.1 [Supabase Auth Integration](#supabase-auth-integration)
+   - 5.2 [Session Management](#session-management)
+   - 5.3 [Onboarding Flow](#onboarding-flow)
+6. [Component Architecture](#component-architecture)
+7. [Soul Injection: Core Logic](#soul-injection-core-logic)
+   - 7.1 [Blossom Score Algorithm](#blossom-score-algorithm)
+   - 7.2 [Seasons Engine](#seasons-engine)
+   - 7.3 [Narratives & Daily Wisdom](#narratives--daily-wisdom)
+   - 7.4 [Pattern Stories Generator](#pattern-stories-generator)
+8. [Priority & Happiness System](#priority--happiness-system)
+9. [State Management](#state-management)
+10. [Theme System](#theme-system)
+11. [Build & Deployment](#build--deployment)
+12. [Testing & Debugging](#testing--debugging)
+13. [Extending the App](#extending-the-app)
+14. [Performance Optimization](#performance-optimization)
+15. [Troubleshooting](#troubleshooting)
+16. [API Reference](#api-reference)
 
 ---
 
@@ -39,7 +47,9 @@
 - **Styling**: Tailwind CSS 3.4.11 + tailwindcss-animate
 - **Animations**: Framer Motion 12.25.0
 - **Charts**: Recharts 2.12.7 + Chart.js 4.5.1
-- **Database**: Dexie 4.2.1 (IndexedDB wrapper)
+- **Database (Cloud)**: Supabase PostgreSQL (^2.90.1) - **NEW in v3.0**
+- **Database (Local)**: Dexie 4.2.1 (IndexedDB wrapper)
+- **Authentication**: Supabase Auth with PKCE flow - **NEW in v3.0**
 - **State Management**: React Query (@tanstack/react-query 5.56.2)
 - **Routing**: React Router DOM 6.26.2
 - **Forms**: React Hook Form 7.53.0 + Zod 3.23.8
@@ -47,20 +57,27 @@
 
 ### Architecture Pattern
 
-**Client-Side Only Application**
-- No backend server required
-- All data stored locally in IndexedDB
-- Progressive Web App (PWA) enabled
-- Offline-first architecture
+**Hybrid Cloud-Connected Application** (v3.0 Update)
+- **Frontend**: React SPA with client-side rendering
+- **Backend**: Supabase PostgreSQL with Row Level Security (RLS)
+- **Authentication**: Email/password via Supabase Auth
+- **Data Storage**:
+  - **Cloud**: User logs, settings, priorities stored in Supabase
+  - **Local**: IndexedDB for performance and offline fallback
+- **Multi-Device**: Cloud sync enables cross-device data access
+- **Progressive Web App (PWA)**: Installable with offline capability
+- **Privacy-First**: Row-level security ensures complete data isolation
 
 ### Key Design Principles
 
-1. **Privacy First**: Zero data transmission, 100% local storage
-2. **Offline Capable**: Full functionality without internet
-3. **Performance**: Optimized for low-end devices
-4. **Accessibility**: WCAG 2.1 AA compliant
-5. **Modularity**: Component-based architecture
-6. **Type Safety**: Full TypeScript coverage
+1. **Privacy First**: Row-level security (RLS) ensures complete data isolation per user
+2. **Hybrid Storage**: Cloud sync for multi-device + local caching for performance
+3. **Offline Capable**: PWA with service worker caching
+4. **Performance**: Optimized database queries with indexes and RLS subquery pattern
+5. **Accessibility**: WCAG 2.1 AA compliant
+6. **Modularity**: Component-based architecture with clear separation of concerns
+7. **Type Safety**: Full TypeScript coverage across frontend and database schemas
+8. **Security**: PKCE auth flow, password leak detection, immutable function search paths
 
 ---
 
@@ -97,7 +114,23 @@ npm run lint
 
 ### Environment Setup
 
-No environment variables required for basic operation. All configuration is in code.
+**Required Environment Variables** (v3.0):
+
+Create a `.env` file in the project root:
+
+```bash
+# Supabase Configuration
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+**How to Get These Values**:
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Go to Project Settings → API
+3. Copy the Project URL and anon/public key
+4. Paste into `.env` file
+
+**Security Note**: The anon key is safe to expose client-side. Row Level Security (RLS) policies protect all data.
 
 ### Development Server
 

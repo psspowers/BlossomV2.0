@@ -2,7 +2,7 @@
 
 **Complete guide to all documentation and resources**
 
-**Last Updated**: January 2026 (Soul Injection Update)
+**Last Updated**: March 2026 (Cloud Sync & Priority System Update)
 
 ---
 
@@ -14,38 +14,48 @@ Use this index to navigate based on your role and needs.
 
 ---
 
-## 🆕 What's New in Soul Injection Update (January 2026)
+## 🆕 What's New in Cloud Sync & Priority System Update (February-March 2026)
 
-The "Soul Injection" represents a major philosophical and technical upgrade to Blossom, replacing gamification mechanics with compassionate intelligence.
+Major architectural evolution from local-only to hybrid cloud architecture with authentication and multi-device sync capability.
+
+### New Features
+
+1. **User Authentication**: Supabase email/password authentication with PKCE flow
+2. **Priority/Happiness System**: User-selected priorities with happiness impact tracking (0-10 scale)
+3. **Onboarding Flow**: Multi-step onboarding (Welcome → Auth → Priority Selection → Dashboard)
+4. **Cloud Sync**: User logs, settings, and priorities stored in Supabase PostgreSQL
+5. **Wisdom Cards System**: Evidence-based educational content repository
+6. **Enhanced Data Export**: Clinical snapshots and JSON backups
 
 ### New Documentation
 
-1. **FEATURES.md**: Complete feature guide with True North alignment
-2. **PRIVACY.md**: The Sacred Rules explained in depth
-3. **ROADMAP.md**: Phased development plan (5-year vision)
+1. **SECURITY_CONFIG.md**: Detailed security setup instructions for Supabase
+2. **SECURITY_ACTION_REQUIRED.md**: Manual configuration steps for leaked password protection
 
-### Updated Documentation
+### Database Schema Changes
 
-1. **README.md**: Completely rewritten with True North framing
-2. **TECHNICAL_MANUAL.md**: Added Section 6 - Soul Injection Core Logic
-   - Blossom Score algorithm
-   - Seasons engine
-   - Narratives & Daily Wisdom
-   - Pattern Stories generator
-3. **THEME_SYSTEM_GUIDE.md**: Added body-positive UX principles
+1. **user_logs table**: Daily health entries with cloud sync
+2. **user_settings table**: User preferences and configuration
+3. **user_priorities table**: Priority selections with happiness impact scores
+4. **wisdom_cards table**: Educational content library with 6 seeded cards
+5. **RLS Policies**: Row-level security for all tables with performance optimization
+6. **Auto-update Triggers**: Timestamp management for created_at/updated_at
 
-### Key Conceptual Changes
+### Key Architectural Changes
 
-- **Removed**: Streak counters, gamification, achievement pressure
-- **Added**: Seasons (Resting/Growing/Blooming), Blossom Score, Pattern Stories
-- **Reframed**: "Guilt to Grace" - validation over judgment
+- **From**: Pure local-first with IndexedDB only
+- **To**: Hybrid architecture with Supabase backend
+- **Authentication**: Email/password with PKCE flow
+- **Multi-Device**: Cloud sync enables cross-device data access
+- **Privacy**: Maintained through Row Level Security (RLS)
 
 ### For Quick Start
 
-- **New users**: Read README.md → FEATURES.md
-- **Developers**: Read TECHNICAL_MANUAL.md Section 6 (Soul Injection)
+- **New users**: Read README.md → FEATURES.md → SECURITY_CONFIG.md
+- **Developers**: Read TECHNICAL_MANUAL.md (Sections 4: Database + 6: Soul Injection + new Auth section)
 - **Designers**: Read THEME_SYSTEM_GUIDE.md (Body-Positive UX Principles)
-- **Privacy advocates**: Read PRIVACY.md (Sacred Rules)
+- **Privacy advocates**: Read PRIVACY.md (Sacred Rules) + SECURITY_CONFIG.md
+- **DevOps**: Read SECURITY_ACTION_REQUIRED.md for deployment checklist
 
 ---
 
