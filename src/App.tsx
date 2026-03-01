@@ -59,13 +59,9 @@ const App = () => {
     }
 
     const checkOnboarding = async () => {
-      const { data } = await supabase
-        .from('user_priorities')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .limit(1);
-
-      setOnboardingComplete(!!data && data.length > 0);
+      const settings = await db.settings.toCollection().first();
+      const hasCompletedOnboarding = !!(settings?.priorities && settings.priorities.length > 0);
+      setOnboardingComplete(hasCompletedOnboarding);
     };
 
     checkOnboarding();

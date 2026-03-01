@@ -7,6 +7,7 @@ import {
 import clsx from 'clsx';
 import { BloomLotus } from './BloomLotus';
 import { supabase } from '../../lib/supabase';
+import { db } from '../../lib/db';
 
 export interface UserPriority {
   id: string;
@@ -117,25 +118,40 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (user) {
+        await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id);
+      }
 
-      const rows = priorities.map(p => ({
-        user_id: user.id,
-        priority_id: p.id,
-        label: p.label,
-        category: p.category,
-        happiness_impact: p.happinessImpact,
-      }));
+      const existing = await db.settings.toCollection().first();
+      const settingsId = existing?.id;
 
-      const { error } = await supabase.from('user_priorities').upsert(rows, {
-        onConflict: 'user_id,priority_id',
+      const priorityIds = priorities.map(p => p.id);
+      const happinessWeights: Record<string, number> = {};
+      priorities.forEach(p => {
+        happinessWeights[p.id] = p.happinessImpact;
       });
 
-      if (error) throw error;
+      const profileData = {
+        priorities: priorityIds,
+        happinessWeights: happinessWeights,
+      };
+
+      if (settingsId) {
+        await db.settings.update(settingsId, profileData);
+      } else {
+        await db.settings.add({
+          theme: 'dark',
+          designTheme: 'default',
+          notifications: true,
+          customSymptomDefinitions: [],
+          ...profileData,
+        });
+      }
 
       onNext();
     } catch (err) {
       console.error('Failed to save priorities:', err);
+      alert('Failed to save priorities. Please ensure you have storage space available.');
     } finally {
       setSaving(false);
     }
@@ -143,27 +159,21 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
 
   useEffect(() => {
     const loadExisting = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('user_priorities')
-        .select('priority_id, label, category, happiness_impact')
-        .eq('user_id', user.id);
-
-      if (!data || data.length === 0) return;
+      const existing = await db.settings.toCollection().first();
+      if (!existing || !existing.priorities || existing.priorities.length === 0) return;
 
       const ids: string[] = [];
       const loadedScores: Record<string, number> = {};
 
-      for (const row of data) {
-        if (row.priority_id === 'custom') {
+      for (const priorityId of existing.priorities) {
+        if (priorityId === 'custom') {
           setIsCustomSelected(true);
-          setCustomInput(row.label);
+          const customLabel = 'Custom Priority';
+          setCustomInput(customLabel);
         } else {
-          ids.push(row.priority_id);
+          ids.push(priorityId);
         }
-        loadedScores[row.priority_id] = row.happiness_impact;
+        loadedScores[priorityId] = existing.happinessWeights?.[priorityId] || 5;
       }
 
       setSelectedIds(ids);

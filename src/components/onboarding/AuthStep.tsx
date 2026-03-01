@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Mail, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface AuthStepProps {
@@ -128,6 +128,21 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
               ? 'Create your private vault to store your patterns. Your data is sovereign.'
               : 'Enter your vault to continue your journey.'}
           </p>
+
+          {mode === 'signup' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl flex gap-3 mt-6"
+            >
+              <ShieldCheck className="text-emerald-600 shrink-0 mt-0.5" size={20} />
+              <p className="text-xs text-emerald-800/80 leading-relaxed">
+                <strong>Privacy Promise:</strong> We store only your email & password (hashed) to secure your account.
+                All your health data—logs, symptoms, priorities—stays on this device. We cannot see it.
+              </p>
+            </motion.div>
+          )}
         </motion.div>
 
         <div className="space-y-4" onKeyDown={handleKeyDown}>

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
@@ -26,6 +26,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [demoActive, setDemoActive] = useState<string | null>(null);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -274,11 +276,6 @@ support@blossomhealth.app
       localStorage.setItem(USER_DELETED_KEY, 'true');
       localStorage.removeItem(DEMO_PREVIEW_KEY);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('user_priorities').delete().eq('user_id', user.id);
-      }
-
       setShowDeleteConfirm(false);
       window.location.reload();
     } catch (error) {
@@ -286,6 +283,28 @@ support@blossomhealth.app
       alert('Failed to delete data. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeletingAccount(true);
+
+      await db.logs.clear();
+      await db.settings.clear();
+      await db.backupLogs.clear();
+      localStorage.clear();
+
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+
+      setShowDeleteAccountConfirm(false);
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      alert('Failed to delete account. Please try again or contact support.');
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -405,7 +424,20 @@ support@blossomhealth.app
                   </div>
                   <div>
                     <p className="font-serif text-red-800 font-medium">Delete All Data</p>
-                    <p className="text-xs text-red-600">Permanently remove all tracking data</p>
+                    <p className="text-xs text-red-600">Clear all tracking data (keeps account)</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setShowDeleteAccountConfirm(true)}
+                  className="flex items-center gap-4 p-4 bg-white border border-red-300 rounded-xl text-left hover:bg-red-100 transition-colors group"
+                >
+                  <div className="p-2 bg-red-100 rounded-lg text-red-700 shadow-sm">
+                    <UserX size={20} />
+                  </div>
+                  <div>
+                    <p className="font-serif text-red-900 font-medium">Delete Account</p>
+                    <p className="text-xs text-red-700">Remove account and all data permanently</p>
                   </div>
                 </button>
               </div>
@@ -504,6 +536,52 @@ support@blossomhealth.app
                 className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
               >
                 {isDeleting ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {showDeleteAccountConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          onClick={() => setShowDeleteAccountConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border-2 border-red-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <UserX size={24} className="text-red-700" />
+              </div>
+              <h3 className="text-xl font-serif text-stone-800">Delete Account?</h3>
+            </div>
+            <p className="text-sm text-stone-600 mb-4">
+              This will permanently delete your account and all associated data from both this device and our servers.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+              <p className="text-xs text-amber-800 font-medium">
+                Warning: This action cannot be undone. You will need to create a new account to use Blossom again.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteAccountConfirm(false)}
+                className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
               </button>
             </div>
           </motion.div>
