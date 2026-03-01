@@ -149,20 +149,20 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="absolute bottom-[8%] z-20"
+              className="absolute bottom-0 z-20"
             >
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className="flex flex-col items-center justify-center w-24 h-24 bg-white/40 backdrop-blur-md border border-white/50 rounded-full shadow-xl cursor-help"
+                      className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg cursor-help"
                       style={{
-                        boxShadow: '0 8px 32px rgba(224, 122, 154, 0.3), 0 0 0 1px rgba(255,255,255,0.5) inset'
+                        boxShadow: '0 4px 16px rgba(224, 122, 154, 0.25), 0 0 0 1px rgba(255,255,255,0.4) inset'
                       }}
                       aria-label={`Your current Healing Blossom Score: ${health}`}
                     >
-                      <span className="text-3xl font-serif font-bold text-slate-800">{health}</span>
-                      <span className="text-[10px] uppercase tracking-widest text-slate-600 opacity-90 mt-0.5">Score</span>
+                      <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
+                      <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-xs bg-white border-slate-200 shadow-xl">
