@@ -49,6 +49,45 @@ The "Soul Injection" represents a major philosophical and technical upgrade to B
 
 ---
 
+## For Healthcare Professionals
+
+### 🏥 CLINICAL_SYSTEM_REPORT.md
+**Algorithm Methodology, Scoring Logic, and Interpretation Guide**
+
+**NEW - March 2026**
+
+**Contents**:
+- Executive summary of the Blossom Score
+- Normalize-First architecture explained
+- Four-factor scoring methodology:
+  - Symptom Factor (Physical Burden)
+  - Self-Care Factor (Metabolic Consistency)
+  - Emotional Factor (Psychological Wellness)
+  - Stability Factor (Cycle Regularity)
+- The Personalization Engine (dynamic weighting)
+- The "Sleep Gate" clinical guardrail
+- Chart interpretation guide:
+  - Wellness Radar (5-axis spider chart)
+  - Trend Velocity (longitudinal analysis)
+- Golden Rules of the Algorithm
+- Detailed factor calculations with formulas
+- Data quality & validation standards
+- Clinical limitations & disclaimers
+- Validation roadmap
+- Clinical references
+
+**When to read**:
+- Clinical validation or audit
+- Understanding algorithm methodology
+- Interpreting patient data exports
+- Research collaboration proposals
+- Medical review for recommendations
+- Healthcare provider training
+
+**Key Audience**: Physicians, clinical researchers, healthcare providers, medical auditors, clinical psychologists
+
+---
+
 ## For End Users
 
 ### 🌸 README.md
@@ -432,6 +471,10 @@ The "Soul Injection" represents a major philosophical and technical upgrade to B
 → Read: `TECHNICAL_MANUAL.md` → 6.4 Pattern Stories Generator
 → Overview: `FEATURES.md` → Pattern Stories
 
+#### **Understand clinical algorithm methodology** (NEW)
+→ Read: `CLINICAL_SYSTEM_REPORT.md` → Complete methodology
+→ Quick: `FEATURES.md` → Blossom Score overview
+
 #### **Understand privacy architecture** (NEW)
 → Read: `PRIVACY.md` → The Sacred Rules
 → Technical: `TECHNICAL_MANUAL.md` → Security Considerations
@@ -498,11 +541,12 @@ The "Soul Injection" represents a major philosophical and technical upgrade to B
 
 ### 🏥 Healthcare Provider / Clinical Advisor
 **Priority Reading**:
-1. `README.md` → Overview + Clinical Snapshot
-2. `FEATURES.md` → Clinical Snapshot details
-3. `PRIVACY.md` → Why no HIPAA concerns
-4. `HYPERANDROGENISM_INSIGHTS.md`
-5. `ROADMAP.md` → Clinical Enhancements (Phase 3)
+1. `CLINICAL_SYSTEM_REPORT.md` → Algorithm methodology & clinical validation (NEW - MUST READ)
+2. `README.md` → Overview + Clinical Snapshot
+3. `FEATURES.md` → Clinical Snapshot details
+4. `PRIVACY.md` → Why no HIPAA concerns
+5. `HYPERANDROGENISM_INSIGHTS.md`
+6. `ROADMAP.md` → Clinical Enhancements (Phase 3)
 
 ### 🆘 Support Team
 **Priority Reading**:
@@ -518,6 +562,10 @@ The "Soul Injection" represents a major philosophical and technical upgrade to B
 | Document | Size | Reading Time |
 |----------|------|--------------|
 | README.md | 5 KB | 10 min |
+| CLINICAL_SYSTEM_REPORT.md | 25 KB | 30 min |
+| FEATURES.md | 20 KB | 25 min |
+| PRIVACY.md | 12 KB | 15 min |
+| ROADMAP.md | 15 KB | 20 min |
 | TECHNICAL_MANUAL.md | 60 KB | 60 min |
 | OPERATIONS_MANUAL.md | 45 KB | 45 min |
 | QUICK_REFERENCE.md | 8 KB | 5 min |
@@ -528,7 +576,7 @@ The "Soul Injection" represents a major philosophical and technical upgrade to B
 | HOW_TO_VIEW_HYPERANDROGENISM.md | 6 KB | 10 min |
 | IMPLEMENTATION_SUMMARY.md | 8 KB | 10 min |
 
-**Total Documentation**: ~177 KB, ~3 hours of reading
+**Total Documentation**: ~249 KB, ~4.5 hours of reading
 
 ---
 
