@@ -18,48 +18,65 @@ All SQL-based security issues have been automatically resolved via database migr
 - **Fix**: Function now uses `SET search_path TO 'public', 'pg_temp'`
 - **Impact**: Prevents SQL injection and privilege escalation attacks
 
-## Manual Configuration Required
+## Manual Configuration Required - ACTION NEEDED
 
-The following security enhancements require Supabase Dashboard configuration and cannot be automated via SQL migrations:
+The following security enhancements require Supabase Dashboard configuration and cannot be automated via SQL migrations. **You must complete these steps manually to resolve all security issues.**
 
 ### 3. Enable Leaked Password Protection
 
-**Status**: ⚠️ Manual Configuration Required
+**Status**: 🔴 **REQUIRES IMMEDIATE ACTION**
 
-**Steps**:
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project
-3. Navigate to: **Authentication > Providers > Email**
-4. Find the section: **Password Protection**
-5. Enable: "Check passwords against HaveIBeenPwned.org database"
-6. Save changes
+**Why this matters**: Without this enabled, users can set passwords that have been exposed in data breaches, making accounts vulnerable to credential stuffing attacks.
 
-**What it does**: Prevents users from setting passwords that have been exposed in data breaches, significantly improving account security.
+**Steps to Enable**:
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard/project/beasajhtkdfppefagpla)
+2. Navigate to: **Authentication > Providers > Email**
+3. Scroll to: **"Password Protection"** section
+4. Toggle ON: **"Enable leaked password protection"**
+5. Click **"Save"**
 
-**Documentation**: [Supabase Auth Security](https://supabase.com/docs/guides/auth/auth-password-protection)
+**Expected Result**:
+- New passwords will be checked against HaveIBeenPwned.org database
+- Users attempting to use compromised passwords will be prompted to choose a different one
+- No impact on existing passwords (only enforced on new password creation/changes)
+
+**Documentation**: [Supabase Password Protection](https://supabase.com/docs/guides/auth/auth-password-protection)
+
+**Verification**: After enabling, try creating a test user with the password "password123" - it should be rejected.
 
 ---
 
 ### 4. Update Auth Connection Strategy
 
-**Status**: ⚠️ Manual Configuration Required
+**Status**: 🟡 **REQUIRED FOR PRODUCTION SCALE**
 
-**Current Issue**: Auth server uses fixed connection pool (10 connections), which doesn't scale with instance upgrades.
+**Current Issue**: Auth server uses a fixed pool of 10 connections. If you upgrade your database instance, Auth won't use the additional capacity, creating a bottleneck.
 
-**Steps**:
-1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project
-3. Navigate to: **Project Settings > Database > Connection Pooling**
-4. Find: **Auth Connection Pool Settings**
-5. Change from: `Fixed (10 connections)`
-6. Change to: `Percentage-based (5-10% of total)`
-7. Save changes
+**Why this matters**: In production with multiple concurrent users, the Auth service can exhaust its connection pool, causing authentication failures and degraded performance.
 
-**Recommended Value**: 5-10% of total database connections
+**Steps to Update**:
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard/project/beasajhtkdfppefagpla)
+2. Navigate to: **Settings > Database**
+3. Scroll to: **"Connection Pooling"** section
+4. Find: **"Auth connection pool configuration"**
+5. Change **"Pool Mode"** from: `Fixed number`
+6. To: `Percentage of total connections`
+7. Set percentage to: **5%** (or 10% for high-traffic apps)
+8. Click **"Save"**
 
-**What it does**: Allows Auth server to scale automatically when you upgrade your database instance, preventing connection bottlenecks during high traffic.
+**Recommended Values**:
+- Small/Medium apps: 5% of total connections
+- High-traffic apps: 10% of total connections
+- Never go below 5 connections total
+
+**Expected Result**:
+- Auth service will scale automatically with database upgrades
+- Better connection utilization during traffic spikes
+- Prevents Auth bottlenecks in production
 
 **Documentation**: [Supabase Connection Pooling](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pool)
+
+**Verification**: After changing, check the connection pool metrics in the Database section to confirm the percentage-based allocation is active.
 
 ---
 
