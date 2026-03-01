@@ -161,19 +161,9 @@ export function Dashboard() {
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
 
       <footer className="max-w-7xl mx-auto px-4 py-6 mt-12 border-t border-slate-200">
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-3 text-xs text-sage-600 font-medium">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-sage-500 rounded-full animate-pulse"></span>
-              Offline Mode
-            </span>
-            <span className="text-slate-300">•</span>
-            <span>Data Encrypted Locally</span>
-          </div>
-          <p className="text-xs text-slate-500 text-center leading-relaxed">
-            Your scores and insights are personal progress companions, not medical diagnoses. Always consult with your healthcare provider for medical advice and treatment decisions.
-          </p>
-        </div>
+        <p className="text-xs text-slate-500 text-center leading-relaxed">
+          Your scores and insights are personal progress companions, not medical diagnoses. Always consult with your healthcare provider for medical advice and treatment decisions.
+        </p>
       </footer>
     </div>
   );

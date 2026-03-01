@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, Shield } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
@@ -7,6 +7,7 @@ import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason } from '../lib/logic/seasons';
+import { supabase } from '../lib/supabase';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -273,6 +274,11 @@ support@blossomhealth.app
       localStorage.setItem(USER_DELETED_KEY, 'true');
       localStorage.removeItem(DEMO_PREVIEW_KEY);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('user_priorities').delete().eq('user_id', user.id);
+      }
+
       setShowDeleteConfirm(false);
       window.location.reload();
     } catch (error) {
@@ -349,31 +355,6 @@ support@blossomhealth.app
                 <div className="text-right">
                   <p className="text-lg font-serif text-sage-700">{currentSeason}</p>
                   <p className="text-xs text-stone-500 uppercase tracking-wide">Current Season</p>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
-                Data Sovereignty
-              </h3>
-              <div className="bg-gradient-to-br from-sage-50 to-emerald-50 p-6 rounded-2xl border border-sage-200 shadow-sm">
-                <div className="flex items-start gap-4 mb-3">
-                  <div className="p-2 bg-white rounded-lg text-sage-600 shadow-sm">
-                    <Shield size={20} />
-                  </div>
-                  <div>
-                    <p className="font-serif text-stone-800 font-medium text-lg mb-2">Your Story is Yours, Alone</p>
-                    <p className="text-sm text-stone-600 leading-relaxed">
-                      All your data is stored locally on this device in an encrypted vault. We never upload, sell, or share your information. No cloud. No tracking. Complete privacy.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-sage-200">
-                  <p className="text-xs text-stone-500 flex items-center gap-2">
-                    <span className="w-2 h-2 bg-sage-500 rounded-full animate-pulse"></span>
-                    Offline Mode • Data Encrypted Locally
-                  </p>
                 </div>
               </div>
             </section>

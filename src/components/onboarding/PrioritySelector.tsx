@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { BloomLotus } from './BloomLotus';
-import { db } from '../../lib/db';
+import { supabase } from '../../lib/supabase';
 
 export interface UserPriority {
   id: string;
@@ -116,17 +116,22 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
 
     setSaving(true);
     try {
-      await db.settings.where('id').startsWith('priority-').delete();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      for (const p of priorities) {
-        await db.settings.add({
-          id: `priority-${p.id}`,
-          priorityId: p.id,
-          priorityLabel: p.label,
-          priorityCategory: p.category,
-          priorityHappinessImpact: p.happinessImpact,
-        });
-      }
+      const rows = priorities.map(p => ({
+        user_id: user.id,
+        priority_id: p.id,
+        label: p.label,
+        category: p.category,
+        happiness_impact: p.happinessImpact,
+      }));
+
+      const { error } = await supabase.from('user_priorities').upsert(rows, {
+        onConflict: 'user_id,priority_id',
+      });
+
+      if (error) throw error;
 
       onNext();
     } catch (err) {
@@ -138,30 +143,31 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
 
   useEffect(() => {
     const loadExisting = async () => {
-      try {
-        const existingPriorities = await db.settings.where('id').startsWith('priority-').toArray();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-        if (existingPriorities.length === 0) return;
+      const { data } = await supabase
+        .from('user_priorities')
+        .select('priority_id, label, category, happiness_impact')
+        .eq('user_id', user.id);
 
-        const ids: string[] = [];
-        const loadedScores: Record<string, number> = {};
+      if (!data || data.length === 0) return;
 
-        for (const row of existingPriorities) {
-          const priorityId = row.priorityId as string;
-          if (priorityId === 'custom') {
-            setIsCustomSelected(true);
-            setCustomInput(row.priorityLabel as string);
-          } else {
-            ids.push(priorityId);
-          }
-          loadedScores[priorityId] = row.priorityHappinessImpact as number;
+      const ids: string[] = [];
+      const loadedScores: Record<string, number> = {};
+
+      for (const row of data) {
+        if (row.priority_id === 'custom') {
+          setIsCustomSelected(true);
+          setCustomInput(row.label);
+        } else {
+          ids.push(row.priority_id);
         }
-
-        setSelectedIds(ids);
-        setScores(loadedScores);
-      } catch (err) {
-        console.error('Failed to load priorities:', err);
+        loadedScores[row.priority_id] = row.happiness_impact;
       }
+
+      setSelectedIds(ids);
+      setScores(loadedScores);
     };
 
     loadExisting();
