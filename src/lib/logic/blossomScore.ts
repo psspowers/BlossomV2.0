@@ -91,13 +91,32 @@ export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<
   const allLogs = providedLogs || await getLastNDays(14);
   const cycleLogs = providedLogs || await db.logs.toArray();
 
-  if (allLogs.length < 3) {
+  if (allLogs.length === 0) {
     return {
       score: 50,
       symptomFactor: 50,
       selfCareFactor: 50,
       emotionalFactor: 50,
       stabilityFactor: 50,
+      activeWeights: { symptom: 0.25, selfCare: 0.25, emotional: 0.25, stability: 0.25 }
+    };
+  }
+
+  if (allLogs.length < 3) {
+    const recentLog = allLogs[allLogs.length - 1];
+    const symptomFactor = getSymptomWellness(recentLog);
+    const selfCareFactor = isSelfCareDay(recentLog) ? 100 : 0;
+    const emotionalFactor = getEmotionalWellness(recentLog);
+    const stabilityFactor = 50;
+
+    const quickScore = Math.round((symptomFactor + selfCareFactor + emotionalFactor + stabilityFactor) / 4);
+
+    return {
+      score: Math.max(0, Math.min(100, quickScore)),
+      symptomFactor,
+      selfCareFactor,
+      emotionalFactor,
+      stabilityFactor,
       activeWeights: { symptom: 0.25, selfCare: 0.25, emotional: 0.25, stability: 0.25 }
     };
   }
