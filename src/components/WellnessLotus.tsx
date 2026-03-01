@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SeasonState } from '../lib/logic/seasons';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
+import { Info } from 'lucide-react';
 
 interface WellnessLotusProps {
   health: number;
@@ -149,10 +151,21 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
               transition={{ delay: 0.5, duration: 0.8 }}
               className="absolute bottom-[2%] z-20"
             >
-              <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg">
-                <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
-                <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg cursor-help">
+                      <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
+                      <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs bg-white border-slate-200 shadow-xl">
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      Your Healing Blossom Score is a personal progress companion, not a medical diagnosis. Use these insights to talk with your doctor.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </motion.div>
           )}
         </motion.div>
@@ -172,6 +185,9 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           </div>
           <p className="font-serif italic text-slate-600 text-base max-w-md mx-auto leading-relaxed px-4">
             {season.message}
+          </p>
+          <p className="text-xs text-slate-500 mt-3 font-medium tracking-wide">
+            Your journey, seen and supported
           </p>
         </motion.div>
       )}

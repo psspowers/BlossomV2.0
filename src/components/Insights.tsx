@@ -92,7 +92,7 @@ export function Insights() {
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-serif font-bold text-slate-800">Insights Engine</h2>
+          <h2 className="text-xl font-serif font-bold text-slate-800">Pattern Explorer</h2>
           <p className="text-sm text-slate-600 mt-1">Evidence-based pattern analysis</p>
         </div>
 

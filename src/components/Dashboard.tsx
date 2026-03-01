@@ -96,7 +96,7 @@ export function Dashboard() {
           <div className="glass-card h-80">
             <div className="p-4 border-b border-slate-100">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                Wellness Balance
+                Today's Balance
               </h2>
             </div>
             <WellnessRadar />
@@ -159,6 +159,12 @@ export function Dashboard() {
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showLearn && <Learn onClose={() => setShowLearn(false)} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
+
+      <footer className="max-w-7xl mx-auto px-4 py-6 mt-12 border-t border-slate-200">
+        <p className="text-xs text-slate-500 text-center leading-relaxed">
+          Your scores and insights are personal progress companions, not medical diagnoses. Always consult with your healthcare provider for medical advice and treatment decisions.
+        </p>
+      </footer>
     </div>
   );
 }

@@ -383,7 +383,7 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
             )}
           </button>
           <p className="text-center text-[10px] text-slate-400 mt-3 uppercase tracking-[0.15em]">
-            Select 1-3 priorities to personalize your experience
+            Your priorities will guide your insights and patterns
           </p>
         </div>
       </div>
