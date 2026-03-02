@@ -54,13 +54,17 @@ const App = () => {
 
   useEffect(() => {
     if (!session) {
+      console.log('[App] No session, clearing onboarding state');
       setOnboardingComplete(null);
       return;
     }
 
     const checkOnboarding = async () => {
+      console.log('[App] Checking onboarding status...');
       const settings = await db.settings.toCollection().first();
+      console.log('[App] Settings from DB:', settings);
       const hasCompletedOnboarding = !!(settings?.priorities && settings.priorities.length > 0);
+      console.log('[App] Has completed onboarding:', hasCompletedOnboarding);
       setOnboardingComplete(hasCompletedOnboarding);
     };
 
@@ -161,8 +165,10 @@ const App = () => {
     return (
       <PrioritySelector
         onNext={() => {
+          console.log('[App] onNext() called from PrioritySelector');
           localStorage.removeItem(USER_DELETED_KEY);
           setOnboardingComplete(true);
+          console.log('[App] Onboarding marked as complete');
         }}
         onBack={async () => {
           await supabase.auth.signOut();

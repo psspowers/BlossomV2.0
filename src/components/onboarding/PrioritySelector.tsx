@@ -116,14 +116,25 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
     if (!canProceed) return;
 
     setSaving(true);
+    console.log('[PrioritySelector] Starting save process...');
+    console.log('[PrioritySelector] Priorities to save:', priorities);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('[PrioritySelector] User:', user?.id, 'Error:', userError);
+
       if (user) {
-        await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id);
+        console.log('[PrioritySelector] Updating profile last_seen_at...');
+        const { error: updateError } = await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id);
+        if (updateError) {
+          console.error('[PrioritySelector] Profile update error:', updateError);
+        }
       }
 
+      console.log('[PrioritySelector] Opening IndexedDB...');
       const existing = await db.settings.toCollection().first();
       const settingsId = existing?.id;
+      console.log('[PrioritySelector] Existing settings:', existing);
 
       const priorityIds = priorities.map(p => p.id);
       const happinessWeights: Record<string, number> = {};
@@ -135,10 +146,13 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
         priorities: priorityIds,
         happinessWeights: happinessWeights,
       };
+      console.log('[PrioritySelector] Profile data to save:', profileData);
 
       if (settingsId) {
+        console.log('[PrioritySelector] Updating existing settings with ID:', settingsId);
         await db.settings.update(settingsId, profileData);
       } else {
+        console.log('[PrioritySelector] Creating new settings entry...');
         await db.settings.add({
           theme: 'dark',
           designTheme: 'default',
@@ -148,10 +162,11 @@ export function PrioritySelector({ onNext, onBack }: PrioritySelectorProps) {
         });
       }
 
+      console.log('[PrioritySelector] Save successful, calling onNext()');
       onNext();
     } catch (err) {
-      console.error('Failed to save priorities:', err);
-      alert('Failed to save priorities. Please ensure you have storage space available.');
+      console.error('[PrioritySelector] Failed to save priorities:', err);
+      alert('Failed to save priorities. Please ensure you have storage space available and IndexedDB is enabled.');
     } finally {
       setSaving(false);
     }
