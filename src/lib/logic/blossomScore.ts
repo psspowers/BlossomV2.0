@@ -5,6 +5,7 @@ import {
   normalizeSleep,
   normalizeExercise,
   normalizeDiet,
+  normalizeWater,
   normalizeMood,
   normalizeStress,
   normalizeAnxiety
@@ -82,8 +83,13 @@ function isSelfCareDay(log: LogEntry): boolean {
   const sleepWellness = normalizeSleep(log.lifestyle.sleep);
   const exerciseWellness = normalizeExercise(log.lifestyle.exercise);
   const dietWellness = normalizeDiet(log.lifestyle.diet);
+  const waterWellness = normalizeWater(log.lifestyle.waterIntake);
+
+  // Sleep Gate: If critically sleep-deprived, day is disqualified
   if (sleepWellness <= 3) return false;
-  return sleepWellness >= 9 || exerciseWellness >= 7 || dietWellness >= 9;
+
+  // Day qualifies if any of these thresholds are met
+  return sleepWellness >= 9 || exerciseWellness >= 7 || dietWellness >= 9 || waterWellness >= 8;
 }
 
 export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<BlossomScoreResult> {
@@ -146,12 +152,23 @@ export async function calculateBlossomScore(providedLogs?: LogEntry[]): Promise<
   };
 
   if (profile && profile.priorities) {
-    const BOOST = 0.15;
+    const DEFAULT_BOOST = 0.15;
+
+    // Helper to get dynamic boost based on 0-10 happiness rating
+    const getBoost = (priorityId: string): number => {
+      if (!profile.happinessWeights || typeof profile.happinessWeights[priorityId] !== 'number') {
+        return DEFAULT_BOOST;
+      }
+      const rating = profile.happinessWeights[priorityId]; // 0-10 scale
+      // Base 0.10 + up to 0.10 based on rating. Max 0.20 at rating 10.
+      return 0.10 + ((rating / 10) * 0.10);
+    };
 
     profile.priorities.forEach(pId => {
       const target = PRIORITY_MAP[pId];
       if (target && target in weights) {
-        weights[target] += BOOST;
+        const boostAmount = getBoost(pId);
+        weights[target] += boostAmount;
       }
     });
 
