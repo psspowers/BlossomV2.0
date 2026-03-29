@@ -69,8 +69,10 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
         console.log('[Auth] Calling signInWithPassword...');
         console.log('[Auth] Current localStorage keys:', Object.keys(localStorage));
 
-        const existingSession = await supabase.auth.getSession();
-        console.log('[Auth] Existing session before sign-in:', existingSession);
+        await supabase.auth.signOut();
+        console.log('[Auth] Cleared any existing session');
+
+        await new Promise(resolve => setTimeout(resolve, 200));
 
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email: trimmedEmail,
