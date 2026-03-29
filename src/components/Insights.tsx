@@ -22,6 +22,7 @@ import { SeasonTimeline } from './SeasonTimeline';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason } from '../lib/logic/seasons';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { DoctorSummaryExport } from './DoctorSummaryExport';
 
 ChartJS.register(
   CategoryScale,
@@ -110,6 +111,10 @@ export function Insights() {
       {seasonData && (
         <SeasonTimeline season={seasonData.season} score={seasonData.score} />
       )}
+
+      <div className="mb-8 flex justify-center sm:justify-start">
+        <DoctorSummaryExport />
+      </div>
 
       <div className="flex items-center justify-between mb-4">
         <div>
