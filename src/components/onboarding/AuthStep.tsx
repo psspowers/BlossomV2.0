@@ -22,7 +22,9 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
   const [showResetModal, setShowResetModal] = useState(false);
 
   const handleAuth = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail || !password) {
       setError('Please fill in both fields.');
       return;
     }
@@ -46,35 +48,71 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
     setError(null);
 
     try {
+      console.log('[Auth] Attempting authentication:', { mode, email: trimmedEmail });
+
       if (mode === 'signup') {
         const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
+          email: trimmedEmail,
+          password: password,
           options: {
             emailRedirectTo: window.location.origin
           }
         });
+
+        console.log('[Auth] SignUp response:', { data, error: signUpError });
+
         if (signUpError) throw signUpError;
         if (data?.user) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       } else {
+        console.log('[Auth] Calling signInWithPassword...');
+        console.log('[Auth] Current localStorage keys:', Object.keys(localStorage));
+
+        const existingSession = await supabase.auth.getSession();
+        console.log('[Auth] Existing session before sign-in:', existingSession);
+
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: trimmedEmail,
+          password: password,
         });
-        if (signInError) throw signInError;
+
+        console.log('[Auth] SignIn response:', {
+          hasSession: !!data?.session,
+          hasUser: !!data?.user,
+          error: signInError
+        });
+
+        if (signInError) {
+          console.error('[Auth] SignIn error details:', {
+            message: signInError.message,
+            status: signInError.status,
+            code: (signInError as any).code
+          });
+          throw signInError;
+        }
+
         if (data?.session) {
+          console.log('[Auth] Session obtained successfully');
           await new Promise(resolve => setTimeout(resolve, 100));
+        } else {
+          console.warn('[Auth] No session returned after sign in');
         }
       }
 
-      onNext(email);
+      console.log('[Auth] Calling onNext()');
+      onNext(trimmedEmail);
     } catch (err: unknown) {
       console.error('[Auth] Authentication error:', err);
       let message = 'Authentication failed. Please try again.';
 
       if (err instanceof Error) {
+        console.error('[Auth] Error details:', {
+          message: err.message,
+          name: err.name,
+          stack: err.stack
+        });
+
         if (err.message.includes('Invalid login credentials')) {
           message = 'Invalid email or password.';
         } else if (err.message.includes('User already registered')) {
