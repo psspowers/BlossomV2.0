@@ -9,6 +9,7 @@ import { supabase } from "./lib/supabase";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
 import { PrioritySelector } from "./components/onboarding/PrioritySelector";
+import { ResetPasswordPage } from "./components/ResetPasswordPage";
 import type { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
@@ -184,6 +185,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>
