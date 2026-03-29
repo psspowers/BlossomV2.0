@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, Edit3 } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, User } from 'lucide-react';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
@@ -36,6 +36,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [showRecalibrateWarning, setShowRecalibrateWarning] = useState(false);
   const [pendingPriorities, setPendingPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
   const [maxPrioritiesMessage, setMaxPrioritiesMessage] = useState(false);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -61,7 +64,21 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
     loadJourneyData();
     loadPriorities();
+    loadUserProfile();
   }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
 
   const loadPriorities = async () => {
     const settings = await db.settings.toCollection().first();
@@ -336,6 +353,29 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
 
           <div className="p-6 overflow-y-auto space-y-8">
+            <section>
+              <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
+                Profile
+              </h3>
+              <button
+                onClick={() => setShowProfileEditor(true)}
+                className="w-full flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:border-sage-300 hover:shadow-md transition-all group"
+              >
+                <div className="p-2 bg-sage-50 rounded-lg text-sage-600 shadow-sm">
+                  <User size={20} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-serif text-stone-800 font-medium group-hover:text-sage-800">
+                    Account Details
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    {isLoadingProfile ? 'Loading...' : userEmail}
+                  </p>
+                </div>
+                <Edit3 size={16} className="text-stone-400 group-hover:text-sage-600" />
+              </button>
+            </section>
+
             <section>
               <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
                 Your Journey
@@ -774,6 +814,81 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   {isSavingPriorities ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {showProfileEditor && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowProfileEditor(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-[#FDFBF7] rounded-2xl p-6 max-w-lg w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-serif text-stone-800">Account Details</h3>
+              <button
+                onClick={() => setShowProfileEditor(false)}
+                className="p-2 hover:bg-stone-100 rounded-full text-stone-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-xl border border-stone-200">
+                <label className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2 block">
+                  Email Address
+                </label>
+                <p className="text-stone-800 font-medium">{userEmail}</p>
+                <p className="text-xs text-stone-500 mt-2">
+                  Email cannot be changed. Contact support if you need assistance.
+                </p>
+              </div>
+
+              <div className="bg-sage-50 border border-sage-200 rounded-xl p-4">
+                <p className="text-xs text-sage-800 leading-relaxed">
+                  <strong className="text-sage-900">Privacy First:</strong> Only your email and authentication credentials are stored on our servers. All health data, symptoms, logs, and priorities remain 100% private on your device.
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-stone-200">
+                <h4 className="text-sm font-semibold text-stone-700 mb-3">Change Password</h4>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+                        redirectTo: `${window.location.origin}/reset-password`,
+                      });
+                      if (error) throw error;
+                      alert('Password reset email sent! Check your inbox.');
+                      setShowProfileEditor(false);
+                    } catch (error) {
+                      console.error('Password reset failed:', error);
+                      alert('Failed to send password reset email. Please try again.');
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Send Password Reset Email
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={() => setShowProfileEditor(false)}
+                className="w-full px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+              >
+                Close
+              </button>
             </div>
           </motion.div>
         </motion.div>
