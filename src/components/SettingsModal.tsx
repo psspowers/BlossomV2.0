@@ -933,11 +933,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <h4 className="text-sm font-semibold text-stone-700">Personal Information</h4>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                  <label htmlFor="full_name" className="text-xs font-medium text-stone-600 mb-1.5 block">
                     Full Name
                   </label>
                   <input
                     type="text"
+                    id="full_name"
+                    name="full_name"
                     value={profileData.full_name}
                     onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                     placeholder="Enter your full name"
@@ -946,11 +948,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                  <label htmlFor="date_of_birth" className="text-xs font-medium text-stone-600 mb-1.5 block">
                     Date of Birth
                   </label>
                   <input
                     type="date"
+                    id="date_of_birth"
+                    name="date_of_birth"
                     value={profileData.date_of_birth}
                     onChange={(e) => setProfileData({ ...profileData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
@@ -959,11 +963,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                    <label htmlFor="city" className="text-xs font-medium text-stone-600 mb-1.5 block">
                       City
                     </label>
                     <input
                       type="text"
+                      id="city"
+                      name="city"
                       value={profileData.city}
                       onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
                       placeholder="City"
@@ -971,11 +977,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                    <label htmlFor="country" className="text-xs font-medium text-stone-600 mb-1.5 block">
                       Country
                     </label>
                     <input
                       type="text"
+                      id="country"
+                      name="country"
                       value={profileData.country}
                       onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
                       placeholder="Country"
@@ -985,11 +993,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                  <label htmlFor="race_ethnicity" className="text-xs font-medium text-stone-600 mb-1.5 block">
                     Race / Ethnicity
                   </label>
                   <input
                     type="text"
+                    id="race_ethnicity"
+                    name="race_ethnicity"
                     value={profileData.race_ethnicity}
                     onChange={(e) => setProfileData({ ...profileData, race_ethnicity: e.target.value })}
                     placeholder="Optional"
