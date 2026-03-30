@@ -172,7 +172,7 @@ export function DoctorSummaryExport() {
       className="w-full sm:w-auto bg-amber-400 text-stone-900 px-6 py-4 rounded-2xl font-medium flex items-center justify-center gap-3 shadow-lg hover:bg-amber-300 active:scale-95 transition-all disabled:opacity-70"
     >
       {isGenerating ? <Activity className="animate-spin" size={20} /> : <FileText size={20} />}
-      {isGenerating ? 'Generating...' : 'Share 1-Page Summary with Doctor'}
+      <span className="font-medium">{isGenerating ? 'Generating...' : 'Generate Clinical Summary for Doctor'}</span>
     </button>
   );
 }

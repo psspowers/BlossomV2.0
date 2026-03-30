@@ -509,9 +509,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   </div>
                   <div>
                     <p className="font-serif text-stone-800 font-medium group-hover:text-sage-800">
-                      {isExportingClinical ? 'Generating...' : 'Clinical Snapshot'}
+                      {isExportingClinical ? 'Generating...' : 'Generate Clinical Summary for Doctor'}
                     </p>
-                    <p className="text-xs text-stone-500">Download report for your doctor</p>
+                    <p className="text-xs text-stone-500">Download comprehensive report with charts</p>
                   </div>
                 </button>
 
