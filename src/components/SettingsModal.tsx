@@ -39,6 +39,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    full_name: '',
+    date_of_birth: '',
+    city: '',
+    country: '',
+    race_ethnicity: ''
+  });
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -73,10 +81,78 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       if (user?.email) {
         setUserEmail(user.email);
       }
+
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          setProfileData({
+            full_name: profile.full_name || '',
+            date_of_birth: profile.date_of_birth || '',
+            city: profile.city || '',
+            country: profile.country || '',
+            race_ethnicity: profile.race_ethnicity || ''
+          });
+        }
+      }
     } catch (error) {
       console.error('Failed to load user profile:', error);
     } finally {
       setIsLoadingProfile(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSavingProfile(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return;
+
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({
+            full_name: profileData.full_name || null,
+            date_of_birth: profileData.date_of_birth || null,
+            city: profileData.city || null,
+            country: profileData.country || null,
+            race_ethnicity: profileData.race_ethnicity || null
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            full_name: profileData.full_name || null,
+            date_of_birth: profileData.date_of_birth || null,
+            city: profileData.city || null,
+            country: profileData.country || null,
+            race_ethnicity: profileData.race_ethnicity || null
+          });
+
+        if (error) throw error;
+      }
+
+      alert('Profile updated successfully!');
+      setShowProfileEditor(false);
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
     }
   };
 
@@ -842,7 +918,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="bg-white p-4 rounded-xl border border-stone-200">
                 <label className="text-xs font-medium text-stone-500 uppercase tracking-wide mb-2 block">
                   Email Address
@@ -853,9 +929,82 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 </p>
               </div>
 
+              <div className="bg-white p-4 rounded-xl border border-stone-200 space-y-4">
+                <h4 className="text-sm font-semibold text-stone-700">Personal Information</h4>
+
+                <div>
+                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.full_name}
+                    onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={profileData.date_of_birth}
+                    onChange={(e) => setProfileData({ ...profileData, date_of_birth: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.city}
+                      onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                      placeholder="City"
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      value={profileData.country}
+                      onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
+                      placeholder="Country"
+                      className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-stone-600 mb-1.5 block">
+                    Race / Ethnicity
+                  </label>
+                  <input
+                    type="text"
+                    value={profileData.race_ethnicity}
+                    onChange={(e) => setProfileData({ ...profileData, race_ethnicity: e.target.value })}
+                    placeholder="Optional"
+                    className="w-full px-3 py-2 border border-stone-200 rounded-lg text-stone-800 focus:outline-none focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+                  />
+                </div>
+
+                <p className="text-xs text-stone-500 italic">
+                  All fields are optional. This information is stored securely on our servers and synced across your devices.
+                </p>
+              </div>
+
               <div className="bg-sage-50 border border-sage-200 rounded-xl p-4">
                 <p className="text-xs text-sage-800 leading-relaxed">
-                  <strong className="text-sage-900">Privacy First:</strong> Only your email and authentication credentials are stored on our servers. All health data, symptoms, logs, and priorities remain 100% private on your device.
+                  <strong className="text-sage-900">Privacy & Sync:</strong> Profile data (name, DOB, location) is stored on our secure servers and synced across devices. All health tracking data remains 100% private on your device.
                 </p>
               </div>
 
@@ -875,19 +1024,29 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       alert('Failed to send password reset email. Please try again.');
                     }
                   }}
-                  className="w-full px-4 py-2 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-lg transition-colors"
                 >
                   Send Password Reset Email
                 </button>
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 flex gap-3">
               <button
-                onClick={() => setShowProfileEditor(false)}
-                className="w-full px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+                onClick={() => {
+                  setShowProfileEditor(false);
+                  loadUserProfile();
+                }}
+                className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
               >
-                Close
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile}
+                className="flex-1 px-4 py-3 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isSavingProfile ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </motion.div>
