@@ -212,20 +212,27 @@ export const exportClinicalPDF = async (options: PDFExportOptions = {}) => {
 
     doc.addImage(lineCanvas.toDataURL("image/png"), "PNG", 115, 45, 80, 48);
 
-    const dateRangeText = `Total days tracked: ${logs.length} | Date range: ${logs[0].date} - ${logs[logs.length-1].date}`;
+    // --- V2.3 FINAL POLISH: Dynamic Insight & Evidence Footer ---
 
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.lightGray);
-    doc.text(dateRangeText, 20, 135);
+    // 1. Dynamic Correlation Insight
+    const correlationInsight = generateBasicCorrelation(last180Logs);
 
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(...COLORS.pink);
-    doc.roundedRect(20, 140, 170, 15, 3, 3, 'FD');
+    doc.roundedRect(20, 140, 170, 18, 3, 3, 'FD');
 
     doc.setFontSize(11);
     doc.setTextColor(...COLORS.darkGray);
-    doc.text(`Clinical Insight: Days with >=7h sleep showed 35% lower bloating severity`, 25, 149);
+    doc.text(`Clinical Insight: ${correlationInsight}`, 25, 149);
+
+    // 2. Final Evidence-Aligned Footer
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...COLORS.lightGray);
+
+    doc.text(`Total days tracked: ${logs.length} | Date range: ${logs[0].date} - ${logs[logs.length-1].date}`, 20, 195);
+    doc.text("This report was generated locally on your device. No data was ever shared.", 20, 202);
+    doc.text("Evidence-aligned with 2023 International PCOS Guideline", 20, 209);
 
     addWatermark(doc, 2);
 
