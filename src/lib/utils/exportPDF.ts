@@ -104,7 +104,7 @@ const generateOverviewPage = async (doc: jsPDF, logs: any[], scoreResult: Blosso
   addText(doc, `Date Range: ${dateRange}`, 25, yPos); yPos += 12;
 
   if (logs.length > 0) {
-    const season = calculateSeason(scoreResult.score);
+    const season = await calculateSeason(scoreResult.score);
     addText(doc, `Current Season: ${season.currentSeason.toUpperCase()}`, 25, yPos, { bold: true, color: COLORS.sage }); yPos += 6;
     addText(doc, `Overall Wellness Score: ${scoreResult.score}/100`, 25, yPos); yPos += 12;
 
