@@ -179,7 +179,7 @@ const generateOverviewPage = async (doc: jsPDF, logs: any[], priorities: any[]) 
       doc.rect(80, yPos - 3, (cat.score / 25) * 80, 4, 'F');
 
       doc.setDrawColor(...COLORS.lightGray);
-      doc.rect(80, yPos - 3, 80, 4);
+      doc.rect(80, yPos - 3, 80, 4, 'S');
 
       addText(doc, `${cat.score}/25`, 165, yPos);
 
@@ -262,7 +262,7 @@ const generatePrioritiesPage = (doc: jsPDF, priorities: any[], logs: any[]) => {
       doc.rect(135, yPos + 1, barWidth, 6, 'F');
 
       doc.setDrawColor(...COLORS.lightGray);
-      doc.rect(135, yPos + 1, 50, 6);
+      doc.rect(135, yPos + 1, 50, 6, 'S');
 
       yPos += 8;
     });
@@ -323,7 +323,7 @@ const generateCycleDetailsPage = (doc: jsPDF, logs: any[]) => {
       doc.rect(80, yPos - 3, barWidth, 4, 'F');
 
       doc.setDrawColor(...COLORS.lightGray);
-      doc.rect(80, yPos - 3, 100, 4);
+      doc.rect(80, yPos - 3, 100, 4, 'S');
 
       addText(doc, `${percentage}% (${count} days)`, 185, yPos, { align: 'right' });
 
