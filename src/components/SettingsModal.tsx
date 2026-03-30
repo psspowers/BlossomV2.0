@@ -406,6 +406,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   return (
     <AnimatePresence>
       <motion.div
+        key="settings-main"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -765,6 +766,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showPriorityEditor && (
         <motion.div
+          key="priority-editor"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
@@ -897,6 +899,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showProfileEditor && (
         <motion.div
+          key="profile-editor"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
