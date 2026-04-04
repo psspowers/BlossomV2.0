@@ -1,7 +1,7 @@
 # Blossom PCOS App - Implementation Summary
 
-**Version**: 3.0 (Cloud Sync & Priority System)
-**Last Updated**: March 2026
+**Version**: 3.5 (Password Recovery, PDF Export v2.3, Security Hardening)
+**Last Updated**: April 4, 2026
 
 ---
 

@@ -1,6 +1,9 @@
 # Blossom Privacy Guide
 
-**The Sacred Rules: Why Your Data Never Leaves Your Device**
+**The Sacred Rules: Your Data, Your Control**
+
+**Version**: 3.0 (Hybrid Cloud Architecture)
+**Last Updated**: April 4, 2026
 
 ---
 

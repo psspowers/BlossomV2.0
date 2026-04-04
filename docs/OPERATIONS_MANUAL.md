@@ -1,8 +1,8 @@
 # Blossom - Operations Manual
 
 **Target Audience**: DevOps, System Administrators, Operations Teams
-**Version**: 1.0
-**Last Updated**: January 2026
+**Version**: 2.0
+**Last Updated**: April 4, 2026
 
 ---
 

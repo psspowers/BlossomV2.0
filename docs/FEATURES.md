@@ -2,7 +2,7 @@
 
 **Complete breakdown of pages, features, and True North alignment**
 
-**Last Updated**: March 2026 (Cloud Sync & Priority System)
+**Last Updated**: April 4, 2026 (v3.5 — Password Recovery, PDF Export v2.3, Blossom Score 4-Factor Correction)
 
 ---
 
