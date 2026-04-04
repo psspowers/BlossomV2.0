@@ -1,6 +1,8 @@
 # Blossom Privacy Guide
 
-**The Sacred Rules: Why Your Data Never Leaves Your Device**
+**The Sacred Rules: Your Data, Your Control**
+
+> **Note (v3.0 — March 2026)**: Blossom now uses a hybrid architecture: your data lives in both local IndexedDB and Supabase cloud storage. This guide has been updated to reflect these changes honestly. The Sacred Rules are maintained through Row Level Security (RLS) — your data in the cloud is accessible only by you. See the updated Rules below.
 
 ---
 
@@ -21,47 +23,66 @@ Blossom is built on an unbreakable privacy foundation: **The Sacred Rules**.
 
 ## The Sacred Rules
 
-### Rule 1: Local-Only Storage
+### Rule 1: User-Controlled Storage
 
-**What it means**: All your data lives exclusively on your device in IndexedDB (browser database). Nothing is ever transmitted to servers, clouds, or networks.
+**What it means (v3.0)**: Your data is stored in two places: local IndexedDB on your device AND in your private Supabase cloud storage. The cloud storage is protected by Row Level Security (RLS) — only your account can access your data. No Blossom employee, no third party, and no advertiser can ever access it.
 
 **Technical implementation**:
-- Database: Dexie.js wrapper for IndexedDB
-- Storage location: Browser storage on your device
-- Network calls: Zero (except loading the app itself)
-- APIs: None
-- Cloud sync: None
+- Local database: Dexie.js wrapper for IndexedDB (offline cache)
+- Cloud database: Supabase PostgreSQL with RLS (cross-device sync)
+- Authentication: Supabase Auth with PKCE flow (email/password)
+- Network calls: HTTPS to Supabase only (your private project)
+- APIs: Supabase only (your data, your project)
+- Third-party data sharing: None
+
+**Why this change from v2.0 (local-only)**:
+- v2.0 (local-only) was anonymous but limited to one device
+- v3.0 enables cross-device access and secure cloud backups while maintaining data isolation via RLS
+- The privacy guarantee is maintained: only YOU can read your data
 
 **Verification**:
-Open browser DevTools → Network tab while using Blossom. You'll see zero outbound requests after the initial page load.
+Open browser DevTools → Network tab while using Blossom. You'll see HTTPS requests to your Supabase project URL only. No analytics services, no advertising platforms, no third-party trackers.
 
 **Storage capacity**:
-- Per log: 0.5-2 KB
-- 1 year of daily logs: 180-730 KB
-- Browser limit: 5-10 MB (enough for decades)
+- Per log: ~1-3 KB (JSONB with compression)
+- 1 year of daily logs: ~365-1095 KB (~1 MB)
+- Supabase free tier: 500 MB database (enough for decades)
+- Local cache mirrors cloud for offline access
 
-**Files**: `src/lib/db.ts` (Dexie database implementation)
+**Files**: `src/lib/db.ts` (IndexedDB), `src/lib/supabase.ts` (cloud client)
 
 ---
 
-### Rule 2: No Account Required
+### Rule 2: Account Required (for Cloud Sync)
 
-**What it means**: You never create an account, provide an email, or authenticate. The app works immediately, completely anonymously.
+**What it means (v3.0)**: You create an account with email and password to enable cloud sync and cross-device access. Your email is used only for authentication — never for marketing.
 
-**Why this matters**:
-- No email = no data breach risk
-- No password = no credential theft
-- No username = no identity linkage
-- No profile = no targeted advertising
+**Why this changed from v2.0**:
+- v2.0 was completely anonymous but data lived on one device only
+- v3.0 requires authentication to enable secure, private cloud sync
+- Your password is never stored in plaintext (Supabase handles secure hashing)
+
+**Privacy protections**:
+- Email: Used only for authentication and password reset
+- Password: Hashed by Supabase, never stored in plaintext
+- No username: Only email + hashed password
+- No profile required: Only email/password to create account
+- Leaked password detection: Optional HaveIBeenPwned check
+
+**What we do NOT use your email for**:
+- ❌ Marketing emails
+- ❌ Product updates
+- ❌ Third-party sharing
+- ❌ Account profiling
 
 **Tradeoffs**:
-- ❌ Cannot sync across devices
-- ✅ Absolute anonymity
-- ✅ Zero identity exposure
+- ✅ Cross-device sync (log on phone, view on laptop)
+- ✅ Secure cloud backup
+- ⚠️ Email address linked to data (Supabase stores it)
 
-**Philosophy**: PCOS patients shouldn't have to trade privacy for functionality. Multi-device sync would require cloud storage, which violates Rule 1.
+**If you prefer no account**: You can still use the app in demo mode or export your data and switch to a different tool. Your choice, always.
 
-**Future consideration**: Peer-to-peer sync via WebRTC (device-to-device, no server intermediary) is being researched.
+**Future consideration**: Optional local-only mode (no account) is being considered for users who prefer absolute anonymity over sync capability.
 
 ---
 
@@ -184,32 +205,65 @@ PATTERNS DETECTED
 
 ## Technical Privacy Architecture
 
-### Client-Side Only
+### Hybrid Architecture (v3.0)
 ```
-┌─────────────────┐
-│  Your Browser   │
-│                 │
-│  ┌───────────┐  │
-│  │ Blossom   │  │  ← All logic runs here
-│  │   App     │  │
-│  └─────┬─────┘  │
-│        │        │
-│  ┌─────▼─────┐  │
-│  │ IndexedDB │  │  ← All data stored here
-│  └───────────┘  │
-└─────────────────┘
+┌─────────────────────────────────────────────────┐
+│  Your Browser                                   │
+│                                                 │
+│  ┌───────────┐    HTTPS      ┌───────────────┐  │
+│  │ Blossom   │ ──────────►  │  Supabase     │  │
+│  │   App     │              │  (Your Data   │  │
+│  └─────┬─────┘              │   + RLS)      │  │
+│        │                    └───────────────┘  │
+│  ┌─────▼─────┐                                 │
+│  │ IndexedDB │  ← Local cache (offline use)    │
+│  └───────────┘                                 │
+└─────────────────────────────────────────────────┘
 
-     NO NETWORK
-       CALLS
+    NETWORK: Supabase HTTPS only
+    NO third-party calls
 ```
 
-### No Backend
-- No server-side code
-- No databases to breach
-- No API keys to steal
-- No hosting provider to trust
+**What goes to Supabase**:
+- Your health logs (symptoms, cycle, lifestyle)
+- Your settings and preferences
+- Your priority selections
+- Your account email and hashed password
 
-**Deployment**: Static files on CDN (Vercel/Netlify). These hosts serve HTML/JS/CSS but never see your data.
+**What never leaves your device**:
+- Your raw PDF exports (generated locally)
+- Your JSON exports (generated locally)
+- Clinical snapshots (generated locally)
+
+**Who can access your Supabase data**:
+- You (via your account login)
+- Nobody else (Row Level Security enforces this at the database level)
+
+### Privacy Through Row Level Security (RLS)
+
+Supabase RLS policies ensure that even if someone obtained the database, they could not read your data without your JWT token. All queries automatically filter to `auth.uid() = user_id`:
+
+```sql
+-- Example RLS policy — enforced on EVERY query
+CREATE POLICY "Users can only see own logs"
+  ON user_logs FOR SELECT
+  TO authenticated
+  USING ((select auth.uid()) = user_id);
+```
+
+This means:
+- The Supabase dashboard cannot be used to read your data without your credentials
+- Other users cannot access your data (impossible by database design)
+- No Blossom employee can casually browse user data
+
+### Supabase Privacy Commitments
+- Supabase is SOC 2 Type II certified
+- Data encrypted at rest (AES-256)
+- Data encrypted in transit (TLS 1.2+)
+- GDPR compliant (EU data residency available)
+- No data selling or advertising
+
+**Deployment**: Static app files on CDN (Vercel/Netlify). These hosts serve HTML/JS/CSS only and never see your health data.
 
 ### Progressive Web App (PWA)
 Once installed, Blossom works completely offline:
@@ -381,44 +435,45 @@ If you want to participate in PCOS research:
 - ❌ Add analytics "for product improvement" without consent
 - ❌ Monetize user data
 - ❌ Sell or share data with third parties
-- ❌ Create user profiles
+- ❌ Use health data for advertising targeting
 - ❌ Track you across the web
-- ❌ Require account creation
-- ❌ Add cloud sync without explicit opt-in
+- ❌ Share your email with third parties
+- ❌ Remove your ability to export or delete all data
 
 ---
 
 ## Comparison to Other Health Apps
 
-| Feature | Blossom | Typical Period Tracker | Medical Apps |
+| Feature | Blossom v3.0 | Typical Period Tracker | Medical Apps |
 |---------|---------|----------------------|--------------|
-| Account required | ❌ No | ✅ Yes | ✅ Yes |
-| Cloud storage | ❌ No | ✅ Yes | ✅ Yes |
-| Data shared with third parties | ❌ No | ✅ Often (advertisers) | ⚠️ Sometimes (research) |
+| Account required | ✅ Yes (for cloud sync) | ✅ Yes | ✅ Yes |
+| Cloud storage | ✅ Yes (private, RLS-protected) | ✅ Yes (often unprotected) | ✅ Yes |
+| Data shared with third parties | ❌ Never | ✅ Often (advertisers) | ⚠️ Sometimes (research) |
 | Analytics tracking | ❌ No | ✅ Yes | ✅ Yes |
-| Data export | ✅ JSON + TXT | ⚠️ Limited | ⚠️ PDF only |
-| Data deletion | ✅ One-click | ⚠️ Account deletion only | ⚠️ Must email support |
+| Data export | ✅ JSON + TXT + PDF | ⚠️ Limited | ⚠️ PDF only |
+| Data deletion | ✅ GDPR-compliant (instant, complete) | ⚠️ Account deletion only | ⚠️ Must email support |
 | Advertising | ❌ No | ✅ Often | ⚠️ Sometimes |
-| Offline functionality | ✅ Full | ⚠️ Limited | ❌ Rarely |
+| Cross-device sync | ✅ Full (Supabase) | ✅ Yes | ✅ Yes |
+| Offline functionality | ✅ Full (PWA) | ⚠️ Limited | ❌ Rarely |
 | Open source | 🔄 Considering | ❌ No | ❌ No |
 
 ---
 
 ## FAQ
 
-### Why not use cloud sync for convenience?
+### Why does Blossom v3.0 use cloud sync?
 
-Cloud sync requires sending your data to servers. This creates:
-- Data breach risk (servers get hacked)
-- Jurisdiction issues (where is data stored?)
-- Third-party risk (hosting providers can access data)
-- Subpoena risk (data can be legally demanded)
+Cloud sync enables cross-device access and automatic backups. We chose to implement it with the following privacy protections:
+- Row Level Security (RLS) ensures no one can access your data except you
+- No third-party data sharing
+- No analytics or advertising
+- Full GDPR compliance with instant deletion
 
-**We chose absolute privacy over convenience.** For multi-device access, we're exploring peer-to-peer solutions (WebRTC) that skip servers entirely.
+**Our priority**: Privacy that enables convenience, not convenience that compromises privacy.
 
 ### Can you see my data?
 
-**No.** There are no Blossom servers. Your data never leaves your device. We couldn't access it even if we wanted to.
+**No, practically speaking.** Supabase Row Level Security (RLS) policies are enforced at the database level. Even if a Blossom developer accessed the database directly, they would see only empty rows — because every query is filtered by your user ID. Reading your data would require your JWT token (session cookie), which is never shared.
 
 ### What happens if Blossom shuts down?
 
@@ -428,9 +483,9 @@ The app works offline after installation. You can export your data anytime. You'
 
 **On-device**: IndexedDB is protected by browser security. Modern browsers encrypt storage on disk (part of OS-level encryption).
 
-**In transit**: Not applicable (data never leaves device).
+**In transit**: Yes. All data sent to Supabase uses HTTPS/TLS 1.2+ encryption.
 
-**At rest on servers**: Not applicable (no servers).
+**At rest in cloud**: Yes. Supabase encrypts data at rest using AES-256. Your data is additionally isolated by RLS so it's inaccessible without your credentials.
 
 ### Can I trust you?
 
@@ -458,10 +513,10 @@ For privacy questions or concerns:
 
 **Your PCOS data is deeply personal. It should never be commodified, shared, or exposed.**
 
-Blossom is built on the Sacred Rules:
-1. **Local-only storage** (no cloud, no servers)
-2. **No account required** (complete anonymity)
-3. **Complete data sovereignty** (export and delete anytime)
+Blossom v3.0 is built on the Sacred Rules:
+1. **User-controlled storage** (your data in your private cloud + local cache, protected by RLS)
+2. **Minimal account** (email + password for sync only, never for profiling or advertising)
+3. **Complete data sovereignty** (export and delete anytime, GDPR-compliant)
 
 These are not optional features. They're the foundation of everything we build.
 

@@ -2,7 +2,7 @@
 
 **Complete guide to all documentation and resources**
 
-**Last Updated**: March 2026 (Cloud Sync & Priority System Update)
+**Last Updated**: April 4, 2026 (v3.5 — Password Recovery, PDF Export v2.3, Security Hardening)
 
 ---
 
@@ -14,11 +14,35 @@ Use this index to navigate based on your role and needs.
 
 ---
 
+## 🆕 What's New in v3.5 (April 2026)
+
+Password recovery, PDF export v2.3 with evidence footer, and final security hardening pass.
+
+### New Features in v3.5
+
+1. **Password Recovery**: Full flow — PasswordResetModal → Supabase email → ResetPasswordPage (`/reset-password`) → auto sign-in
+2. **PDF Export v2.3**: Two-page clinical PDF with dynamic sleep-bloat correlation insight and 2023 PCOS Guideline citation
+3. **Demo Seeder**: 5 clinical personas generating 60+ days of realistic log data each (`seed.ts`, `usePCOSSeeder.ts`)
+4. **GDPR Account Deletion**: `delete-account` Edge Function deletes all data and auth record with CASCADE
+5. **Security Hardening**: All functions use `(select auth.uid())` pattern, immutable `search_path`, final RLS audit
+6. **User Profiles Table**: Optional demographic profile data (`user_profiles` table, migrations 10–11)
+
+### Key Corrections in v3.5 Documentation
+
+1. **Password requirements corrected**: Was documented as "6 chars", actual code enforces "8 chars + 1 digit + max 128"
+2. **Blossom Score corrected**: Was documented as 3-factor (40/30/30), actual code is 4-factor (25/25/25/25 default)
+3. **PRIVACY.md rewritten**: Entire document was contradicting v3.0 hybrid architecture; rewrote to reflect reality
+4. **Component Architecture expanded**: 8+ undocumented components added to TECHNICAL_MANUAL.md
+5. **Edge Function documented**: `delete-account` added to IMPLEMENTATION_SUMMARY.md
+6. **Migrations completed**: IMPLEMENTATION_SUMMARY.md now lists all 11 migrations (was only 6)
+
+---
+
 ## 🆕 What's New in Cloud Sync & Priority System Update (February-March 2026)
 
 Major architectural evolution from local-only to hybrid cloud architecture with authentication and multi-device sync capability.
 
-### New Features
+### New Features (v3.0)
 
 1. **User Authentication**: Supabase email/password authentication with PKCE flow
 2. **Priority/Happiness System**: User-selected priorities with happiness impact tracking (0-10 scale)
@@ -27,35 +51,31 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 5. **Wisdom Cards System**: Evidence-based educational content repository
 6. **Enhanced Data Export**: Clinical snapshots and JSON backups
 
-### New Documentation
-
-1. **SECURITY_CONFIG.md**: Detailed security setup instructions for Supabase
-2. **SECURITY_ACTION_REQUIRED.md**: Manual configuration steps for leaked password protection
-
-### Database Schema Changes
+### Database Schema (v3.0+)
 
 1. **user_logs table**: Daily health entries with cloud sync
 2. **user_settings table**: User preferences and configuration
 3. **user_priorities table**: Priority selections with happiness impact scores
 4. **wisdom_cards table**: Educational content library with 6 seeded cards
-5. **RLS Policies**: Row-level security for all tables with performance optimization
-6. **Auto-update Triggers**: Timestamp management for created_at/updated_at
+5. **user_profiles table**: Optional demographic data (added v3.5)
+6. **RLS Policies**: Row-level security for all tables using `(select auth.uid())` pattern
+7. **11 Migrations**: Full history in `supabase/migrations/`
 
-### Key Architectural Changes
+### Key Architectural Changes (v3.0)
 
 - **From**: Pure local-first with IndexedDB only
-- **To**: Hybrid architecture with Supabase backend
-- **Authentication**: Email/password with PKCE flow
+- **To**: Hybrid architecture with Supabase backend + IndexedDB local cache
+- **Authentication**: Email/password with PKCE flow (8 chars min + 1 digit required)
 - **Multi-Device**: Cloud sync enables cross-device data access
 - **Privacy**: Maintained through Row Level Security (RLS)
 
 ### For Quick Start
 
 - **New users**: Read README.md → FEATURES.md → SECURITY_CONFIG.md
-- **Developers**: Read TECHNICAL_MANUAL.md (Sections 4: Database + 6: Soul Injection + new Auth section)
+- **Developers**: Read TECHNICAL_MANUAL.md (Sections 4: Database + 6: Soul Injection + Auth)
 - **Designers**: Read THEME_SYSTEM_GUIDE.md (Body-Positive UX Principles)
-- **Privacy advocates**: Read PRIVACY.md (Sacred Rules) + SECURITY_CONFIG.md
-- **DevOps**: Read SECURITY_ACTION_REQUIRED.md for deployment checklist
+- **Privacy advocates**: Read PRIVACY.md (Sacred Rules v3.0) + SECURITY_CONFIG.md
+- **DevOps**: Read SECURITY_ACTION_REQUIRED.md + OPERATIONS_MANUAL.md
 
 ---
 
@@ -207,26 +227,22 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 ---
 
 ### 📋 PASSWORD_RECOVERY_IMPLEMENTATION_GUIDE.md
-**Step-by-step implementation guide for password recovery**
+**Implementation guide for password recovery — IMPLEMENTED (v3.5)**
 
-**NEW - March 2026**
+**Status**: Feature is fully implemented and deployed as of v3.5. This guide documents the implementation decisions and can be used for testing, auditing, or understanding the recovery flow.
 
 **Contents**:
-- Phase-by-phase implementation instructions with code samples
-- PasswordResetModal component (complete implementation)
-- ResetPasswordPage component (complete implementation)
+- PasswordResetModal component (launched from "Forgot password?" link)
+- ResetPasswordPage component (handles `/reset-password` route post-email-click)
 - Email template configuration in Supabase
-- Comprehensive testing checklist (end-to-end and edge cases)
-- Deployment checklist and rollback plan
-- Success metrics to track
-- Support documentation templates
+- Testing checklist (end-to-end and edge cases)
+- Deployment checklist
 
 **When to read**:
-- Implementing password recovery feature
-- Adding password reset UI components
-- Configuring Supabase email templates
+- Auditing the password recovery implementation
 - Testing auth flows end-to-end
-- Deploying authentication updates
+- Understanding the recovery UX design decisions
+- Configuring Supabase email templates
 
 **Key Audience**: Frontend developers, QA engineers, DevOps engineers
 
@@ -288,22 +304,25 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 ## For Developers
 
 ### 🔧 TECHNICAL_MANUAL.md
-**Complete technical reference with Soul Injection algorithms**
-
-**UPDATED in Soul Injection Update**
+**Complete technical reference — v3.5 (updated April 2026)**
 
 **Sections**:
 1. Architecture Overview
 2. Development Setup
 3. Project Structure
 4. Database Architecture
-5. Component Architecture
-6. **Soul Injection: Core Logic** (NEW)
-   - 6.1 Blossom Score Algorithm
+   - 4.1 Supabase Cloud Database (5 tables, RLS, 11 migrations)
+   - 4.2 IndexedDB Local Cache (Dexie)
+5. Component Architecture (28+ components documented)
+6. **Soul Injection: Core Logic**
+   - 6.1 Blossom Score Algorithm (4-factor model, dynamic weighting, Sleep Gate)
    - 6.2 Seasons Engine
    - 6.3 Narratives & Daily Wisdom
    - 6.4 Pattern Stories Generator
 7. State Management
+   - 7.5 Reactive Wisdom Engine v2.0 (pure function, trigger-based)
+   - 7.6 Conversion Functions (normalizeSymptom, normalizeSleep, etc.)
+   - 7.7 Clinical PDF Export System v2.3 (jsPDF + Chart.js, 2-page layout)
 8. Theme System
 9. Build & Deployment
 10. Testing & Debugging
@@ -322,12 +341,14 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 
 **Key Topics**:
 - Tech stack details
+- Supabase PostgreSQL schema + RLS architecture
 - Database schema (Dexie/IndexedDB)
-- Component hierarchy
-- **Soul Injection algorithms with code examples** (NEW)
-- **Blossom Score formula and weighting rationale** (NEW)
-- **Seasons logic and messaging strategy** (NEW)
-- **Pattern Stories statistical thresholds** (NEW)
+- Component hierarchy (all 28+ components)
+- **Blossom Score 4-factor algorithm with Personalization Engine**
+- **Seasons logic and messaging strategy**
+- **Pattern Stories statistical thresholds**
+- **Reactive Wisdom Engine v2.0 trigger system**
+- **PDF Export v2.3 layout and chart specs**
 - React Query usage
 - Theme system architecture
 - Build configuration
@@ -477,15 +498,28 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 ---
 
 ### 📝 IMPLEMENTATION_SUMMARY.md
-**Feature implementation overview**
+**Feature implementation overview — v3.5 (updated April 2026)**
 
 **Contents**:
-- Completed features
-- Architecture decisions
-- Known limitations
-- Future enhancements
+- Authentication system (PKCE, password recovery, session management)
+- Priority & Happiness System
+- Onboarding Flow
+- Cloud Sync Database (11 migrations, all 5 tables)
+- Security Enhancements (RLS, function security, `(select auth.uid())` pattern)
+- Data Management (demo seeder, export features, GDPR deletion)
+- Edge Functions (`delete-account`)
+- Architecture evolution (local-only → hybrid cloud)
 
-**When to read**: Project overview, handoff documentation
+**When to read**: Project overview, handoff documentation, understanding migration history
+
+---
+
+### ⚠️ Deprecated / Superseded Wisdom Engine Docs
+
+These docs are kept for historical reference but reflect older implementations:
+
+- **WISDOM_ENGINE_GUIDE.md** — Documents v1 Supabase-queried wisdom system (pre-v3.0). The current system (`reactiveWisdom.ts`) is a pure function; no Supabase queries at wisdom-card lookup time. Use `REACTIVE_WISDOM_V2.md` instead.
+- **REACTIVE_WISDOM_GUIDE.md** — Documents v2 polling-based reactive wisdom. Superseded by the pure-function v2.0 implementation in `REACTIVE_WISDOM_V2.md`.
 
 ---
 
@@ -544,13 +578,30 @@ Major architectural evolution from local-only to hybrid cloud architecture with 
 → Read: `HYPERANDROGENISM_INSIGHTS.md`
 → User guide: `HOW_TO_VIEW_HYPERANDROGENISM.md`
 
-#### **Understand Soul Injection features** (NEW)
+#### **Understand Soul Injection features**
 → Start: `FEATURES.md` → Soul Injection Deep Dives
 → Technical: `TECHNICAL_MANUAL.md` → Section 6
 
-#### **Understand Blossom Score algorithm** (NEW)
-→ Read: `TECHNICAL_MANUAL.md` → 6.1 Blossom Score Algorithm
+#### **Understand Blossom Score algorithm**
+→ Read: `TECHNICAL_MANUAL.md` → 6.1 Blossom Score Algorithm (4-factor model)
+→ Clinical: `CLINICAL_SYSTEM_REPORT.md` → Four-factor scoring methodology
 → Overview: `FEATURES.md` → Blossom Score
+
+#### **Implement or audit password recovery**
+→ Read: `PASSWORD_RECOVERY_IMPLEMENTATION_GUIDE.md` (implemented in v3.5)
+→ Test: `AUTH_SYSTEM_ANALYSIS.md` → Testing checklist
+
+#### **Set up or debug Supabase cloud sync**
+→ Read: `TECHNICAL_MANUAL.md` → Section 4.1 Supabase Cloud Database
+→ Quick: `QUICK_REFERENCE.md` → Cloud (Supabase PostgreSQL) queries
+
+#### **Understand GDPR deletion flow**
+→ Read: `IMPLEMENTATION_SUMMARY.md` → Section 7 Edge Functions
+→ Technical: `supabase/functions/delete-account/index.ts`
+
+#### **Understand the Wisdom Engine**
+→ Current implementation: `REACTIVE_WISDOM_V2.md`
+→ Note: `WISDOM_ENGINE_GUIDE.md` and `REACTIVE_WISDOM_GUIDE.md` are superseded — use V2 doc
 
 #### **Understand Seasons system** (NEW)
 → Read: `TECHNICAL_MANUAL.md` → 6.2 Seasons Engine
@@ -764,20 +815,35 @@ If you can't find what you need:
 
 ## Version History
 
-### Documentation v1.0 (Current)
-- Complete technical manual
-- Operations manual
-- Quick reference guide
-- Theme system guide
-- Feature-specific guides
-- Documentation index
+### Documentation v3.5 (April 2026 — Current)
+- Password requirements corrected (8 chars + 1 digit) across all docs
+- Blossom Score corrected from 3-factor to 4-factor in TECHNICAL_MANUAL.md and FEATURES.md
+- PRIVACY.md rewritten to reflect hybrid cloud architecture (v3.0 truth)
+- Component Architecture expanded (8+ previously undocumented components)
+- Edge Function (`delete-account`) documented in IMPLEMENTATION_SUMMARY.md
+- Migration history completed (11 migrations, was 6)
+- QUICK_REFERENCE.md updated with Supabase query patterns and cloud debugging
+- DOCUMENTATION_INDEX.md updated with v3.5 "What's New" and deprecated wisdom engine docs flagged
+
+### Documentation v3.0 (February-March 2026)
+- Complete Supabase architecture documentation
+- Authentication system guide
+- Cloud sync and RLS documentation
+- Security operations in OPERATIONS_MANUAL.md
+- GDPR compliance procedures
+
+### Documentation v2.0 (January 2026 — Soul Injection)
+- Soul Injection feature documentation
+- Blossom Score algorithm (originally documented as 3-factor — corrected in v3.5)
+- Seasons engine and narrative system
+- Pattern Stories generator
+- CLINICAL_SYSTEM_REPORT.md added
 
 ### Planned Additions
 - Video tutorials
 - API reference docs
 - Component storybook
 - Testing guide
-- Migration guides
 
 ---
 

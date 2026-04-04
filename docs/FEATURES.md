@@ -2,7 +2,7 @@
 
 **Complete breakdown of pages, features, and True North alignment**
 
-**Last Updated**: March 2026 (Cloud Sync & Priority System)
+**Last Updated**: April 4, 2026 (Password Recovery, PDF Export, Architecture Clarification)
 
 ---
 
@@ -43,15 +43,26 @@ Every feature in Blossom supports the "True North" mission: **Seen, Supported, S
 - Email/password authentication via Supabase
 - Dual mode: Sign-up and Sign-in
 - Password visibility toggle
-- 6-character minimum password
+- Password requirements: 8-character minimum + at least 1 digit + 128-character maximum
 - Comprehensive error handling
 - PKCE auth flow for security
+- "Forgot password" link triggers PasswordResetModal
+- Real-time password strength meter (zxcvbn library)
 
 **Validation**:
-- Email format checking
-- Password strength requirements
+- Email format checking with trim and lowercase normalization
+- Password strength requirements (8+ chars, 1+ digit, ≤128 chars)
 - Already-registered detection
 - Invalid credentials handling
+
+**Password Recovery**:
+- "Forgot password?" link on the sign-in form
+- Launches PasswordResetModal with email input
+- Supabase sends password reset email to user
+- User clicks link → directed to `ResetPasswordPage` (/reset-password route)
+- User enters new password (same requirements apply)
+- Auto sign-in after successful reset
+- **Files**: `src/components/onboarding/PasswordResetModal.tsx`, `src/components/ResetPasswordPage.tsx`
 
 **Files**: `src/components/onboarding/AuthStep.tsx`, `src/lib/supabase.ts`
 
@@ -144,13 +155,15 @@ After onboarding completion, user enters the main app with:
 
 #### Blossom Score Card
 - **What it does**: Shows composite wellness score with breakdown
-- **True North tie**: **Seen** - Validates all three dimensions (symptom/self-care/emotional)
+- **True North tie**: **Seen** - Validates all four dimensions (symptom/self-care/emotional/stability)
 - **Display**:
   - Overall score (0-100)
-  - Symptom factor (40% weight)
-  - Self-care factor (30% weight)
-  - Emotional factor (30% weight)
+  - Symptom factor (default 25% weight, adjustable by priorities)
+  - Self-care factor (default 25% weight, adjustable by priorities)
+  - Emotional factor (default 25% weight, adjustable by priorities)
+  - Stability factor (default 25% weight — cycle regularity)
   - Week-over-week trend indicator
+- **Personalization**: Priority selections dynamically re-weight the four factors
 - **Files**: `src/components/Dashboard.tsx`, `src/lib/logic/blossomScore.ts`
 - **Design philosophy**: Holistic health, not perfection. Symptoms improving by 10% = perfect score, even if baseline is high.
 
@@ -349,19 +362,32 @@ After onboarding completion, user enters the main app with:
   - Includes cycle history, symptom averages, lifestyle correlations
   - Flags concerning patterns (extended cycles, high variability)
   - **True North tie**: **Supported** - Bridges gap between patient and doctor
+  - **File**: `src/components/DoctorSummaryExport.tsx`
+- **PDF Clinical Summary Export** (v2.3 — April 2026):
+  - Full-page A4 clinical PDF generated locally (jsPDF + Chart.js)
+  - Page 1: Blossom Score card, wellness balance bars, privacy watermark
+  - Page 2: Symptom radar chart, cycle length trend chart, dynamic correlation insight, evidence footer
+  - Dynamic insight: analyzes sleep-bloat correlation from actual data ("Days with ≥7h sleep showed X% lower bloating severity")
+  - Footer citation: "Evidence-aligned with 2023 International PCOS Guideline"
+  - Privacy statement: "generated locally on your device"
+  - **File**: `src/lib/utils/exportPDF.ts`, trigger via `DoctorSummaryExport.tsx`
 - **Export All Data** (JSON):
   - Complete backup of logs and settings
   - **True North tie**: **Sovereign** - Your data, portable forever
 - **Delete Account** (New in March 2026):
   - Permanently deletes all local AND cloud data
-  - Removes user_logs, user_settings, user_priorities from Supabase
+  - Calls `delete-account` Supabase Edge Function (GDPR-compliant)
+  - Edge Function uses service role key to call `supabase.auth.admin.deleteUser()`
+  - CASCADE constraints automatically delete user_logs, user_settings, user_priorities, user_profiles
   - Clears IndexedDB and localStorage
   - Signs out and returns to welcome screen
   - **True North tie**: **Sovereign** - Complete data control, no lock-in
+  - **File**: `supabase/functions/delete-account/index.ts`
 - **Demo Profiles** (New in March 2026):
-  - 5 clinical personas for testing
-  - Each represents different PCOS phenotypes
-  - Quick-load realistic symptom patterns
+  - 5 clinical personas for testing, each representing different PCOS phenotypes
+  - Generates 60+ days of realistic log data per persona
+  - Quick-load realistic symptom patterns for development/testing
+  - **File**: `src/lib/seed.ts`, `src/lib/hooks/usePCOSSeeder.ts`
 
 **Files**: `src/components/SettingsModal.tsx`
 
@@ -372,7 +398,7 @@ After onboarding completion, user enters the main app with:
 ### Seen (Validation & Recognition)
 
 **Features that validate your experience:**
-- Blossom Score's 3-factor model (symptoms + self-care + emotional)
+- Blossom Score's 4-factor model (symptoms + self-care + emotional + stability)
 - Pattern Stories: "Your anxiety is lower when you sleep 7h+"
 - Resting Season: "Rest is productive"
 - Cycle tracking with spotting differentiation
@@ -396,12 +422,12 @@ After onboarding completion, user enters the main app with:
 ### Sovereign (Autonomy & Control)
 
 **Features that honor your agency:**
-- 100% local storage (no cloud)
-- Export data anytime (JSON)
-- Delete data anytime (one click)
+- Hybrid privacy: IndexedDB local cache + Supabase cloud (your data, protected by RLS)
+- Export data anytime (JSON or PDF Clinical Summary)
+- Delete account and all data permanently (one-click, GDPR-compliant)
 - Custom metrics (your body, your symptoms)
 - Theme selection (aesthetic autonomy)
-- No account required (anonymous)
+- Priority-weighted scoring (app adapts to what matters most to you)
 - No ads, no tracking, no telemetry
 
 **Why it matters**: PCOS patients often feel powerless in their healthcare. Data sovereignty is a fundamental right.
@@ -412,20 +438,26 @@ After onboarding completion, user enters the main app with:
 
 | Feature | Component | Logic | Database (Supabase) |
 |---------|-----------|-------|----------|
-| Authentication | `AuthStep.tsx` | Supabase Auth | `auth.users` |
+| Authentication | `AuthStep.tsx` | Supabase Auth (PKCE) | `auth.users` |
+| Password Reset | `PasswordResetModal.tsx`, `ResetPasswordPage.tsx` | Supabase `resetPasswordForEmail()` | `auth.users` |
 | Onboarding | `App.tsx` | Session + localStorage | - |
 | Priority Selection | `PrioritySelector.tsx` | Priority mapping | `user_priorities` |
-| Blossom Score | `Dashboard.tsx` | `blossomScore.ts` | Aggregates `user_logs` |
+| Blossom Score | `Dashboard.tsx` | `blossomScore.ts` | Aggregates `user_logs` (14 days) |
 | Seasons | `CycleContext.tsx` | `seasons.ts` | Uses Blossom Score |
 | Pattern Stories | `Insights.tsx` | `stories.ts` | Analyzes `user_logs` (30 days) |
-| Daily Wisdom | `DailyWisdom.tsx` | `narratives.ts` + `wisdom_cards` | `wisdom_cards` table |
+| Daily Wisdom | `DailyWisdom.tsx` | `reactiveWisdom.ts` (pure function) | Today's `user_logs` |
 | Lotus Bloom | `BioOrb.tsx`, `WellnessLotus.tsx` | `blossomScore.ts` | Visual mapping of score |
-| Daily Log | `DailyLog.tsx` | - | Writes to `user_logs` |
-| Clinical Snapshot | `SettingsModal.tsx` | Aggregation logic | Reads all `user_logs` |
+| Daily Log | `DailyLog.tsx` | - | Writes to `user_logs` + IndexedDB |
+| Clinical Snapshot (.txt) | `DoctorSummaryExport.tsx` | Aggregation logic | Reads all `user_logs` |
+| Clinical PDF Export | `DoctorSummaryExport.tsx` | `exportPDF.ts` | Reads last 180 days `user_logs` |
 | Theme Switch | `SettingsModal.tsx` | `ThemeContext.tsx` | `user_settings` |
-| Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `user_logs.cyclePhase` |
+| Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `user_logs.cycle_phase` |
 | Wellness Radar | `WellnessRadar.tsx` | Aggregation | Last 7 days avg |
-| Account Deletion | `SettingsModal.tsx` | Supabase + IndexedDB cleanup | Deletes from all tables |
+| Season Timeline | `SeasonTimeline.tsx` | `seasons.ts` | Historical Blossom Scores |
+| Trend Velocity | `TrendVelocity.tsx` | `velocity.ts` | Last 30/60 days `user_logs` |
+| Education / Learn | `Learn.tsx`, `Education.tsx` | Static content | - |
+| Account Deletion | `SettingsModal.tsx` | `delete-account` Edge Function | CASCADE deletes all tables |
+| Demo Profiles | `SettingsModal.tsx` | `usePCOSSeeder.ts`, `seed.ts` | Writes to `user_logs` |
 
 ---
 
@@ -462,13 +494,17 @@ After onboarding completion, user enters the main app with:
 
 ### What Blossom Has
 ✅ Cyclical wellness (Seasons)
-✅ Holistic scoring (3 factors)
+✅ Holistic scoring (4 factors: symptom, self-care, emotional, stability)
+✅ Priority-weighted personalization
 ✅ Personalized narratives
 ✅ Body-positive language
-✅ Complete privacy
-✅ Data portability
+✅ Privacy-first cloud sync (Supabase + RLS; your data, no third-party access)
+✅ Data portability (JSON + PDF Clinical Summary export)
+✅ GDPR-compliant account deletion
 ✅ Evidence-based tips
 ✅ Compassionate affirmations
+✅ Password recovery flow
+✅ Offline-capable PWA
 
 ### What Blossom Does NOT Have
 ❌ Streak counters
@@ -477,8 +513,8 @@ After onboarding completion, user enters the main app with:
 ❌ Missed-day guilt
 ❌ Binary success/failure
 ❌ Comparison to others
-❌ Cloud storage
-❌ Account requirements
+❌ Analytics or telemetry
+❌ Third-party advertising or data sharing
 
 ---
 

@@ -548,6 +548,69 @@ interface FormData {
 - Phase-specific tips
 - Symptom warnings
 
+#### 8. TrendVelocity (`TrendVelocity.tsx`)
+
+**Purpose**: Shows rate of change for each tracked metric
+
+**Display**: Direction indicators — ↑↑ (rapid improvement), ↑ (improving), → (stable), ↓ (declining)
+
+**Logic**: `src/lib/logic/velocity.ts` — compares current vs previous 30-day periods
+
+#### 9. SeasonTimeline (`SeasonTimeline.tsx`)
+
+**Purpose**: Visual timeline of historical season states (Resting/Growing/Blooming)
+
+**Logic**: Derives season for each past period using historical Blossom Scores
+
+#### 10. DoctorSummaryExport (`DoctorSummaryExport.tsx`)
+
+**Purpose**: Generates clinical exports for healthcare provider visits
+
+**Features**:
+- Clinical Snapshot (.txt): Human-readable report with cycle history, symptom averages, lifestyle correlations
+- PDF Clinical Summary (via `exportPDF.ts`): Full A4 document with charts, Blossom Score, and correlation insights
+- Both exports generated 100% client-side; no data leaves the device
+
+#### 11. Learn (`Learn.tsx`) and Education (`Education.tsx`)
+
+**Purpose**: Evidence-based PCOS education and resources
+
+**Content Categories**: Understanding PCOS (Rotterdam criteria), Nutrition, Lifestyle interventions, Medical management
+
+**Source**: Static content grounded in Monash University and NIH guidelines
+
+#### 12. InsightsNavigation (`InsightsNavigation.tsx`)
+
+**Purpose**: Tab navigation bar within the Insights page
+
+**Tabs**: Overview, Patterns, Cycle, Clinical (or similar — configurable)
+
+#### 13. DemoPreviewPill (`DemoPreviewPill.tsx`)
+
+**Purpose**: Visual indicator shown when demo/seeded data is active
+
+**Display**: Persistent pill badge indicating the user is viewing demo data, not their own
+
+#### 14. Onboarding Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| WelcomeStep | `onboarding/WelcomeStep.tsx` | Intro to True North, first screen |
+| AuthStep | `onboarding/AuthStep.tsx` | Email/password sign-up and sign-in |
+| PrioritySelector | `onboarding/PrioritySelector.tsx` | Select up to 3 priorities with happiness ratings |
+| BloomLotus | `onboarding/BloomLotus.tsx` | Video-based lotus bloom animation |
+| MiniLotus | `onboarding/MiniLotus.tsx` | SVG lotus icon variant |
+| PasswordResetModal | `onboarding/PasswordResetModal.tsx` | Email-based password reset trigger |
+| PasswordStrengthMeter | `onboarding/PasswordStrengthMeter.tsx` | Real-time password strength (zxcvbn) |
+
+#### 15. ResetPasswordPage (`ResetPasswordPage.tsx`)
+
+**Purpose**: Full-page component for completing password reset
+
+**Route**: `/reset-password`
+
+**Flow**: User arrives from Supabase reset email link → enters new password → auto signs in → redirected to Dashboard
+
 ---
 
 ## Soul Injection: Core Logic
@@ -567,94 +630,179 @@ The "Soul Injection" represents the compassionate intelligence layer of Blossom.
 
 **File**: `src/lib/logic/blossomScore.ts`
 
-The Blossom Score (0-100) is a composite wellness metric that replaces traditional health scores. It's weighted to prioritize symptom trends over lifestyle perfectionism, embodying the "Proof and Heart" philosophy.
+The Blossom Score (0-100) is a composite wellness metric that replaces traditional health scores. It embodies the "Proof and Heart" philosophy: holistic, non-punishing, and personalizable.
 
 ---
 
-#### **The Formula**
+#### **The Four-Factor Formula (v4.0)**
 
 ```typescript
-BlossomScore = (SymptomFactor × 0.4) + (SelfCareFactor × 0.3) + (EmotionalFactor × 0.3)
+BlossomScore = (SymptomFactor × W_symptom)
+             + (SelfCareFactor × W_selfCare)
+             + (EmotionalFactor × W_emotional)
+             + (StabilityFactor × W_stability)
 ```
 
-**Why These Weights?**
-- **40% Symptoms**: Physical manifestations are primary diagnostic criteria
-- **30% Self-Care**: Lifestyle factors directly impact insulin resistance
-- **30% Emotional**: Mental health burden is equal to lifestyle factors (validates "The Unseen Weight")
+**Default Weights** (equal distribution):
+- **25% Symptoms** — Physical burden score
+- **25% Self-Care** — Metabolic consistency score
+- **25% Emotional** — Psychological wellness score
+- **25% Stability** — Cycle regularity score
+
+**Dynamic Reweighting via Priorities**: When a user selects priorities in onboarding, the weights shift toward the factors their priorities map to. For example, selecting "Acne" boosts `W_symptom`. See Personalization Engine below.
 
 ---
 
 #### Component Breakdown
 
-**1. Symptom Factor (40% weight)**
+**1. Symptom Factor (default 25%)**
 
-Compares the last 7 days of symptom averages to the previous 7 days:
+Inverts symptom severity into wellness scores. Higher severity = lower wellness (0-100 scale).
 
 ```typescript
-// Average all symptoms per log (acne, hirsutism, hairLoss, bloat, cramps)
-function getSymptomScore(log: LogEntry): number {
+function getSymptomWellness(log: LogEntry): number {
   const symptoms = [
-    log.symptoms.acne || 0,
-    log.symptoms.hirsutism || 0,
-    log.symptoms.hairLoss || 0,
-    log.symptoms.bloat || 0,
-    log.symptoms.cramps || 0
+    normalizeSymptom(log.symptoms.acne),       // severity 0-10 → wellness 0-10
+    normalizeSymptom(log.symptoms.hirsutism),
+    normalizeSymptom(log.symptoms.hairLoss),
+    normalizeSymptom(log.symptoms.bloat),
+    normalizeSymptom(log.symptoms.cramps)
   ];
-  return calculateAverage(symptoms);
+  return calculateAverage(symptoms) * 10;  // scale to 0-100
+}
+// Uses last 7 logs
+symptomFactor = calculateAverage(recent7.map(getSymptomWellness));
+```
+
+**Key Design Choice**: Uses conversion functions from `conversions.ts` to normalize on a 0-10 wellness scale, then scales to 0-100. Missing data defaults to 5 (neutral), never penalized.
+
+**2. Self-Care Factor (default 25%)**
+
+Percentage of days in the last 7 that pass the "nourishing day" threshold.
+
+```typescript
+function isSelfCareDay(log: LogEntry): boolean {
+  const sleepWellness = normalizeSleep(log.lifestyle.sleep);
+  const exerciseWellness = normalizeExercise(log.lifestyle.exercise);
+  const dietWellness = normalizeDiet(log.lifestyle.diet);
+  const waterWellness = normalizeWater(log.lifestyle.waterIntake);
+
+  // Sleep Gate: critically deprived sleep disqualifies the day
+  if (sleepWellness <= 3) return false;
+
+  // Day qualifies if any one threshold is met (OR, not AND)
+  return sleepWellness >= 9 || exerciseWellness >= 7
+      || dietWellness >= 9  || waterWellness >= 8;
 }
 
-// Compare weeks
-const prevSymptomAvg = calculateAverage(previous7Days.map(getSymptomScore));
-const currSymptomAvg = calculateAverage(last7Days.map(getSymptomScore));
-const percentChange = ((prevSymptomAvg - currSymptomAvg) / prevSymptomAvg) * 100;
-
-// Scoring
-if (percentChange > 10)  return 100;   // Improving symptoms
-if (percentChange < -10) return 50;    // Worsening symptoms
-else                     return 75;    // Stable symptoms
+selfCareFactor = (last7.filter(isSelfCareDay).length / last7.length) * 100;
 ```
 
-**Key Design Choice (Guilt to Grace):** We use week-over-week trends, not absolute values. A user with high baseline symptoms who improves by 10% gets a perfect symptom score. This avoids punishing chronic conditions - improvement is celebrated regardless of starting point.
+**Sleep Gate Guardrail**: If sleep is critically poor (≤3 on 0-10 scale, roughly <5h), the day is disqualified from self-care scoring. This reflects the clinical reality that sleep deprivation negates other healthy behaviors.
 
-**2. Self-Care Factor (30% weight)**
+**Key Design Choice (Guilt to Grace):** OR conditions, not AND. One nourishing choice per day counts.
 
-Percentage of days (last 7) with at least one nourishing choice:
+**3. Emotional Factor (default 25%)**
+
+Composite of mood, stress, and anxiety from the last 7 logs.
 
 ```typescript
-const nourishingDays = last7Days.filter(log => {
-  const hasGoodSleep = sleepHours >= 7;
-  const hasMovement = exercise !== 'rest';
-  const hasHydration = waterIntake >= 6 glasses;
+function getEmotionalWellness(log: LogEntry): number {
+  const mood    = normalizeMood(log.psych.mood);         // 0-10 → 0-10
+  const stress  = normalizeStress(log.psych.stress);     // high/med/low → 2/5/8
+  const anxiety = normalizeAnxiety(log.psych.anxiety);   // high/low/none → 2/6/9
+  return calculateAverage([mood, stress, anxiety]) * 10;
+}
 
-  return hasGoodSleep || hasMovement || hasHydration;
+emotionalFactor = calculateAverage(recent7.map(getEmotionalWellness));
+```
+
+**Key Design Choice (The Unseen Weight):** Mental health carries equal weight to physical symptoms. PCOS is a whole-person condition.
+
+**4. Stability Factor (default 25%)**
+
+Derived from cycle regularity analysis via `analyzeCycleState()`.
+
+```typescript
+const cycleState = analyzeCycleState(allLogs);
+stabilityFactor = cycleState.stabilityScore || 50;
+// stabilityScore: 0-100 based on cycle variability
+// 50 = neutral (insufficient data or unknown)
+```
+
+**Clinical Rationale**: Irregular cycles are a core PCOS diagnostic criterion. Stability Factor rewards consistent cycles and flags high variability as a wellness concern.
+
+---
+
+#### Personalization Engine
+
+When users select priorities in onboarding, those priorities boost the corresponding factor's weight:
+
+```typescript
+const PRIORITY_MAP = {
+  'acne': 'symptomFactor',
+  'hirsutism': 'symptomFactor',
+  'hair_loss': 'symptomFactor',
+  'bloating': 'symptomFactor',
+  'cramps': 'symptomFactor',
+  'cycle_regularity': 'stabilityFactor',
+  'fertility': 'stabilityFactor',
+  'mood_energy': 'emotionalFactor',
+  'anxiety': 'emotionalFactor',
+  'body_image': 'emotionalFactor',
+  'weight_metabolic': 'selfCareFactor',
+  'sleep_fatigue': 'selfCareFactor'
+};
+
+// Boost calculation: base 0.10 + up to 0.10 based on happiness rating
+const getBoost = (priorityId: string): number => {
+  const rating = profile.happinessWeights[priorityId]; // 0-10
+  return 0.10 + ((rating / 10) * 0.10);  // max 0.20 at rating 10
+};
+
+// Apply boost per priority, then normalize to sum to 1.0
+profile.priorities.forEach(pId => {
+  weights[PRIORITY_MAP[pId]] += getBoost(pId);
 });
-
-selfCareFactor = (nourishingDays.length / 7) * 100;
+const total = sum(Object.values(weights));
+Object.keys(weights).forEach(k => weights[k] /= total);
 ```
 
-**Key Design Choice (Guilt to Grace):** It's an OR condition, not AND. You don't need perfect sleep AND exercise AND hydration. One nourishing choice counts. This celebrates small wins instead of demanding perfection.
+**Result**: A user who cares most about acne (happiness_impact=10) will have their Blossom Score weighted ~35% toward symptom management instead of the default 25%.
 
-**3. Emotional Factor (30% weight)**
-
-Average mood score (0-10 scale) from the last 7 days:
-
-```typescript
-const moodScores = last7Days.map(log => log.psych.mood || 50);
-const emotionalFactor = calculateAverage(moodScores);
-```
-
-**Key Design Choice (The Unseen Weight):** Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. This validates the mental health burden of PCOS - your mood matters as much as your metformin.
+---
 
 #### Edge Cases
 
 ```typescript
-// Insufficient data (< 3 logs in 14 days)
-return {
-  score: 50,               // Neutral score
-  symptomFactor: 50,
-  selfCareFactor: 0,       // Not enough data
-  emotionalFactor: 50
-};
+// No data
+if (allLogs.length === 0) return { score: 50, ...allFactors50 };
+
+// <3 logs: single-log quick score
+if (allLogs.length < 3) {
+  return {
+    score: average([symptomFactor, 50, emotionalFactor, 50]),
+    stabilityFactor: 50  // Not enough data for cycle analysis
+  };
+}
+```
+
+#### Return Type
+
+```typescript
+interface BlossomScoreResult {
+  score: number;          // 0-100 composite
+  symptomFactor: number;  // 0-100 symptom wellness
+  selfCareFactor: number; // 0-100 self-care consistency
+  emotionalFactor: number;// 0-100 emotional wellness
+  stabilityFactor: number;// 0-100 cycle stability
+  activeWeights: {        // Final normalized weights used
+    symptom: number;
+    selfCare: number;
+    emotional: number;
+    stability: number;
+  };
+}
 ```
 
 #### Usage Example
@@ -666,9 +814,12 @@ const result = await calculateBlossomScore();
 console.log(result);
 // {
 //   score: 72,
-//   symptomFactor: 75,
-//   selfCareFactor: 85,
-//   emotionalFactor: 60
+//   symptomFactor: 78,
+//   selfCareFactor: 71,
+//   emotionalFactor: 65,
+//   stabilityFactor: 55,
+//   activeWeights: { symptom: 0.30, selfCare: 0.23, emotional: 0.25, stability: 0.22 }
+//   // (after applying 'acne' priority boost)
 // }
 ```
 

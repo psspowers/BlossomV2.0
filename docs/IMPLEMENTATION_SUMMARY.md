@@ -1,7 +1,7 @@
 # Blossom PCOS App - Implementation Summary
 
-**Version**: 3.0 (Cloud Sync & Priority System)
-**Last Updated**: March 2026
+**Version**: 3.5 (Password Recovery, PDF Export v2.3, Security Hardening)
+**Last Updated**: April 4, 2026
 
 ---
 
@@ -23,9 +23,16 @@
 
 **Security Features**:
 - PKCE auth flow prevents interception attacks
-- Password minimum 6 characters
-- Email verification support
-- Leaked password protection (manual Supabase config)
+- Password minimum 8 characters + at least 1 digit + maximum 128 characters
+- Leaked password protection (manual Supabase config via HaveIBeenPwned)
+- zxcvbn real-time password strength meter
+- Email confirmation disabled (no friction; RLS provides security)
+
+**Password Recovery** (Implemented):
+- PasswordResetModal: Email input → Supabase `resetPasswordForEmail()` call
+- ResetPasswordPage (`/reset-password` route): New password entry after email link click
+- Auto sign-in after successful password update
+- **Files**: `src/components/onboarding/PasswordResetModal.tsx`, `src/components/ResetPasswordPage.tsx`
 
 ---
 
@@ -111,6 +118,11 @@
 4. `20260301083146_create_user_logs_and_settings.sql` - Core cloud sync tables
 5. `20260301104211_fix_rls_and_security_issues.sql` - Security hardening
 6. `20260301104241_fix_wisdom_cards_rls_policy.sql` - Wisdom RLS fix
+7. `20260301131809_create_minimal_profiles_sovereign_model.sql` - Profile system
+8. `20260301141842_enforce_sovereign_privacy_model.sql` - Privacy model enforcement
+9. `20260301154150_fix_security_issues_rls_performance.sql` - Final security audit + `(select auth.uid())` pattern
+10. `20260330005943_create_user_profiles_table.sql` - Optional user demographic profiles
+11. `20260330142134_fix_user_profiles_security_issues.sql` - Profile RLS and search_path security
 
 ---
 
@@ -141,15 +153,53 @@
 **Enhanced Settings Modal**:
 - **Journey Metrics**: Display current Blossom Score and Season
 - **Demo Profiles**: 5 clinical personas for testing
-- **Account Deletion**: Permanent deletion of ALL local and cloud data
-  - Deletes from: user_logs, user_settings, user_priorities
+  - Generates 60+ days of realistic log data per persona
+  - Files: `src/lib/seed.ts`, `src/lib/hooks/usePCOSSeeder.ts`
+- **Account Deletion**: GDPR-compliant permanent deletion of ALL local and cloud data
+  - Calls `delete-account` Supabase Edge Function
+  - Edge Function uses service role key + `supabase.auth.admin.deleteUser()`
+  - CASCADE constraints auto-delete: user_logs, user_settings, user_priorities, user_profiles
   - Clears: IndexedDB (logs, settings, backupLogs)
   - Clears: localStorage flags
   - Signs out and returns to WelcomeStep
 
 **Export Features**:
-- Clinical Snapshot: Human-readable .txt report for healthcare providers
+- Clinical Snapshot (.txt): Human-readable report for healthcare providers
+  - File: `src/components/DoctorSummaryExport.tsx`
+- PDF Clinical Summary (v2.3): Full A4 clinical PDF
+  - Page 1: Blossom Score card, wellness balance bars
+  - Page 2: Symptom radar chart, cycle length trend, dynamic sleep-bloat correlation insight
+  - Footer: "Evidence-aligned with 2023 International PCOS Guideline"
+  - File: `src/lib/utils/exportPDF.ts`
 - JSON Export: Complete data backup
+
+---
+
+### 7. EDGE FUNCTIONS
+**Status**: ✅ Deployed
+
+#### `delete-account`
+
+**Location**: `supabase/functions/delete-account/index.ts`
+
+**Purpose**: GDPR-compliant user account deletion
+
+**Method**: POST with `Authorization: Bearer <jwt>` header
+
+**Flow**:
+1. Extract JWT from Authorization header
+2. Call `supabase.auth.getUser(token)` to validate and identify user
+3. Call `supabase.auth.admin.deleteUser(user.id)` with service role key
+4. CASCADE constraints automatically delete all user data from all tables
+5. Return `{ success: true }` or error response
+
+**Security**:
+- Validates JWT — cannot be called without a valid session
+- Uses service role key (not exposed to client)
+- CORS headers configured for browser access
+- Full error handling with appropriate HTTP status codes
+
+**Called From**: `src/components/SettingsModal.tsx` → Delete Account button
 
 ---
 
