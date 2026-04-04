@@ -8,7 +8,8 @@ import {
   normalizeWater,
   normalizeMood,
   normalizeStress,
-  normalizeAnxiety
+  normalizeAnxiety,
+  normalizeBodyImage
 } from './conversions';
 
 export interface BlossomScoreResult {
@@ -71,12 +72,14 @@ function getSymptomWellness(log: LogEntry): number {
   return calculateAverage(symptoms) * 10;
 }
 
-// Composite emotional wellness using mood + stress + anxiety (Monash mental health emphasis)
+// Composite emotional wellness: Mood, Stress (inverted), Anxiety (inverted), Body Image (inverted)
+// Per Monash 2023 guidelines. Missing data defaults to neutral (5/10) via normalize* functions.
 function getEmotionalWellness(log: LogEntry): number {
-  const mood = normalizeMood(log.psych.mood);
-  const stress = normalizeStress(log.psych.stress);
-  const anxiety = normalizeAnxiety(log.psych.anxiety);
-  return calculateAverage([mood, stress, anxiety]) * 10;
+  const m = normalizeMood(log.psych?.mood);
+  const s = normalizeStress(log.psych?.stress);
+  const a = normalizeAnxiety(log.psych?.anxiety);
+  const bi = normalizeBodyImage(log.psych?.bodyImage);
+  return ((m + s + a + bi) / 4) * 10;
 }
 
 function isSelfCareDay(log: LogEntry): boolean {

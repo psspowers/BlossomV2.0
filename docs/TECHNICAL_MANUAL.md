@@ -634,16 +634,23 @@ selfCareFactor = (nourishingDays.length / 7) * 100;
 
 **Key Design Choice (Guilt to Grace):** It's an OR condition, not AND. You don't need perfect sleep AND exercise AND hydration. One nourishing choice counts. This celebrates small wins instead of demanding perfection.
 
-**3. Emotional Factor (30% weight)**
+**3. Emotional Factor (30% weight) — v1.0 Final (Monash 2023)**
 
-Average mood score (0-10 scale) from the last 7 days:
+A 4-component composite averaging Mood, Stress (inverted), Anxiety (inverted), and Body Image (inverted):
 
 ```typescript
-const moodScores = last7Days.map(log => log.psych.mood || 50);
-const emotionalFactor = calculateAverage(moodScores);
+function getEmotionalWellness(log: LogEntry): number {
+  const m  = normalizeMood(log.psych?.mood);         // direct 0-10
+  const s  = normalizeStress(log.psych?.stress);     // inverted (high=2, low=8)
+  const a  = normalizeAnxiety(log.psych?.anxiety);   // inverted (high=2, none=9)
+  const bi = normalizeBodyImage(log.psych?.bodyImage); // inverted (negative=2, positive=9)
+  return ((m + s + a + bi) / 4) * 10;
+}
 ```
 
-**Key Design Choice (The Unseen Weight):** Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. This validates the mental health burden of PCOS - your mood matters as much as your metformin.
+Missing data safely defaults to neutral (5/10) via the `normalize*` functions — incomplete logs do not penalize the user.
+
+**Key Design Choice (The Unseen Weight):** Emotional well-being has equal weight to lifestyle factors, and nearly equal to symptoms. The composite of Mood, Stress, Anxiety, and Body Image reflects the full psychological burden of PCOS — your mental state matters as much as your metformin.
 
 #### Edge Cases
 

@@ -59,20 +59,21 @@ Missing Data Default: 5 (neutral)
 Range: [0, 100]
 ```
 
-### Emotional Factor (Psychological Wellness)
+### Emotional Factor (Psychological Wellness — Monash 2023)
 ```
-Inputs: Mood, Stress, Anxiety
+Inputs: Mood, Stress, Anxiety, Body Image
 Window: Last 7 days
 
 Step 1: Normalize all inputs
-  Mood_W = Mood (direct, 0-10)
-  Stress_W = 10 - RawStress (inverted)
-  Anxiety_W = 10 - RawAnxiety (inverted)
+  Mood_W       = Mood (direct, 0-10)
+  Stress_W     = inverted (low=8, medium=5, high=2)
+  Anxiety_W    = inverted (none=9, low=7, high=2)
+  BodyImage_W  = inverted (positive=9, neutral=5, negative=2)
 
-Step 2: Average
-  Emotional Factor = Average(Mood_W, Stress_W, Anxiety_W) × 10
+Step 2: Average all 4 components
+  Emotional Factor = ((Mood_W + Stress_W + Anxiety_W + BodyImage_W) / 4) × 10
 
-Missing Data Default: 5 (neutral)
+Missing Data Default: 5 (neutral) — missing inputs do NOT penalize the user
 Range: [0, 100]
 ```
 
@@ -152,6 +153,13 @@ Range: [0, 100]
 | 0-3 | 0-3 | Poor |
 | 4-6 | 4-6 | Moderate |
 | 7-10 | 7-10 | Good |
+
+### Body Image (Inverted)
+| Raw Input | Normalized Wellness | Interpretation |
+|-----------|---------------------|----------------|
+| "positive" | 9 | Excellent |
+| "neutral" | 5 | Moderate |
+| "negative" | 2 | Poor |
 
 ---
 
@@ -359,7 +367,7 @@ Use this to manually verify a calculation:
 [ ] Step 3: Average symptom wellness, multiply by 10 → Symptom Factor
 [ ] Step 4: For each day, check Sleep Gate (sleep <6h = FALSE)
 [ ] Step 5: Count Self-Care days, divide by 7, multiply by 100 → Self-Care Factor
-[ ] Step 6: Normalize mood/stress/anxiety, average, multiply by 10 → Emotional Factor
+[ ] Step 6: Normalize mood/stress/anxiety/body image, average all 4, multiply by 10 → Emotional Factor
 [ ] Step 7: Calculate cycle variability, score = 100 - variability×5 → Stability Factor
 [ ] Step 8: Fetch user priorities, add 0.15 to corresponding factors
 [ ] Step 9: Normalize weights to sum to 1.0
