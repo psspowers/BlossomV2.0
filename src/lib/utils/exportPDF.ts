@@ -437,7 +437,7 @@ const generateLifestylePage = (doc: jsPDF, logs: any[]) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(...COLORS.lightGray);
-  doc.text('Founder: Ritika Yamdagni | Privacy Policy: blossom@yamdagni.com', 105, 280, { align: 'center' });
+  doc.text('Founder: Ritika Yamdagni | Privacy & Terms: blossom@yamdagni.com', 105, 280, { align: 'center' });
 
   addWatermark(doc, 5, 5);
 };

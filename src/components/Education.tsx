@@ -145,13 +145,19 @@ export function Education({ onClose }: EducationProps) {
             </p>
           </div>
 
-          <div className="text-center mt-8 px-8 flex flex-col items-center gap-2">
-            <p className="text-[10px] text-stone-400 uppercase tracking-wider">
+          <div className="text-center mt-8 px-8 flex flex-col items-center gap-3">
+            <p className="text-[10px] text-stone-400">
               General information only. Not medical advice. Source: Monash International Guidelines (2023).
             </p>
-            <Link to="/privacy" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-4">
-              Read our 100% Local Privacy Policy
-            </Link>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <Link to="/privacy" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-4">
+                Privacy Policy
+              </Link>
+              <span className="text-stone-300">•</span>
+              <Link to="/terms" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-4">
+                Terms of Use
+              </Link>
+            </div>
           </div>
         </div>
       </motion.div>

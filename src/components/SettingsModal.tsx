@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
@@ -413,6 +413,24 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <div className="text-left">
                     <p className="font-medium text-stone-800">Read Privacy Policy</p>
                     <p className="text-xs text-stone-500">How we protect your data</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/terms');
+                  }}
+                  className="w-full bg-white border border-stone-200 text-stone-700 p-4 rounded-xl font-medium flex items-center justify-between hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                      <Scale size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-stone-800">Terms of Use</p>
+                      <p className="text-xs text-stone-500">Rules & Disclaimers</p>
+                    </div>
                   </div>
                 </button>
 

@@ -10,6 +10,7 @@ import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
 import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
+import { TermsOfUse } from "./components/TermsOfUse";
 import type { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
@@ -186,6 +187,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>
