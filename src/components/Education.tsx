@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, BookOpen, AlertCircle, Heart, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface EducationProps {
   onClose?: () => void;
@@ -144,11 +145,14 @@ export function Education({ onClose }: EducationProps) {
             </p>
           </div>
 
-          <p className="text-center text-[10px] text-slate-400 mt-6 uppercase tracking-wider">
-            General information only. Not medical advice.
-            <br />
-            Source: Monash International Guidelines (2023), NIH, ACOG
-          </p>
+          <div className="text-center mt-8 px-8 flex flex-col items-center gap-2">
+            <p className="text-[10px] text-stone-400 uppercase tracking-wider">
+              General information only. Not medical advice. Source: Monash International Guidelines (2023).
+            </p>
+            <Link to="/privacy" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium underline underline-offset-4">
+              Read our 100% Local Privacy Policy
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, Edit3 } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, Edit3, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
@@ -16,6 +17,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
+  const navigate = useNavigate();
   const { plantState } = usePlantState();
   const { generateHistory } = usePCOSSeeder();
   const [loadingPersona, setLoadingPersona] = useState<string | null>(null);
@@ -395,6 +397,22 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       {isExportingClinical ? 'Generating...' : 'Clinical Snapshot'}
                     </p>
                     <p className="text-xs text-stone-500">Download report for your doctor</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onClose();
+                    navigate('/privacy');
+                  }}
+                  className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:bg-stone-50 transition-colors"
+                >
+                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-stone-800">Read Privacy Policy</p>
+                    <p className="text-xs text-stone-500">How we protect your data</p>
                   </div>
                 </button>
 
