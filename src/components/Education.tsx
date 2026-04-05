@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, BookOpen, AlertCircle, Heart, X } from 'lucide-react';
+import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface EducationProps {

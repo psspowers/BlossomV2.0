@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, Edit3, ShieldCheck } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
