@@ -9,8 +9,10 @@ import { Education } from './Education';
 import { Navbar } from './Navbar';
 import { DemoPreviewPill } from './DemoPreviewPill';
 import { ContextualPrompts } from './ContextualPrompts';
+import { BlossomCompanion } from './BlossomCompanion';
+import { NotificationConsentCard } from './NotificationConsentCard';
 import { Plus, Lightbulb } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -26,6 +28,9 @@ export function Dashboard() {
   const [showLearn, setShowLearn] = useState(false);
   const [showClinicalGuide, setShowClinicalGuide] = useState(false);
   const [demoPersona, setDemoPersona] = useState<string | null>(null);
+  const [companionOpen, setCompanionOpen] = useState(false);
+  const [highSymptomTriggered, setHighSymptomTriggered] = useState(false);
+  const [showNotificationConsent, setShowNotificationConsent] = useState(false);
 
   useEffect(() => {
     setDemoPersona(localStorage.getItem(DEMO_PREVIEW_KEY));
@@ -41,6 +46,25 @@ export function Dashboard() {
     category: 'affirmation',
     hasData: false
   });
+
+  const handleSaveSuccess = useCallback((result: {
+    symptoms: Record<string, number>;
+    isFirstLog: boolean;
+    streak: number;
+    season: string;
+  }) => {
+    const symptomValues = Object.values(result.symptoms).filter(
+      (v): v is number => typeof v === 'number'
+    );
+    const maxSymptom = symptomValues.length > 0 ? Math.max(...symptomValues) : 0;
+    if (maxSymptom > 7) {
+      setTimeout(() => setHighSymptomTriggered(true), 2000);
+    }
+
+    if (result.isFirstLog && !localStorage.getItem('blossom_notification_prompted')) {
+      setTimeout(() => setShowNotificationConsent(true), 3000);
+    }
+  }, []);
 
   useEffect(() => {
     const loadCompassionateData = async () => {
@@ -82,7 +106,11 @@ export function Dashboard() {
       <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
-        <ContextualPrompts />
+        <ContextualPrompts
+          onOpenChat={() => setCompanionOpen(true)}
+          highSymptomTriggered={highSymptomTriggered}
+          onHighSymptomConsumed={() => setHighSymptomTriggered(false)}
+        />
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12 mb-8">
@@ -157,7 +185,24 @@ export function Dashboard() {
         />
       )}
 
-      {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
+      <BlossomCompanion
+        blossomScore={blossomScore}
+        season={season.currentSeason}
+        streak={plantState.streak}
+        isOpen={companionOpen}
+        onOpenChange={setCompanionOpen}
+      />
+
+      {showNotificationConsent && (
+        <NotificationConsentCard onDismiss={() => setShowNotificationConsent(false)} />
+      )}
+
+      {showDailyLog && (
+        <DailyLog
+          onClose={() => setShowDailyLog(false)}
+          onSaveSuccess={handleSaveSuccess}
+        />
+      )}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showLearn && <Education onClose={() => setShowLearn(false)} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}

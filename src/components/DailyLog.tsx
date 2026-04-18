@@ -3,9 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Shield, Quote } from 'lucide-react';
 import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
+import { calculatePlantHealth } from '../lib/logic/plant';
+import { calculateSeason } from '../lib/logic/seasons';
+import { calculateBlossomScore } from '../lib/logic/blossomScore';
+
+interface SaveSuccessResult {
+  symptoms: Record<string, number>;
+  isFirstLog: boolean;
+  streak: number;
+  season: string;
+}
 
 interface DailyLogProps {
   onClose: () => void;
+  onSaveSuccess?: (result: SaveSuccessResult) => void;
 }
 
 type CyclePhase = 'follicular' | 'ovulatory' | 'luteal' | 'menstrual' | 'unknown';
@@ -20,7 +31,7 @@ const GRACE_AFFIRMATIONS = [
   "You are safe in this season."
 ];
 
-export function DailyLog({ onClose }: DailyLogProps) {
+export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
   const [cyclePhase, setCyclePhase] = useState<CyclePhase>('unknown');
   const [flow, setFlow] = useState<Flow>('none');
   const [symptoms, setSymptoms] = useState({
@@ -82,6 +93,22 @@ export function DailyLog({ onClose }: DailyLogProps) {
     const randomAffirmation = GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)];
     setRitualAffirmation(randomAffirmation);
     setIsSubmitted(true);
+
+    if (onSaveSuccess) {
+      try {
+        const allLogs = await db.logs.count();
+        const plantState = await calculatePlantHealth();
+        const scoreResult = await calculateBlossomScore();
+        const seasonState = await calculateSeason(scoreResult.score);
+        onSaveSuccess({
+          symptoms,
+          isFirstLog: allLogs === 1,
+          streak: plantState.streak,
+          season: seasonState.currentSeason,
+        });
+      } catch {
+      }
+    }
   };
 
   const handleRitualClose = () => {

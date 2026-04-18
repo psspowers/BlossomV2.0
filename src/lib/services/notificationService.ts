@@ -1,43 +1,82 @@
-export async function requestNotificationPermission(): Promise<boolean> {
+export async function requestWithInAppConsent(): Promise<boolean> {
   if (!('Notification' in window)) return false;
   if (Notification.permission === 'granted') return true;
   if (Notification.permission === 'denied') return false;
 
   const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    localStorage.setItem('blossom_reminders_enabled', 'true');
+    return true;
+  }
+  return false;
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const permission = await Notification.requestPermission();
   return permission === 'granted';
 }
 
-export function scheduleProactiveReminder(): void {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+export function checkAndFireReminder(): void {
+  const enabled = localStorage.getItem('blossom_reminders_enabled') === 'true';
+  if (!enabled || Notification.permission !== 'granted') return;
 
-  const lastReminder = localStorage.getItem('last_proactive_reminder');
-  const now = Date.now();
-  const oneDayMs = 24 * 60 * 60 * 1000;
+  const now = new Date();
+  const hour = now.getHours();
+  const todayKey = now.toDateString();
 
-  if (lastReminder && now - parseInt(lastReminder) < oneDayMs) return;
-
-  const messages = [
-    { title: 'Blossom', body: 'How are you feeling today? Take a moment to log your wellness.' },
-    { title: 'Blossom', body: 'Your body has a story to tell. Ready to listen together?' },
-    { title: 'Blossom', body: 'A gentle check-in when you are ready.' },
-    { title: 'Blossom', body: 'Showing up for yourself, even on hard days, is beautiful.' }
+  const reminders = [
+    {
+      hour: 8,
+      key: 'morning',
+      title: 'Blossom',
+      body: 'Good morning 🌸 How are you feeling today?',
+    },
+    {
+      hour: 13,
+      key: 'midday',
+      title: 'Blossom',
+      body: 'Midday check-in 🌿 A moment for yourself.',
+    },
+    {
+      hour: 19,
+      key: 'evening',
+      title: 'Blossom',
+      body: 'Evening reflection 🌸 How did your body feel today?',
+    },
   ];
 
-  const msg = messages[Math.floor(Math.random() * messages.length)];
+  reminders.forEach((reminder) => {
+    const storageKey = `blossom_reminder_${reminder.key}_${todayKey}`;
+    if (hour >= reminder.hour && !localStorage.getItem(storageKey)) {
+      try {
+        new Notification(reminder.title, {
+          body: reminder.body,
+          icon: '/logo-icon.png',
+          badge: '/logo-icon.png',
+          tag: `blossom-${reminder.key}`,
+        });
+        localStorage.setItem(storageKey, 'shown');
+      } catch {
+      }
+    }
+  });
+}
 
-  try {
-    new Notification(msg.title, {
-      body: msg.body,
-      icon: '/logo-icon.png',
-      badge: '/logo-icon.png',
-      tag: 'blossom-daily-reminder',
-      renotify: false
-    });
-    localStorage.setItem('last_proactive_reminder', now.toString());
-  } catch {
-  }
+export function areRemindersEnabled(): boolean {
+  return (
+    localStorage.getItem('blossom_reminders_enabled') === 'true' &&
+    Notification.permission === 'granted'
+  );
+}
+
+export function scheduleProactiveReminder(): void {
+  checkAndFireReminder();
 }
 
 export function cancelProactiveReminders(): void {
+  localStorage.removeItem('blossom_reminders_enabled');
   localStorage.removeItem('last_proactive_reminder');
 }

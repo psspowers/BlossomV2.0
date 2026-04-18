@@ -12,7 +12,7 @@ import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfUse } from "./components/TermsOfUse";
 import type { Session } from "@supabase/supabase-js";
-import { requestNotificationPermission } from "./lib/services/notificationService";
+import { requestNotificationPermission, checkAndFireReminder } from "./lib/services/notificationService";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +86,16 @@ const App = () => {
       setIsResetting(false);
     }
   };
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndFireReminder();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   useEffect(() => {
     const initializeApp = async () => {
