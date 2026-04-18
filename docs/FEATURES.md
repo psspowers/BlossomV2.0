@@ -2,7 +2,7 @@
 
 **Complete breakdown of pages, features, and True North alignment**
 
-**Last Updated**: April 4, 2026 (v3.5 — Password Recovery, PDF Export v2.3, Blossom Score 4-Factor Correction)
+**Last Updated**: April 18, 2026 (v3.6 — In-App Blossom Companion, Telegram/Discord purge)
 
 ---
 
@@ -329,7 +329,63 @@ After onboarding completion, user enters the main app with:
 
 ---
 
-### 5. Settings & Privacy Vault
+### 5. Blossom Companion (In-App AI Chat)
+
+**Purpose**: A floating, in-app chat UI that provides compassionate, body-neutral support — entirely within the app, with no external chat applications required.
+
+**True North tie**: **Supported** — Real-time compassionate support available whenever the user needs it, without leaving the app or sharing data externally.
+
+#### Architecture: Three Operating Modes
+
+**Mode 1: Proactive**
+- Local PWA push notifications and contextual prompts surface at meaningful moments (e.g., after a high-stress log entry)
+- Powered entirely by local data — no network calls required
+- Files: `src/components/ContextualPrompts.tsx`, `src/lib/services/notificationService.ts`
+
+**Mode 2: Support (In-App Chat)**
+- User messages are sent to a Supabase Edge Function (`blossom-chat`) which acts as a privacy firewall
+- The React frontend sends ONLY the user's text message and a short anonymised context string (e.g., "in a Resting season and having a more challenging time")
+- Health data, symptom logs, and personally identifiable information NEVER leave IndexedDB
+- The Edge Function injects the Blossom Persona System Prompt and forwards the request to the AI provider
+- The AI response is returned to the in-app chat UI
+- Files: `src/components/BlossomCompanion.tsx`, `src/lib/services/blossomChatService.ts`
+
+**Mode 3: Escalation (Local Crisis Overlay)**
+- A local regex check scans every message for crisis keywords (e.g., "hurt myself", "want to die", "suicide")
+- If a crisis keyword is detected, the in-app chat is bypassed entirely — NO external APIs are called
+- A warm, full-screen local overlay (`CrisisSupport.tsx`) is rendered immediately, displaying the Thailand 1323 crisis hotline and grounding resources
+- A rate-limited background call is made to the `crisis-alert` Supabase Edge Function (max once per 30 minutes) to log the event server-side
+- Files: `src/components/CrisisSupport.tsx`, `src/lib/services/escalationService.ts`, `src/lib/services/companionRouter.ts`
+
+#### Session & Rate Limits
+
+| Limit | Value | Purpose |
+|-------|-------|---------|
+| Max sessions per install | 3 | Prevents over-reliance; encourages professional support |
+| Max messages per session | 20 | Per-session rate limit stored in `sessionStorage` |
+| Max message length | 500 characters | Input trimmed before sending to Edge Function |
+| Crisis alert cooldown | 30 minutes | Prevents duplicate crisis-alert Edge Function calls |
+
+#### Privacy Guarantee
+
+- The Companion is NOT Telegram. It is NOT Discord. It uses NO external chat apps.
+- All health data lives in IndexedDB on the user's device.
+- The Edge Function receives only: the user's text (max 500 chars) and a 4-word anonymised season/score label.
+- API keys (`ANTHROPIC_API_KEY`, `OPENCLAW_ENDPOINT`) are stored exclusively in Supabase Edge Function Secrets — never in the frontend `.env` file.
+
+#### Message Classification
+
+All messages are classified locally before any network call via `companionRouter.ts`:
+
+| Classification | Trigger | Action |
+|----------------|---------|--------|
+| `crisis` | Crisis keyword detected | Show local `CrisisSupport` overlay, skip AI call |
+| `inapp` | Data-related question ("my score", "my cycle") | Show in-app data response, skip AI call |
+| `support` | All other messages | Route to `blossom-chat` Edge Function |
+
+---
+
+### 6. Settings & Privacy Vault
 
 **Purpose**: Customization and data sovereignty
 
@@ -426,6 +482,8 @@ After onboarding completion, user enters the main app with:
 | Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `user_logs.cyclePhase` |
 | Wellness Radar | `WellnessRadar.tsx` | Aggregation | Last 7 days avg |
 | Account Deletion | `SettingsModal.tsx` | Supabase + IndexedDB cleanup | Deletes from all tables |
+| Blossom Companion (Chat) | `BlossomCompanion.tsx` | `blossomChatService.ts`, `companionRouter.ts` | Supabase Edge Function (`blossom-chat`) |
+| Crisis Escalation | `CrisisSupport.tsx` | `escalationService.ts` | Supabase Edge Function (`crisis-alert`) |
 
 ---
 
@@ -477,8 +535,9 @@ After onboarding completion, user enters the main app with:
 ❌ Missed-day guilt
 ❌ Binary success/failure
 ❌ Comparison to others
-❌ Cloud storage
-❌ Account requirements
+❌ Telegram or Discord integration
+❌ External chat apps
+❌ Health data sent to any external service
 
 ---
 

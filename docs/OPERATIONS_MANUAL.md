@@ -1,8 +1,8 @@
 # Blossom - Operations Manual
 
 **Target Audience**: DevOps, System Administrators, Operations Teams
-**Version**: 2.0
-**Last Updated**: April 4, 2026
+**Version**: 2.1
+**Last Updated**: April 18, 2026
 
 ---
 
@@ -148,7 +148,9 @@ npm run deploy
 6. [ ] Data persists after refresh
 7. [ ] Theme switching works
 8. [ ] Settings modal opens
-9. [ ] No console errors
+9. [ ] Blossom Companion chat opens and sends a message
+10. [ ] Crisis keyword triggers local overlay (test: type "want to die")
+11. [ ] No console errors
 
 **Performance Check**:
 ```bash
@@ -185,9 +187,34 @@ npm run deploy
 
 ## Environment Configuration
 
-### No Environment Variables Required
+### Frontend Environment Variables
 
-This app runs entirely client-side with no backend configuration.
+The frontend requires only two environment variables:
+
+**`.env`** (required):
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+The Supabase anon key is safe to expose client-side — Row Level Security (RLS) policies protect all data.
+
+### Supabase Edge Function Secrets (CRITICAL)
+
+The AI Companion backend requires secrets stored **exclusively** in Supabase Edge Function Secrets. These must NEVER be added to the frontend `.env` file.
+
+**Required Edge Function Secrets:**
+
+| Secret Name | Purpose |
+|-------------|---------|
+| `ANTHROPIC_API_KEY` | AI provider authentication for the `blossom-chat` function |
+| `OPENCLAW_ENDPOINT` | AI provider endpoint URL (if applicable) |
+
+**How to set Edge Function Secrets:**
+- Use the Supabase Dashboard → Project Settings → Edge Functions → Secrets
+- Or use the Supabase MCP tools during deployment
+
+> **Security Note**: There are NO Telegram bot tokens, Discord webhook URLs, or other external chat service credentials in this application. The Blossom Companion uses a custom in-app UI only.
 
 ### Optional Configuration
 

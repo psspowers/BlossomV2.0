@@ -1,4 +1,4 @@
-export type MessageMode = 'support' | 'crisis' | 'data';
+export type MessageMode = 'support' | 'crisis' | 'inapp';
 
 const CRISIS_KEYWORDS = [
   'kill myself',
@@ -35,16 +35,6 @@ const DATA_KEYWORDS = [
 export function classifyMessage(text: string): MessageMode {
   const lower = text.toLowerCase();
   if (CRISIS_KEYWORDS.some((kw) => lower.includes(kw))) return 'crisis';
-  if (DATA_KEYWORDS.some((kw) => lower.includes(kw))) return 'data';
+  if (DATA_KEYWORDS.some((kw) => lower.includes(kw))) return 'inapp';
   return 'support';
-}
-
-export function buildTelegramUrl(
-  token: string,
-  score: number,
-  season: string
-): string {
-  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'LotusBlossomBot';
-  const seasonInitial = season.charAt(0).toUpperCase();
-  return `https://t.me/${botUsername}?start=${token}_s${score}${seasonInitial}`;
 }

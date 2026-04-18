@@ -1,7 +1,7 @@
 # Blossom - Technical Manual
 
-**Version**: 3.5 (Password Recovery, PDF Export v2.3, Security Hardening)
-**Last Updated**: April 4, 2026
+**Version**: 3.6 (In-App Blossom Companion, Telegram/Discord purge)
+**Last Updated**: April 18, 2026
 **Target Audience**: Developers, DevOps, Technical Operators, Documentation Architects
 
 ---
@@ -26,7 +26,8 @@
    - 7.3 [Narratives & Daily Wisdom](#narratives--daily-wisdom)
    - 7.4 [Pattern Stories Generator](#pattern-stories-generator)
 8. [Priority & Happiness System](#priority--happiness-system)
-9. [State Management](#state-management)
+9. [AI Companion Architecture (Privacy-First Proxy)](#ai-companion-architecture-privacy-first-proxy)
+10. [State Management](#state-management)
 10. [Theme System](#theme-system)
 11. [Build & Deployment](#build--deployment)
 12. [Testing & Debugging](#testing--debugging)
@@ -932,6 +933,117 @@ The lotus visualization in `BioOrb.tsx` uses the Blossom Score to control bloom 
 
 ---
 
+## AI Companion Architecture (Privacy-First Proxy)
+
+> **Important**: Blossom does NOT use Telegram, Discord, or any external chat application. All AI conversation happens within the app via a custom in-app chat UI backed by a Supabase Edge Function proxy.
+
+### Overview
+
+The Blossom Companion is a three-mode system:
+
+| Mode | Trigger | Network Call |
+|------|---------|--------------|
+| **Proactive** | Local data events (e.g., high stress logged) | None — local only |
+| **Support** | User sends a non-crisis, non-data chat message | Supabase Edge Function (`blossom-chat`) |
+| **Escalation** | Crisis keyword detected in message | Local overlay only; optional `crisis-alert` Edge Function (rate-limited) |
+
+---
+
+### Message Classification (`companionRouter.ts`)
+
+Before any network call is made, every message is classified locally:
+
+```typescript
+export type MessageMode = 'support' | 'crisis' | 'inapp';
+
+export function classifyMessage(text: string): MessageMode {
+  if (CRISIS_KEYWORDS.some(kw => text.toLowerCase().includes(kw))) return 'crisis';
+  if (DATA_KEYWORDS.some(kw => text.toLowerCase().includes(kw))) return 'inapp';
+  return 'support';
+}
+```
+
+- `crisis` → Immediately renders `CrisisSupport.tsx` full-screen overlay. No AI call is made.
+- `inapp` → Data question answered from local IndexedDB. No AI call is made.
+- `support` → Sent to `blossom-chat` Edge Function.
+
+---
+
+### The Privacy Firewall: `blossom-chat` Edge Function
+
+**File**: `supabase/functions/blossom-chat/index.ts`
+
+The Edge Function acts as a privacy barrier between the React frontend and the AI provider.
+
+**What the frontend sends:**
+```typescript
+{
+  message: userMessage.slice(0, 500),   // user text, hard-capped at 500 chars
+  anonymisedContext: string             // e.g. "in a Resting season and having a more challenging time"
+}
+```
+
+**What health data is sent**: NONE. Symptom logs, scores, cycle data, and mood entries remain in IndexedDB on the user's device.
+
+**What the Edge Function does:**
+1. Receives the anonymised message + context string
+2. Injects the Blossom Persona System Prompt (compassionate, body-neutral PCOS companion)
+3. Forwards the composed prompt to the AI provider (Claude / OpenClaw endpoint)
+4. Returns only the AI text reply
+
+**Secrets stored in Supabase Edge Function Secrets (NEVER in frontend `.env`):**
+- `ANTHROPIC_API_KEY` — AI provider authentication
+- `OPENCLAW_ENDPOINT` — AI provider endpoint (if applicable)
+
+---
+
+### Rate Limiting & Session Limits
+
+Enforced client-side in `blossomChatService.ts`:
+
+```typescript
+const RATE_LIMIT_KEY = 'blossom_chat_count';
+const RATE_LIMIT_MAX = 20;  // messages per session
+
+function checkRateLimit(): boolean {
+  const count = parseInt(sessionStorage.getItem(RATE_LIMIT_KEY) || '0');
+  if (count >= RATE_LIMIT_MAX) return false;
+  sessionStorage.setItem(RATE_LIMIT_KEY, String(count + 1));
+  return true;
+}
+```
+
+| Limit | Value | Storage |
+|-------|-------|---------|
+| Messages per session | 20 | `sessionStorage` (clears on tab close) |
+| Max input length | 500 chars | `.slice(0, 500)` before send |
+| Crisis alert cooldown | 30 minutes | `localStorage` |
+
+---
+
+### Crisis Escalation Flow (`escalationService.ts`)
+
+1. `classifyMessage()` returns `'crisis'`
+2. `BlossomCompanion.tsx` renders `<CrisisSupport />` immediately (no AI call)
+3. `triggerEscalation()` fires a background call to the `crisis-alert` Edge Function (rate-limited to once per 30 minutes via `localStorage`)
+4. The Edge Function logs the event server-side — it does NOT send a Discord or Telegram message
+
+---
+
+### Key Files
+
+| File | Responsibility |
+|------|----------------|
+| `src/components/BlossomCompanion.tsx` | In-app chat UI, session management |
+| `src/components/CrisisSupport.tsx` | Full-screen local crisis overlay |
+| `src/lib/services/blossomChatService.ts` | Rate limiting, anonymised context builder, Edge Function call |
+| `src/lib/services/companionRouter.ts` | Local message classification (`support` / `crisis` / `inapp`) |
+| `src/lib/services/escalationService.ts` | Crisis alert rate-limiting and `crisis-alert` Edge Function dispatch |
+| `supabase/functions/blossom-chat/index.ts` | Privacy firewall Edge Function |
+| `supabase/functions/crisis-alert/index.ts` | Server-side crisis event logger |
+
+---
+
 ## State Management
 
 ### React Query (TanStack Query)
@@ -1563,10 +1675,11 @@ Access theme state and controls.
 
 ### Data Privacy
 
-- **No Network Calls**: Zero telemetry or analytics
-- **Local Storage Only**: All data in IndexedDB
-- **No Third-Party SDKs**: No tracking libraries
-- **No Auth Required**: Completely anonymous
+- **Health Data Never Leaves the Device**: Symptom logs, cycle data, and scores remain in IndexedDB only
+- **Minimal Network Surface**: The only outbound calls are (a) Supabase Auth, (b) `blossom-chat` Edge Function with anonymised context only, and (c) `crisis-alert` Edge Function (rate-limited, event log only)
+- **No Telegram / Discord**: The Companion uses a custom in-app UI — no external chat apps
+- **No Third-Party SDKs**: No tracking libraries or analytics
+- **API Keys Server-Side Only**: `ANTHROPIC_API_KEY` and `OPENCLAW_ENDPOINT` are stored in Supabase Edge Function Secrets, never in the frontend `.env`
 
 ### Content Security Policy
 
