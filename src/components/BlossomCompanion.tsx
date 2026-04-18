@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send } from 'lucide-react';
+import { X, Send, ShieldCheck } from 'lucide-react';
 import { sendMessage, isDataQuestion, ChatMessage } from '../lib/services/blossomChatService';
+import { isCrisisMessage, triggerEscalation } from '../lib/services/escalationService';
+import { CrisisSupport } from './CrisisSupport';
 import { v4 as uuidv4 } from 'uuid';
 
 interface BlossomCompanionProps {
@@ -28,6 +30,19 @@ const GREETING: ChatMessage = {
   timestamp: new Date(),
 };
 
+const SESSION_COUNT_KEY = 'blossom_session_count';
+const SESSION_MAX = 3;
+
+function checkSessionLimit(): boolean {
+  const count = parseInt(sessionStorage.getItem(SESSION_COUNT_KEY) || '0');
+  return count < SESSION_MAX;
+}
+
+function incrementSessionCount(): void {
+  const count = parseInt(sessionStorage.getItem(SESSION_COUNT_KEY) || '0');
+  sessionStorage.setItem(SESSION_COUNT_KEY, String(count + 1));
+}
+
 export function BlossomCompanion({
   blossomScore,
   season,
@@ -39,6 +54,8 @@ export function BlossomCompanion({
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
 
   const setIsOpen = (val: boolean) => {
+    if (val && !checkSessionLimit()) return;
+    if (val) incrementSessionCount();
     setInternalOpen(val);
     onOpenChange?.(val);
   };
@@ -47,6 +64,7 @@ export function BlossomCompanion({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
+  const [showCrisis, setShowCrisis] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -70,6 +88,12 @@ export function BlossomCompanion({
     if (!messageText || loading) return;
 
     setInput('');
+
+    if (isCrisisMessage(messageText)) {
+      triggerEscalation(messageText);
+      setShowCrisis(true);
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: uuidv4(),
@@ -130,6 +154,12 @@ export function BlossomCompanion({
 
   return (
     <>
+      <AnimatePresence>
+        {showCrisis && (
+          <CrisisSupport onDismiss={() => setShowCrisis(false)} />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {!isOpen && (
           <motion.button
@@ -195,14 +225,24 @@ export function BlossomCompanion({
                     Your PCOS companion — always here
                   </p>
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
-                  style={{ color: 'rgb(161,161,170)' }}
-                  aria-label="Close"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center gap-1 px-2 py-1 rounded-full"
+                    style={{ background: 'rgba(244,114,182,0.08)', border: '1px solid rgba(244,114,182,0.15)' }}
+                    title="Your health data never leaves your device"
+                  >
+                    <ShieldCheck className="w-3 h-3" style={{ color: 'rgb(244,114,182)' }} />
+                    <span className="text-xs" style={{ color: 'rgb(161,161,170)' }}>Secure</span>
+                  </div>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+                    style={{ color: 'rgb(161,161,170)' }}
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
@@ -334,6 +374,10 @@ export function BlossomCompanion({
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
+
+                <p className="text-center pb-1" style={{ fontSize: '10px', color: 'rgba(161,161,170,0.6)' }}>
+                  Your health data never leaves your device — ever
+                </p>
               </div>
             </motion.div>
           </>
