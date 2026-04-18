@@ -1,6 +1,7 @@
 # Comprehensive Bloom Scoring System Analysis Report
 
 **Analysis Date**: March 7, 2026
+**Last Revised**: April 18, 2026 (corrected Section 3.3 — happiness weights ARE used in code)
 **System Version**: 1.0 (MVP)
 **Analyst**: Data Analysis Division
 **Classification**: Technical Deep-Dive & Clinical Validation Assessment
@@ -352,14 +353,28 @@ Weight Shift: Modest (+10% to prioritized, -31% to non-priority)
 
 ### 3.3 Personalization Impact Assessment
 
-**Maximum Impact**: 1 priority selected (39% weight shift)
-**Minimum Impact**: 4 priorities selected (equal weighting restored)
+**Maximum Impact**: 1 priority selected at rating 10/10 (boost 0.20 → ~37% weight shift to that factor)
+**Minimum Impact**: 1 priority selected at rating 0/10 (boost 0.10 → ~32% weight shift to that factor)
+**With 4 priorities**: Approaches equal weighting, but priorities still outweigh non-priorities
 
 **Effectiveness**: Personalization successfully shifts scoring emphasis toward patient-defined priorities without eliminating other factors.
 
-**Limitation**: The +0.15 boost is **fixed**, not proportional to the patient's stated "happiness impact" slider (0-10 scale). The happiness weights are stored but **not used in the Bloom calculation**.
+**The happiness impact slider IS used.** Code audit confirmed: `profile.happinessWeights[priorityId]` is read and applied. The boost formula is:
 
-**⚠️ VALIDATION CONCERN**: Onboarding asks patients to rate "happiness impact" (0-10), but this granular input is discarded. The system uses a binary "selected/not selected" approach with fixed boost. This creates a disconnect between user expectations and actual algorithm behavior.
+```
+Boost = 0.10 + (happinessWeights[priorityId] / 10) × 0.10
+```
+
+This means a rating of 10/10 gives a 0.20 boost (maximum), while 0/10 gives a 0.10 boost (minimum). The default 0.15 applies when no rating data is present.
+
+**Weight Shift by Happiness Rating (single priority example)**:
+
+| Happiness Rating | Boost Applied | Resulting Factor Weight (after normalization) |
+|-----------------|---------------|-----------------------------------------------|
+| 10/10 | 0.20 | 37.5% (vs 25% baseline) |
+| 5/10 | 0.15 | 34.8% |
+| 0/10 | 0.10 | 31.8% |
+| (no rating) | 0.15 (default) | 34.8% |
 
 ---
 
@@ -573,24 +588,18 @@ END IF
 
 This would reward partial improvements while still prioritizing sleep.
 
-#### **Issue 3: Happiness Impact Not Used**
-**Severity**: Medium
-**Description**: Onboarding collects 0-10 "happiness impact" ratings but uses fixed +0.15 boost.
+#### ~~Issue 3: Happiness Impact Not Used~~ — RETRACTED (April 18, 2026)
 
-**User Expectation**: "I rated Anxiety as 10/10 impact, so it should be heavily weighted"
-**Reality**: All selected priorities receive identical +0.15 boost
+**Severity**: N/A — this finding was incorrect.
 
-**Recommendation**:
-- **Use Happiness Impact as Multiplier**:
+**Correction**: Code audit confirms `profile.happinessWeights[priorityId]` IS read and used. The actual boost formula is:
+
 ```
-Boost = 0.05 + (Happiness Impact / 10) * 0.20
-Range: [0.05, 0.25]
-
-Example:
-  Impact 5/10 → Boost 0.15 (current behavior)
-  Impact 10/10 → Boost 0.25 (stronger emphasis)
-  Impact 2/10 → Boost 0.09 (minimal emphasis)
+Boost = 0.10 + (happinessWeights[priorityId] / 10) × 0.10
+Range: [0.10, 0.20]
 ```
+
+A rating of 10/10 gives a 0.20 boost; 0/10 gives a 0.10 boost; 5/10 gives the 0.15 default. User expectations and algorithm behavior are aligned. No action required.
 
 #### **Issue 4: Cycle Stability Assumes Regular Tracking**
 **Severity**: Low
@@ -779,8 +788,8 @@ function validateLogEntry(entry: LogEntry): LogEntry {
 - Remove Water Intake from UI (saves user time, eliminates confusion)
 - Document Body Image as "pattern detection only" or integrate into Emotional Factor
 
-**R2. Fix Happiness Impact Disconnect**
-- Use 0-10 happiness ratings as boost multipliers instead of fixed 0.15
+**R2. ~~Fix Happiness Impact Disconnect~~ — RETRACTED**
+- Happiness ratings ARE already used as boost multipliers. No action required. See Section 3.3 correction.
 
 **R3. Add Input Validation**
 - Clamp all numeric inputs to valid ranges

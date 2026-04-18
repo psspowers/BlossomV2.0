@@ -1,8 +1,9 @@
 # Bloom Scoring Analysis - Executive Summary
 
 **Analysis Date**: March 7, 2026
+**Last Revised**: April 18, 2026 (corrected personalization section — happiness weights ARE used)
 **Analysis Type**: Comprehensive Algorithm Audit
-**Status**: ✅ Complete
+**Status**: ✅ Complete (Revised)
 
 ---
 
@@ -13,11 +14,23 @@
 The Bloom Score is a **weighted average of four factors**, each scored 0-100:
 
 ```
-Bloom Score = (Symptom Factor × 25%) + (Self-Care Factor × 25%) +
-              (Emotional Factor × 25%) + (Stability Factor × 25%)
+Bloom Score = (Symptom Factor × W_s) + (Self-Care Factor × W_sc) +
+              (Emotional Factor × W_e) + (Stability Factor × W_st)
 ```
 
-**User priorities shift these percentages** (e.g., selecting "Anxiety" increases Emotional to 35%).
+**Default weights (no priorities set)**: Each factor is 25%.
+
+**When priorities are set, the weights shift dynamically.** Each selected priority boosts its corresponding factor. The boost size is proportional to the user's 0-10 "happiness impact" rating for that priority:
+
+```
+Boost per priority = 0.10 + (happiness_rating / 10) × 0.10
+                   = range [0.10 at rating 0] to [0.20 at rating 10]
+                   = default 0.15 if no rating set
+```
+
+All four weights are then re-normalized to sum to 1.0. The result is a **personalised** score — not a fixed 25% split.
+
+**Example**: User selects "Anxiety" with impact rating 10/10 → Emotional Factor receives a +0.20 boost → after normalization, Emotional becomes ~37% instead of 25%.
 
 ---
 
@@ -40,13 +53,21 @@ Bloom Score = (Symptom Factor × 25%) + (Self-Care Factor × 25%) +
 ## 3. Personalization Impact
 
 When users select priorities during onboarding:
-- Each priority **increases its factor weight by 0.15** (e.g., 0.25 → 0.40)
+- Each priority boosts its factor weight by **0.10 to 0.20**, scaled by the user's 0-10 "happiness impact" rating
+- Default boost is 0.15 when no rating is provided
 - All weights are then **normalized to sum to 1.0**
-- Result: **30-50% weight shift** toward priority areas
+- Result: **30-60% weight shift** toward priority areas at maximum happiness rating
 
-**Critical Gap**: The "happiness impact" slider (0-10 scale) is **collected but not used**. The system applies a fixed boost regardless of the slider value.
+**The happiness impact slider IS used.** The boost formula is: `0.10 + (rating / 10) × 0.10`. A rating of 10/10 gives a 0.20 boost; a rating of 0/10 gives a 0.10 boost.
 
-**Recommendation**: Use the happiness rating as a multiplier (impact 10/10 → larger boost than impact 5/10).
+**Weight Shift Examples**:
+
+| Priorities Selected | Happiness Rating | Emotional Weight |
+|---------------------|-----------------|-----------------|
+| None | — | 25.0% |
+| Anxiety | 5/10 (default) | 34.8% |
+| Anxiety | 10/10 | 37.0% |
+| Anxiety | 0/10 | 32.3% |
 
 ---
 
@@ -82,11 +103,6 @@ Three test profiles were analyzed:
 - Impact: Wasted user effort, confusion about what matters
 - Fix: Remove from UI or integrate into calculations
 
-**Issue: Happiness Impact Ignored**
-- Problem: Users rate priorities 0-10 but system uses fixed boost
-- Impact: Mismatch between user expectations and algorithm behavior
-- Fix: Use ratings as boost multipliers
-
 ### 🟢 Low Priority
 
 **Issue: No Input Validation**
@@ -100,7 +116,7 @@ Three test profiles were analyzed:
 
 ### Immediate (Next Week)
 1. ✅ Remove water intake from logging UI
-2. ✅ Fix happiness impact to use actual ratings
+2. ✅ Happiness impact ratings ARE already used — verified in code (see Section 3)
 3. ✅ Add input validation (clamp values to 0-10)
 
 ### Short-Term (Next Month)
@@ -128,8 +144,7 @@ Three test profiles were analyzed:
 
 ### Weaknesses
 - ⚠️ Sleep Gate creates perverse incentives
-- ⚠️ Unused inputs waste user time
-- ⚠️ Happiness ratings collected but ignored
+- ⚠️ Unused inputs waste user time (water intake)
 - ⚠️ No formal validation against gold-standard instruments yet
 
 ---

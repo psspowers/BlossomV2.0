@@ -1,6 +1,6 @@
 # Bloom Score Calculation - Quick Reference
 
-**Last Updated**: March 7, 2026
+**Last Updated**: April 18, 2026 (corrected personalization algorithm — happiness weights ARE used)
 **Purpose**: Fast lookup for calculation formulas and normalization rules
 
 ---
@@ -166,11 +166,16 @@ Range: [0, 100]
 ## 4. Personalization Algorithm
 
 ```
-Step 1: Apply Priority Boost
+Step 1: Compute boost per priority using happiness impact rating (0-10 scale)
   For each selected priority P:
-    IF P maps to Factor F THEN
-      Weight[F] += 0.15
+    IF profile.happinessWeights[P] is set THEN
+      Boost = 0.10 + (happinessWeights[P] / 10) × 0.10
+              — ranges from 0.10 (rating 0) to 0.20 (rating 10)
+    ELSE
+      Boost = 0.15  (default when no rating is provided)
     END IF
+
+    Weight[Factor(P)] += Boost
   END FOR
 
 Step 2: Normalize to Sum = 1.0
@@ -200,7 +205,7 @@ Priority-to-Factor Mapping:
 All factors: 0.25 (25%)
 ```
 
-**1 Priority (e.g., Anxiety → Emotional)**:
+**1 Priority (e.g., Anxiety → Emotional, happiness rating 5/10 = default boost 0.15)**:
 ```
 Before normalization:
   Symptom:   0.25
@@ -216,7 +221,39 @@ After normalization:
   Stability: 0.217 (21.7%)
 ```
 
-**3 Priorities (e.g., Acne + Anxiety + Cycle)**:
+**1 Priority (Anxiety, happiness rating 10/10 = max boost 0.20)**:
+```
+Before normalization:
+  Symptom:   0.25
+  Self-Care: 0.25
+  Emotional: 0.45  (+0.20 boost)
+  Stability: 0.25
+  Sum: 1.20
+
+After normalization:
+  Symptom:   0.208 (20.8%)
+  Self-Care: 0.208 (20.8%)
+  Emotional: 0.375 (37.5%)
+  Stability: 0.208 (20.8%)
+```
+
+**1 Priority (Anxiety, happiness rating 0/10 = min boost 0.10)**:
+```
+Before normalization:
+  Symptom:   0.25
+  Self-Care: 0.25
+  Emotional: 0.35  (+0.10 boost)
+  Stability: 0.25
+  Sum: 1.10
+
+After normalization:
+  Symptom:   0.227 (22.7%)
+  Self-Care: 0.227 (22.7%)
+  Emotional: 0.318 (31.8%)
+  Stability: 0.227 (22.7%)
+```
+
+**3 Priorities (e.g., Acne + Anxiety + Cycle, all rated 5/10 = default 0.15 each)**:
 ```
 Before normalization:
   Symptom:   0.40  (+0.15)
@@ -369,7 +406,7 @@ Use this to manually verify a calculation:
 [ ] Step 5: Count Self-Care days, divide by 7, multiply by 100 → Self-Care Factor
 [ ] Step 6: Normalize mood/stress/anxiety/body image, average all 4, multiply by 10 → Emotional Factor
 [ ] Step 7: Calculate cycle variability, score = 100 - variability×5 → Stability Factor
-[ ] Step 8: Fetch user priorities, add 0.15 to corresponding factors
+[ ] Step 8: Fetch user priorities; for each compute boost = 0.10 + (happinessRating/10)×0.10 (default 0.15); add to factor weight
 [ ] Step 9: Normalize weights to sum to 1.0
 [ ] Step 10: Calculate: Σ(Factor × Weight)
 [ ] Step 11: Clamp result to [0, 100]
