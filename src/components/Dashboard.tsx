@@ -169,13 +169,13 @@ export function Dashboard() {
 
       <button
         onClick={() => setShowDailyLog(true)}
-        className={`fixed bottom-8 right-8 w-16 h-16 rounded-full ${fabColors[themeState.mode]} transition-all shadow-lg hover:shadow-xl flex items-center justify-center group hover:scale-105 z-50`}
+        className={`fixed bottom-24 right-6 w-14 h-14 rounded-full ${fabColors[themeState.mode]} transition-all shadow-lg hover:shadow-xl flex items-center justify-center group hover:scale-105 z-50`}
         style={{
           boxShadow: fabGlow[themeState.mode]
         }}
         aria-label="Add daily log entry"
       >
-        <Plus className="w-8 h-8 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
+        <Plus className="w-7 h-7 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
       </button>
 
       {demoPersona && (
