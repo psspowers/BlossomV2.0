@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X } from 'lucide-react';
+import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface EducationProps {
@@ -12,46 +12,126 @@ const SECTIONS = [
     id: 'pcos-101',
     title: 'What is PCOS?',
     icon: BookOpen,
-    content: `Polycystic Ovary Syndrome (PCOS) is a complex hormonal and metabolic condition, not just a fertility issue. According to the 2023 Monash International Guidelines, it is diagnosed by 2 of 3 criteria (Rotterdam):
-
-1. Irregular or absent periods (Ovulatory dysfunction).
-2. High androgens (Clinical signs like acne/hirsutism or bloodwork).
-3. Polycystic ovaries on ultrasound.
-
-It is a whole-body condition affecting insulin, mood, and heart health. PCOS manifests differently in each person, but with proper understanding and management, symptoms can be significantly improved.`
+    content: (
+      <div className="space-y-3">
+        <p>
+          Polycystic Ovary Syndrome (PCOS) is a complex hormonal, reproductive, and metabolic condition. It is <strong>not</strong> just a fertility issue, and you did not cause it.
+        </p>
+        <p>
+          According to the 2023 Monash International Guidelines, it is typically diagnosed using the Rotterdam Criteria (you must have 2 of these 3):
+        </p>
+        <ul className="list-disc pl-5 space-y-1 text-stone-600">
+          <li><strong>Irregular or absent periods</strong> (Ovulatory dysfunction).</li>
+          <li><strong>High androgens</strong> (Clinical signs like acne, excess facial hair, or elevated blood markers).</li>
+          <li><strong>Polycystic ovaries</strong> visible on an ultrasound.</li>
+        </ul>
+        <p>
+          PCOS is a whole-body condition that can affect how your body processes insulin, your daily energy, and your emotional well-being.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: 'mental-health',
+    title: 'Mental Health & Body Image',
+    icon: Brain,
+    content: (
+      <div className="space-y-3">
+        <p className="font-serif italic text-emerald-800/80">
+          "You are not broken. The emotional weight of PCOS is biologically real."
+        </p>
+        <p>
+          If you feel anxious, depressed, or frustrated with your body, it is not in your head. Women with PCOS experience anxiety and depression at <strong>3 to 5 times the rate</strong> of women without it.
+        </p>
+        <p>
+          This is driven by a mix of hormonal fluctuations, insulin resistance (which impacts brain energy), and the profound exhaustion of dealing with chronic symptoms.
+        </p>
+        <ul className="list-disc pl-5 space-y-1 text-stone-600">
+          <li><strong>Give yourself grace:</strong> A low mood day is a symptom, just like a cramp.</li>
+          <li><strong>Protect your peace:</strong> Unfollow social media accounts that make you feel you need to "fix" your body overnight.</li>
+          <li><strong>Seek support:</strong> The 2023 Guidelines explicitly recommend mental health screening for all PCOS patients. Therapy is a valid and necessary part of treatment.</li>
+        </ul>
+      </div>
+    )
   },
   {
     id: 'lifestyle',
     title: 'Lifestyle as Medicine',
     icon: Heart,
-    content: `Small, consistent changes bloom over time. No perfection required.
-
-• Movement: Moderate activity (walking, yoga, strength training) improves insulin sensitivity significantly. Even 20-30 minutes of daily movement makes a difference.
-
-• Sleep: 7-9 hours is foundational. Sleep deprivation spikes cortisol and worsens insulin resistance.
-
-• Nutrition: Focus on low-GI foods to stabilize blood sugar. Include protein with each meal. You do not need to starve—nourishment is healing.
-
-• Stress Management: Chronic stress raises cortisol, which increases androgens. Deep breathing, mindfulness, and rest are biological medicine.
-
-Evidence shows that lifestyle interventions are as effective as medication for many PCOS symptoms.`
+    content: (
+      <div className="space-y-3">
+        <p className="font-serif italic text-emerald-800/80">
+          "Small, consistent changes bloom over time. No perfection required."
+        </p>
+        <p>
+          Because PCOS affects metabolism, how you treat your body day-to-day has a profound impact:
+        </p>
+        <ul className="list-disc pl-5 space-y-2 text-stone-600">
+          <li><strong>Movement:</strong> Moderate activity (walking, yoga, strength training) improves insulin sensitivity. You don't need exhausting workouts to see benefits.</li>
+          <li><strong>Sleep:</strong> 7–9 hours is foundational. Sleep deprivation spikes cortisol and worsens insulin resistance. Rest is a highly productive action.</li>
+          <li><strong>Nutrition:</strong> Focus on balanced, low-GI foods to stabilize blood sugar. You do not need to starve—nourishment is healing.</li>
+        </ul>
+      </div>
+    )
+  },
+  {
+    id: 'fertility',
+    title: 'Fertility & Your Future',
+    icon: Baby,
+    content: (
+      <div className="space-y-3">
+        <p>
+          One of the most damaging myths about PCOS is that it means you can never have children. <strong>This is absolutely false.</strong>
+        </p>
+        <p>
+          While irregular ovulation can make getting pregnant take a little longer or require more planning, the vast majority of women with PCOS who want to have children are able to do so.
+        </p>
+        <ul className="list-disc pl-5 space-y-2 text-stone-600">
+          <li><strong>Natural conception:</strong> Many women conceive naturally once their metabolic health and cycle regularity improve through lifestyle changes.</li>
+          <li><strong>Medical support:</strong> If ovulation needs a boost, there are highly effective, inexpensive medications (like Letrozole or Letrozole/Clomid) that your doctor can prescribe.</li>
+        </ul>
+        <p className="text-sm font-medium text-stone-700 mt-2">
+          Your diagnosis is not a life sentence on your family planning.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: 'advocacy',
+    title: 'Advocating for Yourself',
+    icon: MessageSquare,
+    content: (
+      <div className="space-y-3">
+        <p>
+          Medical gaslighting—being told to "just lose weight and come back when you want a baby"—is sadly common in PCOS care. You have the right to demand comprehensive treatment.
+        </p>
+        <p className="font-medium text-stone-800">How to prepare for your appointment:</p>
+        <ul className="list-disc pl-5 space-y-2 text-stone-600">
+          <li><strong>Bring Data:</strong> Print your <em>Blossom Clinical Summary</em>. Show them your symptom trends over months, not just how you feel today.</li>
+          <li><strong>Ask Direct Questions:</strong> "Can we check my fasting insulin, testosterone, and thyroid levels?"</li>
+          <li><strong>Pivot the Conversation:</strong> If weight is the only focus, say: "I am working on lifestyle, but I would like to discuss managing my hormones and inflammation today."</li>
+        </ul>
+      </div>
+    )
   },
   {
     id: 'doctor',
     title: 'When to See a Doctor',
     icon: AlertCircle,
-    content: `Your body deserves care. Consider booking an appointment if:
-
-• You go more than 3 months without a period.
-• You experience sudden, severe mood changes or depression.
-• Pain stops you from daily activities.
-• You notice rapid weight change without lifestyle change.
-• You have concerns about fertility or family planning.
-• Symptoms significantly impact your quality of life.
-
-This app's "Clinical Snapshot" can help you explain your history to your provider. Bring your data—patterns speak louder than single visits.
-
-Remember: You are your own best advocate.`
+    content: (
+      <div className="space-y-3">
+        <p>
+          Your body deserves care. Book an appointment with your healthcare provider if:
+        </p>
+        <ul className="list-disc pl-5 space-y-1 text-stone-600">
+          <li>You go <strong>more than 3 months</strong> without a period (this requires medical management to protect your uterine lining).</li>
+          <li>You experience sudden, severe mood drops or debilitating anxiety.</li>
+          <li>Pelvic pain stops you from doing your daily activities.</li>
+          <li>You notice rapid, unexplained weight changes.</li>
+          <li>Your symptoms are significantly impacting your quality of life.</li>
+        </ul>
+      </div>
+    )
   }
 ];
 
@@ -121,10 +201,8 @@ export function Education({ onClose }: EducationProps) {
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-6 pb-6 pt-2 border-t border-slate-100">
-                          <p className="text-slate-700 leading-relaxed text-base whitespace-pre-line">
-                            {section.content}
-                          </p>
+                        <div className="px-6 pb-6 pt-2 border-t border-slate-100 text-slate-700 leading-relaxed text-base">
+                          {section.content}
                         </div>
                       </motion.div>
                     )}
