@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, ShieldCheck } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { sendMessage, isDataQuestion, ChatMessage } from '../lib/services/blossomChatService';
 import { isCrisisMessage, triggerEscalation } from '../lib/services/escalationService';
 import { CrisisSupport } from './CrisisSupport';
+import { db } from '../lib/db';
+import {
+  normalizeSymptom, normalizeSleep, normalizeDiet, normalizeExercise,
+  normalizeMood, normalizeStress, normalizeAnxiety
+} from '../lib/logic/conversions';
 import { v4 as uuidv4 } from 'uuid';
 
 interface BlossomCompanionProps {
@@ -60,6 +66,8 @@ export function BlossomCompanion({
     onOpenChange?.(val);
   };
 
+  const latestLog = useLiveQuery(() => db.logs.orderBy('date').last());
+
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -104,22 +112,58 @@ export function BlossomCompanion({
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
 
-    let reply: string;
-
     if (isDataQuestion(messageText)) {
       const lowerText = messageText.toLowerCase();
+      let localReply = "";
 
       if (lowerText.includes('streak') || lowerText.includes('days')) {
-        reply = streak > 0
-            ? `You've been logging for ${streak} day${streak === 1 ? '' : 's'} in a row 🌿 That consistency is real self-care.`
-            : "You haven't started a streak yet — but every journey starts with one log. I'm here whenever you're ready 🌸";
-      } else if (lowerText.includes('score')) {
-        reply = `Your current Blossom Score is ${Math.round(blossomScore)}/100 🌸 Keep prioritizing your wellbeing.`;
-      } else if (lowerText.includes('season')) {
-        reply = `You are currently in a ${season.charAt(0).toUpperCase() + season.slice(1)} season. Remember to honor where your body is today 💛`;
+        localReply = streak > 0
+          ? `You've been logging for ${streak} day${streak === 1 ? '' : 's'} in a row 🌿 That consistency is real self-care.`
+          : "You haven't started a streak yet — but every journey starts with one log. I'm here whenever you're ready 🌸";
+      } else if (lowerText.includes('score') && !lowerText.includes('chart')) {
+        localReply = `Your current Blossom Score is ${Math.round(blossomScore)}/100 🌸 Keep prioritizing your wellbeing.`;
+      } else if (lowerText.includes('chart') || lowerText.includes('radar') || lowerText.includes('web')) {
+        if (!latestLog) {
+          localReply = "I need a little more data to explain your charts. Try logging your day today! 🌸";
+        } else if (lowerText.includes('physical')) {
+          const phys: Record<string, number> = {
+            "Cramps": normalizeSymptom(latestLog.symptoms?.cramps),
+            "Acne": normalizeSymptom(latestLog.symptoms?.acne),
+            "Bloating": normalizeSymptom(latestLog.symptoms?.bloat),
+            "Hair Loss": normalizeSymptom(latestLog.symptoms?.hairLoss),
+            "Facial Hair": normalizeSymptom(latestLog.symptoms?.hirsutism)
+          };
+          const sorted = Object.entries(phys).sort((a, b) => a[1] - b[1]);
+          localReply = `Looking at your Physical Radar 🌸\n\nYour strongest area is **${sorted[4][0]}**. However, **${sorted[0][0]}** is pulling the web inward. The closer a point is to the center, the more that specific symptom is asking for gentle care today.`;
+        } else if (lowerText.includes('metabolic') || lowerText.includes('lifestyle')) {
+          const meta: Record<string, number> = {
+            "Sleep": normalizeSleep(latestLog.lifestyle?.sleep),
+            "Diet": normalizeDiet(latestLog.lifestyle?.diet),
+            "Movement": normalizeExercise(latestLog.lifestyle?.exercise)
+          };
+          const sorted = Object.entries(meta).sort((a, b) => a[1] - b[1]);
+          localReply = `Looking at your Metabolic Radar 🌿\n\nYou are doing great with **${sorted[2][0]}**. The chart shows that **${sorted[0][0]}** is pulling toward the center, which means it might need a little extra focus. Remember, small consistent changes bloom over time.`;
+        } else if (lowerText.includes('emotional') || lowerText.includes('mental')) {
+          const emo: Record<string, number> = {
+            "Mood": normalizeMood(latestLog.psych?.mood),
+            "Stress": normalizeStress(latestLog.psych?.stress),
+            "Anxiety": normalizeAnxiety(latestLog.psych?.anxiety)
+          };
+          const sorted = Object.entries(emo).sort((a, b) => a[1] - b[1]);
+          localReply = `Looking at your Emotional Radar 💛\n\nYour **${sorted[2][0]}** is your anchor right now. However, your **${sorted[0][0]}** is pulling the chart inward. It is completely valid to feel this way with PCOS. Be extra kind to yourself today.`;
+        } else {
+          localReply = `Looking at "Today's Balance" 🌸\n\nThe outer edge represents optimal wellness. Any point pulling toward the center is an area asking for support.\n\nTry asking me specifically about your "Physical chart", "Metabolic chart", or "Emotional chart" to dive deeper!`;
+        }
       } else {
-        reply = `Your current score is ${Math.round(blossomScore)}/100 and you're in a ${season.charAt(0).toUpperCase() + season.slice(1)} season 🌸`;
+        localReply = `Your current score is ${Math.round(blossomScore)}/100 and you're in a ${season.charAt(0).toUpperCase() + season.slice(1)} season 🌸`;
       }
+
+      setLoading(true);
+      setTimeout(() => {
+        setMessages((prev) => [...prev, { role: 'assistant', content: localReply, id: uuidv4(), timestamp: new Date() }]);
+        setLoading(false);
+      }, 800);
+      return;
     } else {
       const timeout = new Promise<string>((resolve) =>
         setTimeout(
@@ -130,17 +174,16 @@ export function BlossomCompanion({
           15000
         )
       );
-      reply = await Promise.race([sendMessage(messageText, blossomScore, season), timeout]);
+      const reply = await Promise.race([sendMessage(messageText, blossomScore, season), timeout]);
+      setLoading(false);
+      const assistantMsg: ChatMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: reply,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
     }
-
-    setLoading(false);
-    const assistantMsg: ChatMessage = {
-      id: uuidv4(),
-      role: 'assistant',
-      content: reply,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, assistantMsg]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
