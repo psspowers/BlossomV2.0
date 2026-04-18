@@ -5,6 +5,7 @@ export interface RouteContext {
   blossomScore: number;
   season: Season;
   streak: number;
+  botToken?: string | null;
 }
 
 export interface RouteDecision {
@@ -29,8 +30,14 @@ const DATA_KEYWORDS = [
 function buildTelegramUrl(context: RouteContext): string {
   const seasonInitial = context.season[0];
   const score = Math.round(context.blossomScore);
-  const payload = `s${score}_${seasonInitial}`;
   const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'LotusBlossomBot';
+
+  if (context.botToken) {
+    const payload = `${context.botToken}_s${score}${seasonInitial}`;
+    return `https://t.me/${BOT_USERNAME}?start=${payload}`;
+  }
+
+  const payload = `s${score}_${seasonInitial}`;
   return `https://t.me/${BOT_USERNAME}?start=${payload}`;
 }
 

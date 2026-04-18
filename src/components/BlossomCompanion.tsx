@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, ExternalLink } from 'lucide-react';
+import { X, Send, ExternalLink, ShieldCheck } from 'lucide-react';
 import { classifyMessage, RouteContext } from '../lib/services/companionRouter';
 import { sendCrisisAlert } from '../lib/services/escalationService';
+import { getOrGenerateBotToken } from '../lib/services/tokenService';
 import { CrisisSupport } from './CrisisSupport';
 
 interface BlossomCompanionProps {
@@ -40,7 +41,19 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
   const [telegramUrl, setTelegramUrl] = useState<string | null>(null);
   const [showCrisis, setShowCrisis] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
+  const [botToken, setBotToken] = useState<string | null>(null);
+  const [tokenLoading, setTokenLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open && !botToken && !tokenLoading) {
+      setTokenLoading(true);
+      getOrGenerateBotToken().then(token => {
+        setBotToken(token);
+        setTokenLoading(false);
+      });
+    }
+  }, [open, botToken, tokenLoading]);
 
   useEffect(() => {
     if (open && inputRef.current) {
@@ -48,7 +61,7 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
     }
   }, [open]);
 
-  const context: RouteContext = { blossomScore, season, streak };
+  const context: RouteContext = { blossomScore, season, streak, botToken };
 
   const handleSubmit = async () => {
     const text = input.trim();
@@ -58,6 +71,7 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
     setInput('');
     setInAppReply(null);
     setTelegramUrl(null);
+    setRateLimited(false);
 
     if (decision.destination === 'crisis') {
       setOpen(false);
@@ -92,8 +106,11 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
     }
   };
 
-  const handleChip = (chip: string) => {
-    setInput(chip);
+  const handleClose = () => {
+    setOpen(false);
+    setInAppReply(null);
+    setTelegramUrl(null);
+    setRateLimited(false);
   };
 
   return (
@@ -120,7 +137,7 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
                   </div>
                 </div>
                 <button
-                  onClick={() => { setOpen(false); setInAppReply(null); setTelegramUrl(null); setRateLimited(false); }}
+                  onClick={handleClose}
                   className="text-rose-100 hover:text-white transition-colors"
                   aria-label="Close"
                 >
@@ -129,15 +146,22 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
               </div>
 
               <div className="px-5 pt-4 pb-3">
-                <p className="text-xs text-stone-500 mb-3 leading-relaxed">
-                  Ask me anything about PCOS, wellness, or just talk. Your personal health data always stays private on your device.
-                </p>
+                <div className="flex items-center gap-1.5 mb-3">
+                  <ShieldCheck className="w-3.5 h-3.5 text-sage-500 flex-shrink-0" />
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    {botToken
+                      ? 'Connect to Blossom Support (Secure) — your identity is verified'
+                      : tokenLoading
+                      ? 'Setting up your secure connection...'
+                      : 'Ask me anything about PCOS or wellness. Health data stays private on your device.'}
+                  </p>
+                </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {SUGGESTED_CHIPS.map(chip => (
                     <button
                       key={chip}
-                      onClick={() => handleChip(chip)}
+                      onClick={() => setInput(chip)}
                       className="text-xs px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-full border border-rose-100 transition-colors"
                     >
                       {chip}
@@ -151,7 +175,7 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mb-3 bg-sage-50 border border-sage-200 rounded-xl p-3 text-xs text-sage-800 leading-relaxed"
+                      className="mb-3 bg-stone-50 border border-stone-200 rounded-xl p-3 text-xs text-stone-700 leading-relaxed"
                     >
                       {inAppReply}
                     </motion.div>
@@ -165,14 +189,14 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
                       className="mb-3 bg-rose-50 border border-rose-100 rounded-xl p-3 space-y-2"
                     >
                       <p className="text-xs text-rose-700 leading-relaxed">
-                        I'd love to help with that! Our Telegram companion can give you a more in-depth response.
+                        I'd love to help with that! Our Telegram companion can give you a more thoughtful response.
                       </p>
                       <button
                         onClick={handleTelegramOpen}
                         className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors underline underline-offset-2"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        Continue in Telegram
+                        Continue in Telegram (Secure)
                       </button>
                       <button
                         onClick={() => setTelegramUrl(null)}
@@ -230,9 +254,8 @@ export function BlossomCompanion({ blossomScore, season, streak = 0 }: BlossomCo
         onClick={() => setOpen(o => !o)}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-28 right-4 sm:right-8 z-40 flex items-center gap-2.5 pl-4 pr-5 py-3 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white rounded-full shadow-lg transition-all"
+        className="fixed bottom-8 right-4 sm:right-8 z-40 flex items-center gap-2.5 pl-4 pr-5 py-3 bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white rounded-full shadow-lg transition-all"
         aria-label="Ask Blossom"
-        style={{ bottom: open ? '420px' : undefined }}
       >
         <span className="text-lg leading-none">🌸</span>
         <span className="text-sm font-semibold">Ask Blossom</span>

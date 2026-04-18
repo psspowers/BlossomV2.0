@@ -59,6 +59,7 @@ export interface Settings {
   customSymptomDefinitions: CustomSymptom[];
   priorities: PriorityId[];
   happinessWeights: Record<string, number>;
+  botToken?: string;
 }
 
 export class BlossomDB extends Dexie {
