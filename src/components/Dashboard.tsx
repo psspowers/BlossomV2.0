@@ -8,6 +8,8 @@ import { SettingsModal } from './SettingsModal';
 import { Education } from './Education';
 import { Navbar } from './Navbar';
 import { DemoPreviewPill } from './DemoPreviewPill';
+import { BlossomCompanion } from './BlossomCompanion';
+import { ContextualPrompts } from './ContextualPrompts';
 import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { DailyLog } from './DailyLog';
@@ -81,6 +83,7 @@ export function Dashboard() {
       <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
+        <ContextualPrompts />
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-12 mb-8">
@@ -154,6 +157,11 @@ export function Dashboard() {
           onReturn={() => setShowSettings(true)}
         />
       )}
+
+      <BlossomCompanion
+        blossomScore={blossomScore}
+        season={season.currentSeason}
+      />
 
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}

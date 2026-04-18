@@ -12,6 +12,7 @@ import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfUse } from "./components/TermsOfUse";
 import type { Session } from "@supabase/supabase-js";
+import { requestNotificationPermission } from "./lib/services/notificationService";
 
 const queryClient = new QueryClient();
 
@@ -171,6 +172,7 @@ const App = () => {
           localStorage.removeItem(USER_DELETED_KEY);
           setOnboardingComplete(true);
           console.log('[App] Onboarding marked as complete');
+          requestNotificationPermission();
         }}
         onBack={async () => {
           await supabase.auth.signOut();
