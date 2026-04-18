@@ -107,20 +107,18 @@ export function BlossomCompanion({
     let reply: string;
 
     if (isDataQuestion(messageText)) {
-      const scoreLabel =
-        blossomScore >= 80
-          ? 'doing really well'
-          : blossomScore >= 50
-          ? 'managing day to day'
-          : 'in a more challenging period';
+      const lowerText = messageText.toLowerCase();
 
-      if (messageText.toLowerCase().includes('streak') || messageText.toLowerCase().includes('days')) {
-        reply =
-          streak > 0
+      if (lowerText.includes('streak') || lowerText.includes('days')) {
+        reply = streak > 0
             ? `You've been logging for ${streak} day${streak === 1 ? '' : 's'} in a row 🌿 That consistency is real self-care.`
             : "You haven't started a streak yet — but every journey starts with one log. I'm here whenever you're ready 🌸";
+      } else if (lowerText.includes('score')) {
+        reply = `Your current Blossom Score is ${Math.round(blossomScore)}/100 🌸 Keep prioritizing your wellbeing.`;
+      } else if (lowerText.includes('season')) {
+        reply = `You are currently in a ${season.charAt(0).toUpperCase() + season.slice(1)} season. Remember to honor where your body is today 💛`;
       } else {
-        reply = `Your current Blossom Score tells me you're ${scoreLabel} 🌸 Is there something specific about your journey you'd like to explore together?`;
+        reply = `Your current score is ${Math.round(blossomScore)}/100 and you're in a ${season.charAt(0).toUpperCase() + season.slice(1)} season 🌸`;
       }
     } else {
       const timeout = new Promise<string>((resolve) =>
