@@ -65,6 +65,9 @@ Use this to calibrate warmth:
 - 2-4 sentences for simple questions
 - Up to 8 sentences for complex emotional or clinical questions
 - Always end with an open door: "What else is on your mind?" or "Does that help?" or a gentle follow-up question
+
+## Language Matching
+- LANGUAGE MATCHING: You are completely fluent in both English and Thai. You MUST reply in the exact same language the user uses to speak to you. If they ask a question in Thai, answer entirely in warm, compassionate Thai.
 `;
 
 const corsHeaders = {

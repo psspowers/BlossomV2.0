@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
@@ -18,7 +19,14 @@ interface SettingsModalProps {
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { plantState } = usePlantState();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'th' : 'en';
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('blossom_language', newLang);
+  };
   const { generateHistory } = usePCOSSeeder();
   const [loadingPersona, setLoadingPersona] = useState<string | null>(null);
   const [currentSeason, setCurrentSeason] = useState<string>('Loading...');
@@ -328,7 +336,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 border-b border-stone-200 flex justify-between items-center bg-white">
-            <h2 className="text-2xl font-serif text-stone-800">Settings & Privacy</h2>
+            <h2 className="text-2xl font-serif text-stone-800">{t('settings.title')}</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-stone-100 rounded-full text-stone-500"
@@ -351,6 +359,33 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <p className="text-lg font-serif text-sage-700">{currentSeason}</p>
                   <p className="text-xs text-stone-500 uppercase tracking-wide">Current Season</p>
                 </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest mb-4">
+                Language
+              </h3>
+              <div className="bg-white border border-stone-200 rounded-xl overflow-hidden mb-6">
+                <button
+                  onClick={toggleLanguage}
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                      <Globe size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-stone-800">{t('settings.language')}</p>
+                      <p className="text-xs text-stone-500">
+                        {i18n.language === 'en' ? 'English' : 'ไทย'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-stone-400">
+                    {i18n.language === 'en' ? 'Switch to ไทย' : 'Switch to English'}
+                  </span>
+                </button>
               </div>
             </section>
 

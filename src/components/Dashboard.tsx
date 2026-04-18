@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePlantState, useInterfaceMode } from '../lib/hooks/useInsights';
 import { WellnessLotus } from './WellnessLotus';
 import { WellnessRadar } from './WellnessRadar';
@@ -21,6 +22,7 @@ import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/nar
 import { DEMO_PREVIEW_KEY } from '../lib/db';
 
 export function Dashboard() {
+  const { t } = useTranslation();
   const { plantState, loading: plantLoading } = usePlantState();
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
@@ -84,7 +86,7 @@ export function Dashboard() {
   if (plantLoading || themeLoading) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-        <div className="text-slate-600 animate-pulse">Loading...</div>
+        <div className="text-slate-600 animate-pulse">{t('dashboard.loading')}</div>
       </div>
     );
   }
@@ -117,7 +119,7 @@ export function Dashboard() {
           <div className="glass-card h-auto min-h-80">
             <div className="p-4 border-b border-slate-100">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                Cycle Context
+                {t('dashboard.cycle_context')}
               </h2>
             </div>
             <CycleContext />
@@ -126,7 +128,7 @@ export function Dashboard() {
           <div className="glass-card h-80">
             <div className="p-4 border-b border-slate-100">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                Today's Balance
+                {t('dashboard.todays_balance')}
               </h2>
             </div>
             <WellnessRadar />
@@ -137,7 +139,7 @@ export function Dashboard() {
             <div className="p-4 border-b border-stone-100 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-sage-600" />
               <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
-                Whispers from your Body
+                {t('dashboard.whispers')}
               </h2>
             </div>
 
