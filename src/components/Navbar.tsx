@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck, BookOpen } from 'lucide-react';
+import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck, BookOpen, Plus } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSettings: () => void;
   onOpenClinicalGuide: () => void;
   onOpenEducation: () => void;
+  onAddLog: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation, onAddLog }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -202,6 +203,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Add Log */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onAddLog}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E07A9A] hover:bg-[#D96B8A] text-white rounded-full transition-colors shadow-sm"
+              aria-label="Add daily log entry"
+            >
+              <Plus size={15} className="transition-transform duration-300 group-hover:rotate-90" />
+              <span className="text-xs font-semibold tracking-wide hidden sm:inline">Log Today</span>
+            </motion.button>
 
             {/* Settings */}
             <button
