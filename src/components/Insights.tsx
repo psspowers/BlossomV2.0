@@ -255,32 +255,42 @@ export function Insights() {
                         {(() => {
                           const cycleLengths = cycleAnalysis.cycleHistory
                             .map(c => c.daysFromPrevious)
-                            .filter((d): d is number => d !== undefined);
-                          if (cycleLengths.length === 0) return 0;
+                            .filter((d): d is number => d !== undefined && !isNaN(d));
+                          if (cycleLengths.length === 0) return <span className="text-slate-300">--</span>;
                           return Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
                         })()}
-                        <span className="text-lg text-slate-500 ml-1">days</span>
+                        {cycleAnalysis.cycleHistory.length > 0 && <span className="text-lg text-slate-500 ml-1">days</span>}
                       </div>
                     </div>
 
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Stability Index</div>
                       <div className="text-3xl font-serif font-bold text-slate-800">
-                        ±{Math.round(cycleAnalysis.variability)}
-                        <span className="text-lg text-slate-500 ml-1">days</span>
+                        {cycleAnalysis.cycleHistory.length < 2 ? (
+                          <span className="text-slate-300">--</span>
+                        ) : (
+                          `±${Math.round(cycleAnalysis.variability)}`
+                        )}
+                        {cycleAnalysis.cycleHistory.length >= 2 && <span className="text-lg text-slate-500 ml-1">days</span>}
                       </div>
                     </div>
 
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">Status</div>
                       <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
-                        cycleAnalysis.variability <= 5
+                        cycleAnalysis.cycleHistory.length < 2
+                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                          : cycleAnalysis.variability <= 5
                           ? 'bg-sage-100 text-sage-700 border border-sage-200'
                           : cycleAnalysis.variability <= 10
                           ? 'bg-amber-100 text-amber-700 border border-amber-200'
                           : 'bg-rose-100 text-rose-700 border border-rose-200'
                       }`}>
-                        {cycleAnalysis.variability <= 5 ? 'Stable' : cycleAnalysis.variability <= 10 ? 'Dynamic' : 'Irregular'}
+                        {cycleAnalysis.cycleHistory.length < 2
+                          ? 'Tracking...'
+                          : cycleAnalysis.variability <= 5 ? 'Stable'
+                          : cycleAnalysis.variability <= 10 ? 'Dynamic'
+                          : 'Irregular'}
                       </div>
                     </div>
                   </div>
