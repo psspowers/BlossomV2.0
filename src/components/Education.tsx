@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare } from 'lucide-react';
+import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare, Sprout } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface EducationProps {
@@ -130,6 +130,44 @@ const SECTIONS = [
           <li>You notice rapid, unexplained weight changes.</li>
           <li>Your symptoms are significantly impacting your quality of life.</li>
         </ul>
+      </div>
+    )
+  },
+  {
+    id: 'about-root-renew',
+    title: 'About Root & Renew',
+    icon: Sprout,
+    content: (
+      <div className="space-y-4">
+        <p>
+          <strong>Root & Renew</strong> is a privacy-first sole proprietorship dedicated to empowering women navigating PCOS.
+        </p>
+        <p>
+          Blossom (your PCOS Companion) lets you easily track your daily cycle (period, spotting, or no bleeding), your symptoms (including cramps, acne, hair loss, facial hair, bloating, cravings, energy, mood, and sleep quality on a gentle 1–5 scale), and lifestyle factors like sleep hours, activity level, and sugar intake.
+        </p>
+        <p>
+          Over time, Blossom helps you visualize simple trends and correlations—such as discovering that better sleep is linked to fewer cravings—so you can understand your unique body and advocate for your health.
+        </p>
+
+        <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 mt-4">
+          <p className="text-sm text-emerald-900 font-medium mb-1">Our Privacy Promise</p>
+          <p className="text-xs text-emerald-800/80 leading-relaxed">
+            All your personal health data stays securely on your device only. There is no cloud sync, no tracking, and no sharing unless you explicitly choose to export your Clinical Summary for your doctor.
+          </p>
+        </div>
+
+        <div className="pt-5 mt-2 border-t border-stone-100 text-xs text-stone-500 space-y-2">
+          <p>
+            <strong className="text-stone-600">Published by:</strong><br />
+            Ritika Yen-Yen Yamdagni trading as Root & Renew, Singapore.
+          </p>
+          <p>
+            <strong className="text-stone-600">Questions or feedback:</strong><br />
+            <a href="mailto:ritika@yamdagni.com" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-2">
+              ritika@yamdagni.com
+            </a>
+          </p>
+        </div>
       </div>
     )
   }
