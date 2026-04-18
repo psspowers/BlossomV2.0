@@ -11,7 +11,7 @@ import { DemoPreviewPill } from './DemoPreviewPill';
 import { ContextualPrompts } from './ContextualPrompts';
 import { BlossomCompanion } from './BlossomCompanion';
 import { NotificationConsentCard } from './NotificationConsentCard';
-import { Lightbulb } from 'lucide-react';
+import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
@@ -89,14 +89,21 @@ export function Dashboard() {
     );
   }
 
+  const fabColors = {
+    nurture: 'bg-lavender-400 hover:bg-lavender-300',
+    steady: 'bg-sage-500 hover:bg-sage-400',
+    thrive: 'bg-terracotta-400 hover:bg-terracotta-300'
+  };
+
+  const fabGlow = {
+    nurture: '0 4px 12px rgba(197, 179, 223, 0.4)',
+    steady: '0 4px 12px rgba(107, 143, 78, 0.4)',
+    thrive: '0 4px 12px rgba(232, 167, 155, 0.4)'
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-x-hidden">
-      <Navbar
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenClinicalGuide={() => setShowClinicalGuide(true)}
-        onOpenEducation={() => setShowLearn(true)}
-        onAddLog={() => setShowDailyLog(true)}
-      />
+      <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
         <ContextualPrompts
@@ -160,13 +167,16 @@ export function Dashboard() {
         <Insights />
       </div>
 
-      <BlossomCompanion
-        blossomScore={blossomScore}
-        season={season.currentSeason}
-        streak={plantState.streak}
-        isOpen={companionOpen}
-        onOpenChange={setCompanionOpen}
-      />
+      <button
+        onClick={() => setShowDailyLog(true)}
+        className={`fixed bottom-8 right-8 w-16 h-16 rounded-full ${fabColors[themeState.mode]} transition-all shadow-lg hover:shadow-xl flex items-center justify-center group hover:scale-105 z-50`}
+        style={{
+          boxShadow: fabGlow[themeState.mode]
+        }}
+        aria-label="Add daily log entry"
+      >
+        <Plus className="w-8 h-8 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
+      </button>
 
       {demoPersona && (
         <DemoPreviewPill
@@ -174,6 +184,14 @@ export function Dashboard() {
           onReturn={() => setShowSettings(true)}
         />
       )}
+
+      <BlossomCompanion
+        blossomScore={blossomScore}
+        season={season.currentSeason}
+        streak={plantState.streak}
+        isOpen={companionOpen}
+        onOpenChange={setCompanionOpen}
+      />
 
       {showNotificationConsent && (
         <NotificationConsentCard onDismiss={() => setShowNotificationConsent(false)} />
