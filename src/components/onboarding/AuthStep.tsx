@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Mail, AlertCircle, ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, CircleAlert as AlertCircle, ArrowLeft, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { db } from '../../lib/db';
 
 interface AuthStepProps {
   onNext: (email: string) => void;
@@ -17,6 +18,20 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<AuthMode>('signup');
+
+  useEffect(() => {
+    const detectExistingProfile = async () => {
+      try {
+        const count = await db.settings.count();
+        if (count > 0) {
+          setMode('signin');
+        }
+      } catch (err) {
+        console.error('[Auth] Could not check local profile:', err);
+      }
+    };
+    detectExistingProfile();
+  }, []);
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -66,6 +81,7 @@ export function AuthStep({ onNext, onBack }: AuthStepProps) {
           message = 'Invalid email or password.';
         } else if (err.message.includes('User already registered')) {
           message = 'This email is already registered. Try signing in.';
+          setMode('signin');
         } else if (err.message.includes('Email not confirmed')) {
           message = 'Please check your email to confirm your account.';
         } else {
