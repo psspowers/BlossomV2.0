@@ -8,7 +8,6 @@ import { SettingsModal } from './SettingsModal';
 import { Education } from './Education';
 import { Navbar } from './Navbar';
 import { DemoPreviewPill } from './DemoPreviewPill';
-import { BlossomCompanion } from './BlossomCompanion';
 import { ContextualPrompts } from './ContextualPrompts';
 import { Plus, Lightbulb } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -157,11 +156,6 @@ export function Dashboard() {
           onReturn={() => setShowSettings(true)}
         />
       )}
-
-      <BlossomCompanion
-        blossomScore={blossomScore}
-        season={season.currentSeason}
-      />
 
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
