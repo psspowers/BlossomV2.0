@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck } from 'lucide-react';
+import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck, BookOpen } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSettings: () => void;
   onOpenClinicalGuide: () => void;
+  onOpenEducation: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -78,6 +79,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               aria-label="Clinical Guide"
             >
               <Stethoscope size={22} className="text-stone-500 group-hover:text-stone-800 transition-colors" />
+            </button>
+
+            {/* Education / Library */}
+            <button
+              onClick={onOpenEducation}
+              className="group p-2 rounded-full hover:bg-emerald-50 transition-colors"
+              aria-label="Education Library"
+            >
+              <BookOpen size={22} className="text-stone-500 group-hover:text-emerald-700 transition-colors" />
             </button>
 
             {/* Notifications */}

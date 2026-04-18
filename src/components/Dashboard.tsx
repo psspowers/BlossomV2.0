@@ -5,7 +5,7 @@ import { CycleContext } from './CycleContext';
 import { Insights } from './Insights';
 import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
-import { Learn } from './Learn';
+import { Education } from './Education';
 import { Navbar } from './Navbar';
 import { DemoPreviewPill } from './DemoPreviewPill';
 import { Plus, Lightbulb } from 'lucide-react';
@@ -78,7 +78,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-x-hidden">
-      <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} />
+      <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
@@ -157,7 +157,7 @@ export function Dashboard() {
 
       {showDailyLog && <DailyLog onClose={() => setShowDailyLog(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
-      {showLearn && <Learn onClose={() => setShowLearn(false)} />}
+      {showLearn && <Education onClose={() => setShowLearn(false)} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
 
       <footer className="max-w-7xl mx-auto px-4 py-6 mt-12 border-t border-slate-200">
