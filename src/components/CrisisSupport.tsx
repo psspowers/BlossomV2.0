@@ -1,13 +1,23 @@
 import { motion } from 'framer-motion';
-import { Heart, Phone } from 'lucide-react';
+import { Heart, Phone, ExternalLink } from 'lucide-react';
 
 interface CrisisSupportProps {
   onDismiss: () => void;
 }
 
-const RESOURCES = [
-  { label: 'Thailand Crisis Line', number: '1323', flag: '🇹🇭' },
-  { label: 'International Association for Suicide Prevention', number: 'https://www.iasp.info/resources/Crisis_Centres/', flag: '🌍' },
+type PhoneResource = { type: 'phone'; label: string; value: string; flag: string };
+type UrlResource = { type: 'url'; label: string; value: string; display: string; flag: string };
+type Resource = PhoneResource | UrlResource;
+
+const RESOURCES: Resource[] = [
+  { type: 'phone', label: 'Thailand Crisis Line', value: '1323', flag: '🇹🇭' },
+  {
+    type: 'url',
+    label: 'International Crisis Centres Directory',
+    value: 'https://www.iasp.info/resources/Crisis_Centres/',
+    display: 'iasp.info — Find your local centre',
+    flag: '🌍',
+  },
 ];
 
 export function CrisisSupport({ onDismiss }: CrisisSupportProps) {
@@ -44,7 +54,7 @@ export function CrisisSupport({ onDismiss }: CrisisSupportProps) {
           className="text-xl font-serif font-semibold text-center mb-3 leading-snug"
           style={{ color: 'rgb(131,24,67)' }}
         >
-          You matter. This feeling won't last forever. 💛
+          You matter. This feeling won't last forever.
         </h2>
 
         <p
@@ -70,18 +80,30 @@ export function CrisisSupport({ onDismiss }: CrisisSupportProps) {
                 <p className="text-xs font-semibold" style={{ color: 'rgb(131,24,67)' }}>
                   {r.label}
                 </p>
-                <p className="text-sm font-mono font-bold" style={{ color: 'rgb(219,39,119)' }}>
-                  {r.number}
+                <p className="text-sm font-mono font-bold truncate" style={{ color: 'rgb(219,39,119)' }}>
+                  {r.type === 'phone' ? r.value : r.display}
                 </p>
               </div>
-              {/^\d/.test(r.number) && (
+              {r.type === 'phone' && (
                 <a
-                  href={`tel:${r.number}`}
+                  href={`tel:${r.value}`}
                   className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(236,72,153,0.15)', color: 'rgb(219,39,119)' }}
                   aria-label={`Call ${r.label}`}
                 >
                   <Phone className="w-4 h-4" />
+                </a>
+              )}
+              {r.type === 'url' && (
+                <a
+                  href={r.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(236,72,153,0.15)', color: 'rgb(219,39,119)' }}
+                  aria-label={`Open ${r.label}`}
+                >
+                  <ExternalLink className="w-4 h-4" />
                 </a>
               )}
             </div>

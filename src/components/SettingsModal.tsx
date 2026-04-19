@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
 import { db, backupUserLogs, restoreUserLogs, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from '../lib/db';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { usePCOSSeeder } from '../lib/hooks/usePCOSSeeder';
 import { analyzeHistory } from '../lib/logic/cycle';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -46,6 +47,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [showRecalibrateWarning, setShowRecalibrateWarning] = useState(false);
   const [pendingPriorities, setPendingPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
   const [maxPrioritiesMessage, setMaxPrioritiesMessage] = useState(false);
+  const [showExportWarning, setShowExportWarning] = useState(false);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -160,7 +162,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       await loadPriorities();
     } catch (error) {
       console.error('Failed to update priorities:', error);
-      alert('Failed to save priorities. Please try again.');
+      toast.error('Failed to save priorities. Please try again.');
     } finally {
       setIsSavingPriorities(false);
     }
@@ -184,6 +186,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const handleExportData = async () => {
     try {
       setIsExporting(true);
+      setShowExportWarning(false);
       const logs = await db.logs.toArray();
       const settings = await db.settings.toArray();
 
@@ -214,9 +217,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      toast.success('Health data exported. Treat this file like a medical record.');
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export data. Please try again.');
+      toast.error('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -231,7 +235,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     } catch (error) {
       console.error('Clinical report generation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate clinical report. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsExportingClinical(false);
     }
@@ -250,7 +254,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       window.location.reload();
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete data. Please try again.');
+      toast.error('Failed to delete data. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -283,7 +287,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       window.location.href = '/';
     } catch (error) {
       console.error('Account deletion failed:', error);
-      alert('Local data cleared. If server deletion failed, please contact support.');
+      toast.error('Local data cleared. If server deletion failed, please contact support at blossom@yamdagni.com');
       localStorage.clear();
       await supabase.auth.signOut();
       window.location.href = '/';
@@ -470,7 +474,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 </button>
 
                 <button
-                  onClick={handleExportData}
+                  onClick={() => setShowExportWarning(true)}
                   disabled={isExporting}
                   className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:border-stone-300 hover:shadow-md transition-all group disabled:opacity-50"
                 >
@@ -575,6 +579,50 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
         </motion.div>
       </motion.div>
+
+      {showExportWarning && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          onClick={() => setShowExportWarning(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-amber-50 rounded-lg">
+                <AlertTriangle size={20} className="text-amber-600" />
+              </div>
+              <h3 className="text-lg font-serif text-stone-800">Export Health Data</h3>
+            </div>
+            <p className="text-sm text-stone-600 mb-3 leading-relaxed">
+              This file will contain your complete health tracking history including symptoms, cycle data, and wellness logs.
+            </p>
+            <p className="text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
+              Treat this file like a medical record. Store it securely and do not share it with untrusted parties.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowExportWarning(false)}
+                className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="flex-1 px-4 py-3 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isExporting ? 'Exporting...' : 'Download File'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {showDeleteConfirm && (
         <motion.div

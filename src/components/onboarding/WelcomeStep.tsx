@@ -9,6 +9,7 @@ interface WelcomeStepProps {
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoReady, setVideoReady] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -75,17 +76,60 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
         <h1 className="font-serif text-3xl md:text-4xl text-slate-800 mb-4 tracking-tight leading-snug">
           Your Journey, <span className="text-sage-600 italic">Seen.</span>
         </h1>
-        <p className="font-sans text-slate-500 text-sm md:text-base leading-relaxed max-w-xs mx-auto mb-10">
+        <p className="font-sans text-slate-500 text-sm md:text-base leading-relaxed max-w-xs mx-auto mb-8">
           PCOS is multi-layered. Like this lotus, we help you bloom across the symptoms and goals that matter most to you.
         </p>
 
-        <button
-          onClick={onNext}
-          className="group relative bg-slate-800 text-[#FDFBF7] px-8 py-4 rounded-full font-medium shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 mx-auto"
+        <motion.label
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.0, duration: 0.6 }}
+          className="flex items-start gap-3 max-w-xs mx-auto mb-8 cursor-pointer group"
+        >
+          <div className="relative flex-shrink-0 mt-0.5">
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              className="sr-only"
+            />
+            <div
+              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                ageConfirmed
+                  ? 'bg-sage-600 border-sage-600'
+                  : 'bg-white border-slate-300 group-hover:border-sage-400'
+              }`}
+            >
+              {ageConfirmed && (
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <span className="text-xs text-slate-500 leading-relaxed text-left">
+            I confirm I am 18 years of age or older and agree to the{' '}
+            <span className="text-sage-600 underline underline-offset-2">Terms of Use</span>
+            {' '}and{' '}
+            <span className="text-sage-600 underline underline-offset-2">Privacy Policy</span>.
+          </span>
+        </motion.label>
+
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.5 }}
+          onClick={ageConfirmed ? onNext : undefined}
+          disabled={!ageConfirmed}
+          className={`group relative px-8 py-4 rounded-full font-medium shadow-xl flex items-center gap-3 mx-auto transition-all duration-300 ${
+            ageConfirmed
+              ? 'bg-slate-800 text-[#FDFBF7] hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer'
+              : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+          }`}
         >
           Begin Journey
-          <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
-        </button>
+          <ChevronRight size={18} className={ageConfirmed ? 'group-hover:translate-x-1 transition-transform duration-200' : ''} />
+        </motion.button>
       </motion.div>
 
       <motion.p

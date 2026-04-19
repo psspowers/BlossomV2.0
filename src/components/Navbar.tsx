@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck, BookOpen } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NavbarProps {
   onOpenSettings: () => void;
@@ -61,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => {
-              alert('Your health data stays on this device.\n\nNo cloud sync. No tracking. No third parties.\n\nYou own your story.');
+              toast('Your health data stays on this device. No cloud sync. No tracking. No third parties. You own your story.', { duration: 5000 });
             }}
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200/70 rounded-full cursor-pointer hover:bg-emerald-100/70 transition-colors"
             aria-label="Learn about privacy"
