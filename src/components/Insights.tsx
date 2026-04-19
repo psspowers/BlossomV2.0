@@ -78,31 +78,7 @@ export function Insights() {
 
   const currentConfig = viewConfig[view];
   const ViewIcon = currentConfig.icon;
-
-  if (loading) {
-    return (
-      <div className="mt-6 glass-card p-6">
-        <div className="flex items-center justify-center">
-          <div className="text-slate-600 animate-pulse">Loading insights...</div>
-        </div>
-      </div>
-    );
-  }
-
   const hasData = insights.trendData.length > 0;
-
-  if (!hasData) {
-    return (
-      <div className="mt-6 glass-card p-6">
-        <div className="text-center">
-          <h3 className="text-lg font-serif font-semibold text-slate-800 mb-2">No Data Yet</h3>
-          <p className="text-slate-600 text-sm">
-            Start logging your daily data to see personalized insights and trends.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mt-6">
@@ -135,12 +111,27 @@ export function Insights() {
         <InsightsNavigation view={view} onViewChange={setView} />
       </div>
 
-      <div className="relative">
+      <div className="relative min-h-[500px]">
         <div
           className={`absolute inset-0 -inset-x-12 -inset-y-12 ${currentConfig.glowClass} blur-[100px] rounded-full transition-all duration-700 pointer-events-none opacity-50`}
         />
 
-        {view === 'cycle' ? (
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center glass-card rounded-2xl z-10">
+            <div className="text-slate-500 animate-pulse font-serif">Listening to your patterns...</div>
+          </div>
+        ) : !hasData ? (
+          <div className="absolute inset-0 flex items-center justify-center glass-card rounded-2xl z-10">
+            <div className="text-center px-4">
+              <h3 className="text-lg font-serif font-semibold text-slate-800 mb-2">No Patterns Yet</h3>
+              <p className="text-slate-600 text-sm max-w-xs mx-auto">
+                Log a few more days of data. Your personalized insights will appear here soon.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {!loading && hasData && view === 'cycle' ? (
           <div className="relative">
             {cycleLoading ? (
               <div className="glass-card p-8 flex items-center justify-center">
@@ -306,7 +297,7 @@ export function Insights() {
               </div>
             )}
           </div>
-        ) : (
+        ) : !loading && hasData ? (
           <div className="relative space-y-3">
             <div className="glass-card px-4 py-3">
               {insights.velocity ? (
@@ -509,7 +500,7 @@ export function Insights() {
               )}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
