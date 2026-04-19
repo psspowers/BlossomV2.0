@@ -457,7 +457,12 @@ export function Insights() {
                 </p>
               </div>
 
-              {insights.factorImpacts.length > 0 ? (
+              {(() => {
+                const positive = insights.factorImpacts.filter((f) => f.impact > 0);
+                const uniqueImpacts = new Set(positive.map((f) => f.impact));
+                const hasVariance = uniqueImpacts.size > 1;
+                return positive.length > 0 && hasVariance;
+              })() ? (
                 <div className="space-y-4">
                   {insights.factorImpacts.slice(0, 3).map((factor, index) => {
                     if (factor.impact <= 0) return null;
@@ -493,8 +498,8 @@ export function Insights() {
               ) : (
                 <div className="text-center py-8">
                   <Leaf className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-600 font-serif italic text-sm">
-                    Keep logging. We are listening for patterns.
+                  <p className="text-slate-600 font-serif italic text-sm max-w-xs mx-auto">
+                    Log 7+ days with different sleep, diet, and exercise patterns to unlock your personal levers.
                   </p>
                 </div>
               )}

@@ -12,14 +12,18 @@ import { DemoPreviewPill } from './DemoPreviewPill';
 import { ContextualPrompts } from './ContextualPrompts';
 import { BlossomCompanion } from './BlossomCompanion';
 import { NotificationConsentCard } from './NotificationConsentCard';
-import { Plus, Lightbulb } from 'lucide-react';
+import { TodayHero } from './TodayHero';
+import { ActionDock } from './ActionDock';
+import { Lightbulb } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
-import { DEMO_PREVIEW_KEY } from '../lib/db';
+import { analyzeHistory } from '../lib/logic/cycle';
+import { db, DEMO_PREVIEW_KEY } from '../lib/db';
+import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
 
 export function Dashboard() {
   const { t } = useTranslation();
@@ -38,6 +42,9 @@ export function Dashboard() {
     setDemoPersona(localStorage.getItem(DEMO_PREVIEW_KEY));
   }, []);
   const [blossomScore, setBlossomScore] = useState<number>(50);
+  const [scoreDelta, setScoreDelta] = useState<number>(0);
+  const [cycleDay, setCycleDay] = useState<number | undefined>(undefined);
+  const [hasLoggedToday, setHasLoggedToday] = useState<boolean>(false);
   const [season, setSeason] = useState<SeasonState>({
     currentSeason: 'resting',
     message: 'Loading your season...',
@@ -48,6 +55,7 @@ export function Dashboard() {
     category: 'affirmation',
     hasData: false
   });
+  const { prefs, update: updatePrefs } = useDashboardPreferences();
 
   const handleSaveSuccess = useCallback((result: {
     symptoms: Record<string, number>;
@@ -78,6 +86,26 @@ export function Dashboard() {
 
       const dailyWisdom = await generateDailyWisdom();
       setWisdom(dailyWisdom);
+
+      const allLogs = await db.logs.orderBy('date').toArray();
+      const today = new Date().toISOString().slice(0, 10);
+      setHasLoggedToday(allLogs.some((log) => log.date === today));
+
+      const analysis = analyzeHistory(allLogs);
+      if (analysis && !analysis.isUntracked && analysis.currentDay) {
+        setCycleDay(analysis.currentDay);
+      }
+
+      if (allLogs.length >= 2) {
+        const recent = allLogs.slice(-7);
+        const prior = allLogs.slice(-14, -7);
+        if (recent.length > 0 && prior.length > 0) {
+          const avg = (arr: typeof allLogs) =>
+            arr.reduce((s, l) => s + (l.symptoms ? 50 : 50), 0) / arr.length;
+          const delta = Math.round(avg(recent) - avg(prior));
+          setScoreDelta(delta);
+        }
+      }
     };
     loadCompassionateData();
   }, []);
@@ -91,29 +119,37 @@ export function Dashboard() {
     );
   }
 
-  const fabColors = {
-    nurture: 'bg-lavender-400 hover:bg-lavender-300',
-    steady: 'bg-sage-500 hover:bg-sage-400',
-    thrive: 'bg-terracotta-400 hover:bg-terracotta-300'
+  const handleLogDay = () => {
+    setShowDailyLog(true);
+    updatePrefs({ lastAction: 'log' });
   };
 
-  const fabGlow = {
-    nurture: '0 4px 12px rgba(197, 179, 223, 0.4)',
-    steady: '0 4px 12px rgba(107, 143, 78, 0.4)',
-    thrive: '0 4px 12px rgba(232, 167, 155, 0.4)'
+  const handleAskBlossom = () => {
+    setCompanionOpen(true);
+    updatePrefs({ lastAction: 'ask' });
   };
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
       <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-28 pb-32 overflow-x-hidden">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-28 pb-40 overflow-x-hidden">
         <ContextualPrompts
           onOpenChat={() => setCompanionOpen(true)}
           highSymptomTriggered={highSymptomTriggered}
           onHighSymptomConsumed={() => setHighSymptomTriggered(false)}
         />
         <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
+
+        <TodayHero
+          score={blossomScore}
+          scoreDelta={scoreDelta}
+          cycleDay={cycleDay}
+          season={season}
+          streak={plantState.streak}
+          hasLoggedToday={hasLoggedToday}
+          onLogToday={handleLogDay}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 mb-8">
           <div className="glass-card min-h-80">
@@ -169,14 +205,12 @@ export function Dashboard() {
         <Insights />
       </div>
 
-      <button
-        onClick={() => setShowDailyLog(true)}
-        className={`fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full ${fabColors[themeState.mode]} transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.16)] flex items-center justify-center group hover:-translate-y-1 z-50`}
-        style={{ boxShadow: fabGlow[themeState.mode] }}
-        aria-label="Add daily log entry"
-      >
-        <Plus className="w-8 h-8 text-white drop-shadow-md group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      <ActionDock
+        mode={themeState.mode}
+        onLogDay={handleLogDay}
+        onAskBlossom={handleAskBlossom}
+        lastAction={prefs.lastAction}
+      />
 
       {demoPersona && (
         <DemoPreviewPill
