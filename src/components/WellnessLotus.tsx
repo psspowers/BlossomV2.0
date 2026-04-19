@@ -142,11 +142,11 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
 
   const DeltaIcon = () =>
     scoreDelta > 0 ? (
-      <ArrowUp className="w-3.5 h-3.5" strokeWidth={2.5} />
+      <ArrowUp className="w-4 h-4" strokeWidth={2.5} />
     ) : scoreDelta < 0 ? (
-      <ArrowDown className="w-3.5 h-3.5" strokeWidth={2.5} />
+      <ArrowDown className="w-4 h-4" strokeWidth={2.5} />
     ) : (
-      <Minus className="w-3.5 h-3.5" strokeWidth={2.5} />
+      <Minus className="w-4 h-4" strokeWidth={2.5} />
     );
 
   const ariaLabel = `Your current Healing Blossom Score: ${health}. ${
@@ -335,7 +335,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 className="absolute bottom-2 right-2 z-20"
               >
                 <div
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${deltaColor}`}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold ${deltaColor}`}
                   style={{
                     background: 'rgba(255,255,255,0.72)',
                     backdropFilter: 'blur(6px)',
@@ -351,7 +351,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                   }
                 >
                   <DeltaIcon />
-                  <span>
+                  <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>
                     {scoreDelta === 0 ? '0' : `${scoreDelta > 0 ? '+' : ''}${scoreDelta}`}
                   </span>
                 </div>
