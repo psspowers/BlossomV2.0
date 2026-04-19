@@ -22,7 +22,7 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-40 pb-[calc(0.25rem+env(safe-area-inset-bottom))]"
       aria-label="Primary actions"
     >
       <div className="mx-auto max-w-xl px-4 pb-3">

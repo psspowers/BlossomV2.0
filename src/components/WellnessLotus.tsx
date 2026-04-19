@@ -361,32 +361,6 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Narrative zone */}
-      {isReady && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-6 text-center px-4 w-full"
-        >
-          <div className="flex items-center justify-center gap-3 text-slate-600 text-sm font-medium uppercase tracking-widest mb-3">
-            <motion.span
-              className="text-2xl"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {season.icon}
-            </motion.span>
-            <span className="font-serif">Season of {season.currentSeason}</span>
-          </div>
-          <p className="font-serif italic text-slate-700 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
-            "{season.message}"
-          </p>
-          <p className="text-xs text-slate-400 mt-3 font-medium tracking-wide">
-            Your journey, seen and supported
-          </p>
-        </motion.div>
-      )}
     </div>
   );
 };
