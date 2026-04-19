@@ -11,6 +11,7 @@ import { AuthStep } from "./components/onboarding/AuthStep";
 import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfUse } from "./components/TermsOfUse";
+import { ResetPassword } from "./components/onboarding/ResetPassword";
 import type { Session } from "@supabase/supabase-js";
 import { requestNotificationPermission, checkAndFireReminder } from "./lib/services/notificationService";
 
@@ -27,6 +28,7 @@ const App = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -45,9 +47,14 @@ const App = () => {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        setSession(newSession);
+        return;
+      }
       setSession(newSession);
-      if (newSession) {
+      if (newSession && event !== 'PASSWORD_RECOVERY') {
         setOnboardingStep('priorities');
       }
     });
@@ -125,6 +132,10 @@ const App = () => {
     return () => clearTimeout(troubleshootingTimer);
   }, []);
 
+  if (isPasswordRecovery) {
+    return <ResetPassword />;
+  }
+
   if (!seeded || authLoading || (session && onboardingComplete === null)) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
@@ -200,6 +211,7 @@ const App = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>
