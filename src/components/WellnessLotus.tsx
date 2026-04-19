@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { SeasonState } from '../lib/logic/seasons';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 
 interface WellnessLotusProps {
   health: number;
+  scoreDelta?: number;
   season: SeasonState;
   mode: 'nurture' | 'steady' | 'thrive';
   name?: string;
@@ -12,6 +14,7 @@ interface WellnessLotusProps {
 
 export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   health,
+  scoreDelta = 0,
   season,
   name = 'Your Journey'
 }) => {
@@ -143,31 +146,69 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           />
         </motion.div>
 
-        {/* Score badge — sits just below the video bottom edge, not overlapping petals */}
+        {/* Score — centred on the lotus with a delta arrow vs yesterday */}
         {isReady && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20"
+            className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+            aria-live="polite"
           >
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div
-                    className="flex flex-col items-center justify-center w-16 h-16 bg-white/50 backdrop-blur-md border border-white/50 rounded-full shadow-lg cursor-help"
+                    className="pointer-events-auto flex flex-col items-center justify-center w-28 h-28 sm:w-32 sm:h-32 rounded-full cursor-help"
                     style={{
-                      boxShadow: '0 4px 16px rgba(224, 122, 154, 0.25), 0 0 0 1px rgba(255,255,255,0.4) inset'
+                      background: 'radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.35) 60%, rgba(255,255,255,0) 100%)',
+                      backdropFilter: 'blur(6px)',
+                      WebkitBackdropFilter: 'blur(6px)'
                     }}
-                    aria-label={`Your current Healing Blossom Score: ${health}`}
+                    aria-label={`Your current Healing Blossom Score: ${health}. ${
+                      scoreDelta > 0
+                        ? `Up ${scoreDelta} from yesterday`
+                        : scoreDelta < 0
+                          ? `Down ${Math.abs(scoreDelta)} from yesterday`
+                          : 'Unchanged from yesterday'
+                    }.`}
                   >
-                    <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
-                    <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
+                    <span className="text-[11px] uppercase tracking-[0.22em] text-slate-600 font-medium">
+                      Score
+                    </span>
+                    <span
+                      className="font-serif font-semibold text-slate-800 leading-none"
+                      style={{ fontSize: 'clamp(2.75rem, 9vw, 3.5rem)', textShadow: '0 1px 2px rgba(255,255,255,0.6)' }}
+                    >
+                      {health}
+                    </span>
+                    <div
+                      className={`mt-1 flex items-center gap-1 text-xs font-semibold ${
+                        scoreDelta > 0
+                          ? 'text-sage-700'
+                          : scoreDelta < 0
+                            ? 'text-rose-600'
+                            : 'text-slate-500'
+                      }`}
+                    >
+                      {scoreDelta > 0 ? (
+                        <ArrowUp className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      ) : scoreDelta < 0 ? (
+                        <ArrowDown className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      ) : (
+                        <Minus className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      )}
+                      <span>
+                        {scoreDelta === 0
+                          ? 'same as yesterday'
+                          : `${scoreDelta > 0 ? '+' : ''}${scoreDelta} vs yesterday`}
+                      </span>
+                    </div>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs bg-white border-slate-200 shadow-xl">
                   <p className="text-xs text-slate-700 leading-relaxed">
-                    Your Healing Blossom Score is a personal progress companion, not a medical diagnosis. Use these insights to talk with your doctor.
+                    Your Healing Blossom Score is a personal progress companion, not a medical diagnosis. The arrow shows how today compares to yesterday.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -182,7 +223,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-14 text-center px-4 w-full"
+          className="mt-6 text-center px-4 w-full"
         >
           <div className="flex items-center justify-center gap-3 text-slate-600 text-sm font-medium uppercase tracking-widest mb-3">
             <motion.span

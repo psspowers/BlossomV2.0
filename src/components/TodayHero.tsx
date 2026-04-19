@@ -3,8 +3,6 @@ import { Flame, Leaf, Calendar, ArrowRight } from 'lucide-react';
 import { SeasonState } from '../lib/logic/seasons';
 
 interface TodayHeroProps {
-  score: number;
-  scoreDelta?: number;
   cycleDay?: number;
   season: SeasonState;
   streak: number;
@@ -19,8 +17,6 @@ const seasonColors: Record<string, { bg: string; border: string; text: string }>
 };
 
 export function TodayHero({
-  score,
-  scoreDelta = 0,
   cycleDay,
   season,
   streak,
@@ -38,11 +34,6 @@ export function TodayHero({
       ? `You are on a ${streak}-day streak`
       : 'Today is logged. Rest easy.';
 
-  const deltaLabel =
-    scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '—';
-  const deltaTone =
-    scoreDelta > 0 ? 'text-sage-600' : scoreDelta < 0 ? 'text-rose-500' : 'text-slate-400';
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
@@ -51,19 +42,7 @@ export function TodayHero({
       className="mt-6 mb-8 rounded-2xl bg-white/80 backdrop-blur-sm border border-stone-200 shadow-sm overflow-hidden"
       aria-label="Today summary"
     >
-      <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-stone-200">
-        <div className="p-5">
-          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 mb-1">
-            Today&apos;s Score
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-semibold text-slate-800 leading-none">
-              {score}
-            </span>
-            <span className={`text-xs font-medium ${deltaTone}`}>{deltaLabel}</span>
-          </div>
-        </div>
-
+      <div className="grid grid-cols-3 divide-x divide-stone-200">
         <div className="p-5">
           <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 mb-1 flex items-center gap-1">
             <Calendar className="w-3 h-3" /> Cycle

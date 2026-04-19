@@ -97,13 +97,11 @@ export function Dashboard() {
       }
 
       if (allLogs.length >= 2) {
-        const recent = allLogs.slice(-7);
-        const prior = allLogs.slice(-14, -7);
-        if (recent.length > 0 && prior.length > 0) {
-          const avg = (arr: typeof allLogs) =>
-            arr.reduce((s, l) => s + (l.symptoms ? 50 : 50), 0) / arr.length;
-          const delta = Math.round(avg(recent) - avg(prior));
-          setScoreDelta(delta);
+        const sorted = [...allLogs].sort((a, b) => a.date.localeCompare(b.date));
+        const priorLogs = sorted.slice(0, -1);
+        if (priorLogs.length > 0) {
+          const yesterdayResult = await calculateBlossomScore(priorLogs);
+          setScoreDelta(scoreResult.score - yesterdayResult.score);
         }
       }
     };
@@ -139,11 +137,14 @@ export function Dashboard() {
           highSymptomTriggered={highSymptomTriggered}
           onHighSymptomConsumed={() => setHighSymptomTriggered(false)}
         />
-        <WellnessLotus health={blossomScore} season={season} mode={themeState.mode} />
+        <WellnessLotus
+          health={blossomScore}
+          scoreDelta={scoreDelta}
+          season={season}
+          mode={themeState.mode}
+        />
 
         <TodayHero
-          score={blossomScore}
-          scoreDelta={scoreDelta}
           cycleDay={cycleDay}
           season={season}
           streak={plantState.streak}
