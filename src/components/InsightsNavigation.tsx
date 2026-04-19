@@ -1,5 +1,4 @@
-import { Activity, Zap, Sparkles, Droplet, LucideIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Activity, Zap, Sparkles, Droplet, Video as LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type InsightView = 'physical' | 'emotional' | 'metabolic' | 'cycle';
@@ -59,66 +58,52 @@ interface InsightsNavigationProps {
 }
 
 export function InsightsNavigation({ view, onViewChange }: InsightsNavigationProps) {
-  const [showLabel, setShowLabel] = useState<InsightView | null>(null);
   const views: InsightView[] = ['physical', 'metabolic', 'emotional', 'cycle'];
 
-  const handleClick = (viewKey: InsightView) => {
+  const handleClick = (viewKey: InsightView, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.blur();
     onViewChange(viewKey);
   };
 
-  const handleMouseEnter = (viewKey: InsightView) => {
-    setShowLabel(viewKey);
-  };
-
-  const handleMouseLeave = () => {
-    setShowLabel(null);
-  };
-
-
   return (
-    <div className="w-full flex justify-center mb-6 sticky top-4 z-50 pointer-events-none">
-      <div className="pointer-events-auto flex items-center p-1.5 gap-2 bg-white/90 backdrop-blur-xl border border-stone-200/60 rounded-full shadow-md">
+    <div className="flex items-center justify-center">
+      <div className="flex items-center p-1.5 gap-1 bg-white/90 backdrop-blur-xl border border-stone-200/60 rounded-full shadow-sm">
         {views.map((viewKey) => {
           const config = viewConfig[viewKey];
           const Icon = config.icon;
           const isActive = view === viewKey;
-          const shouldShowLabel = showLabel === viewKey;
 
           return (
-            <div key={viewKey} className="relative">
-              <button
-                onClick={() => handleClick(viewKey)}
-                onMouseEnter={() => handleMouseEnter(viewKey)}
-                onMouseLeave={handleMouseLeave}
-                className={`
-                  relative flex items-center justify-center w-14 h-14 rounded-full
-                  transition-all duration-300 ease-out focus:outline-none
-                  ${isActive
-                    ? `${config.activeClass} scale-105`
-                    : `${config.inactiveClass} hover:shadow-sm`}
-                `}
-                aria-label={config.label}
-              >
-                <Icon
-                  size={26}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  className="transition-transform duration-200"
-                />
-              </button>
-
+            <button
+              key={viewKey}
+              onClick={(e) => handleClick(viewKey, e)}
+              className={`
+                relative flex flex-col items-center justify-center w-16 h-12 rounded-full gap-0.5
+                transition-all duration-300 ease-out focus:outline-none
+                ${isActive
+                  ? `${config.activeClass} scale-105`
+                  : `${config.inactiveClass} hover:shadow-sm`}
+              `}
+              aria-label={config.label}
+            >
+              <Icon
+                size={18}
+                strokeWidth={isActive ? 2.5 : 2}
+                className="transition-transform duration-200"
+              />
               <AnimatePresence>
-                {shouldShowLabel && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
+                {isActive && (
+                  <motion.span
+                    initial={{ opacity: 0, y: 2 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50 px-2 py-1 text-xs font-medium text-stone-600 bg-white/95 backdrop-blur border border-stone-100 rounded-md shadow-lg"
+                    exit={{ opacity: 0, y: 2 }}
+                    className="text-[9px] font-semibold tracking-wide leading-none"
                   >
                     {config.label}
-                  </motion.div>
+                  </motion.span>
                 )}
               </AnimatePresence>
-            </div>
+            </button>
           );
         })}
       </div>

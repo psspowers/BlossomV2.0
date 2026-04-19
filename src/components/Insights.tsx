@@ -15,7 +15,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
-import { TrendingDown, Minus, Leaf, Sparkles } from 'lucide-react';
+import { TrendingDown, Minus, TrendingUp, Leaf } from 'lucide-react';
 import { analyzeHistory, CycleAnalysis } from '../lib/logic/cycle';
 import { db } from '../lib/db';
 import { SeasonTimeline } from './SeasonTimeline';
@@ -64,7 +64,6 @@ export function Insights() {
       setCycleAnalysis(analysis);
       setCycleLoading(false);
     };
-
     loadCycleHistory();
   }, []);
 
@@ -74,11 +73,11 @@ export function Insights() {
       const season = await calculateSeason(score);
       setSeasonData({ score, season });
     };
-
     loadSeasonData();
   }, [logsTrigger]);
 
   const currentConfig = viewConfig[view];
+  const ViewIcon = currentConfig.icon;
 
   if (loading) {
     return (
@@ -111,18 +110,17 @@ export function Insights() {
         <SeasonTimeline season={seasonData.season} score={seasonData.score} />
       )}
 
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-serif font-bold text-slate-800">Pattern Explorer</h2>
-          <p className="text-sm text-slate-600 mt-1">Evidence-based pattern analysis</p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <div className="sticky top-[64px] z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-stone-100/60 -mx-4 px-4 pt-3 pb-2 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-base font-serif font-bold text-slate-800 leading-tight">Pattern Explorer</h2>
+            <p className="text-[11px] text-slate-500 hidden sm:block">Evidence-based pattern analysis</p>
+          </div>
           <div className="flex bg-white rounded-lg border border-slate-200 p-1 gap-1">
             {[7, 30].map(days => (
               <button
                 key={days}
-                onClick={() => setTimeframe(days as 7 | 30)}
+                onClick={(e) => { e.currentTarget.blur(); setTimeframe(days as 7 | 30); }}
                 className={`px-4 py-1.5 rounded text-xs font-medium transition-all ${
                   timeframe === days
                     ? 'bg-sage-500 text-white'
@@ -134,14 +132,14 @@ export function Insights() {
             ))}
           </div>
         </div>
+        <InsightsNavigation view={view} onViewChange={setView} />
       </div>
-
-      <InsightsNavigation view={view} onViewChange={setView} />
 
       <div className="relative">
         <div
           className={`absolute inset-0 -inset-x-12 -inset-y-12 ${currentConfig.glowClass} blur-[100px] rounded-full transition-all duration-700 pointer-events-none opacity-50`}
         />
+
         {view === 'cycle' ? (
           <div className="relative">
             {cycleLoading ? (
@@ -169,15 +167,15 @@ export function Insights() {
                             data: cycleAnalysis.cycleHistory.slice(-6).map(c => c.daysFromPrevious || 0),
                             backgroundColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
                               const days = c.daysFromPrevious || 0;
-                              if (days >= 21 && days <= 35) return 'rgba(134, 168, 115, 0.8)'; // #86A873 Sage Green
-                              if (days > 35) return 'rgba(167, 199, 231, 0.8)'; // #A7C7E7 Soft Blue
-                              return 'rgba(232, 174, 178, 0.8)'; // #E8AEB2 Rose
+                              if (days >= 21 && days <= 35) return 'rgba(134, 168, 115, 0.8)';
+                              if (days > 35) return 'rgba(167, 199, 231, 0.8)';
+                              return 'rgba(232, 174, 178, 0.8)';
                             }),
                             borderColor: cycleAnalysis.cycleHistory.slice(-6).map(c => {
                               const days = c.daysFromPrevious || 0;
-                              if (days >= 21 && days <= 35) return 'rgb(134, 168, 115)'; // #86A873
-                              if (days > 35) return 'rgb(167, 199, 231)'; // #A7C7E7
-                              return 'rgb(232, 174, 178)'; // #E8AEB2
+                              if (days >= 21 && days <= 35) return 'rgb(134, 168, 115)';
+                              if (days > 35) return 'rgb(167, 199, 231)';
+                              return 'rgb(232, 174, 178)';
                             }),
                             borderWidth: 2,
                             borderRadius: 6
@@ -187,9 +185,7 @@ export function Insights() {
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
-                        layout: {
-                          padding: 20
-                        },
+                        layout: { padding: 20 },
                         plugins: {
                           legend: { display: false },
                           tooltip: {
@@ -247,7 +243,6 @@ export function Insights() {
                   <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide mb-6">
                     Clinical Summary
                   </h3>
-
                   <div className="space-y-6">
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Average Length</div>
@@ -262,7 +257,6 @@ export function Insights() {
                         {cycleAnalysis.cycleHistory.length > 0 && <span className="text-lg text-slate-500 ml-1">days</span>}
                       </div>
                     </div>
-
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Stability Index</div>
                       <div className="text-3xl font-serif font-bold text-slate-800">
@@ -274,7 +268,6 @@ export function Insights() {
                         {cycleAnalysis.cycleHistory.length >= 2 && <span className="text-lg text-slate-500 ml-1">days</span>}
                       </div>
                     </div>
-
                     <div className="p-4 bg-white rounded-lg border border-slate-100">
                       <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">Status</div>
                       <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
@@ -294,7 +287,6 @@ export function Insights() {
                       </div>
                     </div>
                   </div>
-
                   <div className="mt-6 p-4 bg-lavender-50 rounded-lg border border-lavender-100">
                     <p className="text-xs text-slate-700 leading-relaxed">
                       <span className="font-medium">Stability Index of ±{Math.round(cycleAnalysis.variability)} days</span> shows
@@ -315,48 +307,63 @@ export function Insights() {
             )}
           </div>
         ) : (
-          <div className="relative space-y-6">
-            <div className="glass-card p-8">
+          <div className="relative space-y-3">
+            <div className="glass-card px-4 py-3">
               {insights.velocity ? (
-                <div className="text-center">
+                <div className="flex items-center gap-3">
                   {insights.velocity.direction === 'improving' ? (
                     <>
-                      <Sparkles className="w-8 h-8 text-[#86A873] mx-auto mb-4" />
-                      <h3 className="text-3xl md:text-4xl font-serif text-[#4A4A4A] leading-relaxed mb-2">
-                        You are finding your rhythm.
-                      </h3>
-                      <p className="text-lg text-[#86A873] font-serif mt-4">
-                        Your {insights.velocity.symptomName.toLowerCase()} improved by{' '}
-                        <span className="font-bold">{Math.abs(insights.velocity.percentChange)}%</span> this week.
-                      </p>
+                      <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${currentConfig.activeClass}`}>
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-serif font-semibold text-[#4A4A4A] leading-snug">
+                          Finding your rhythm
+                        </p>
+                        <p className="text-xs text-[#86A873] mt-0.5">
+                          {insights.velocity.symptomName} improved by{' '}
+                          <span className="font-bold">{Math.abs(insights.velocity.percentChange)}%</span> this week
+                        </p>
+                      </div>
                     </>
                   ) : insights.velocity.direction === 'stable' ? (
                     <>
-                      <Minus className="w-8 h-8 text-slate-500 mx-auto mb-4" />
-                      <h3 className="text-3xl md:text-4xl font-serif text-[#4A4A4A] leading-relaxed mb-2">
-                        You are maintaining a steady rhythm.
-                      </h3>
-                      <p className="text-lg text-slate-600 font-serif mt-4">
-                        Your {insights.velocity.symptomName.toLowerCase()} remains stable this week.
-                      </p>
+                      <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-slate-100 text-slate-500">
+                        <Minus className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-serif font-semibold text-[#4A4A4A] leading-snug">
+                          Steady rhythm
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {insights.velocity.symptomName} remains stable this week
+                        </p>
+                      </div>
                     </>
                   ) : (
                     <>
-                      <TrendingDown className="w-8 h-8 text-slate-500 mx-auto mb-4" />
-                      <h3 className="text-3xl md:text-4xl font-serif text-[#4A4A4A] leading-relaxed mb-2">
-                        Your body is navigating change.
-                      </h3>
-                      <p className="text-lg text-slate-600 font-serif mt-4">
-                        Your {insights.velocity.symptomName.toLowerCase()} shifted by{' '}
-                        <span className="font-medium">{Math.abs(insights.velocity.percentChange)}%</span> this week.
-                      </p>
+                      <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-rose-50 text-rose-400">
+                        <TrendingDown className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-serif font-semibold text-[#4A4A4A] leading-snug">
+                          Navigating change
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {insights.velocity.symptomName} shifted by{' '}
+                          <span className="font-medium">{Math.abs(insights.velocity.percentChange)}%</span> this week
+                        </p>
+                      </div>
                     </>
                   )}
                 </div>
               ) : (
-                <div className="text-center">
-                  <p className="text-lg font-serif text-slate-600 italic">
-                    Keep logging. We are listening for patterns.
+                <div className="flex items-center gap-3">
+                  <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${currentConfig.activeClass}`}>
+                    <ViewIcon className="w-4 h-4" />
+                  </div>
+                  <p className="text-sm font-serif text-slate-500 italic">
+                    Keep logging — we are listening for patterns.
                   </p>
                 </div>
               )}
@@ -371,7 +378,7 @@ export function Insights() {
                   Current vs. Baseline - Granular Analysis
                 </p>
               </div>
-              <div className="h-[350px] p-6">
+              <div className="h-[280px] sm:h-[350px] p-4 sm:p-6">
                 {insights.radarLabels.length > 0 ? (
                   <Radar
                     data={{
@@ -406,36 +413,22 @@ export function Insights() {
                     options={{
                       responsive: true,
                       maintainAspectRatio: false,
-                      layout: {
-                        padding: 20
-                      },
+                      layout: { padding: 20 },
                       scales: {
                         r: {
                           beginAtZero: true,
                           max: 10,
-                          ticks: {
-                            display: false,
-                            stepSize: 2
-                          },
-                          grid: {
-                            display: false
-                          },
-                          angleLines: {
-                            display: false
-                          },
+                          ticks: { display: false, stepSize: 2 },
+                          grid: { display: false },
+                          angleLines: { display: false },
                           pointLabels: {
                             color: 'rgba(74, 74, 74, 0.8)',
-                            font: {
-                              size: 11,
-                              family: 'Georgia, serif'
-                            }
+                            font: { size: 11, family: 'Georgia, serif' }
                           }
                         }
                       },
                       plugins: {
-                        legend: {
-                          display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                           backgroundColor: 'rgba(255, 255, 255, 0.98)',
                           titleColor: '#4A4A4A',
@@ -445,7 +438,7 @@ export function Insights() {
                           padding: 12,
                           displayColors: false,
                           callbacks: {
-                            label: function(context: any) {
+                            label: (context: any) => {
                               const label = context.dataset.label || '';
                               const value = context.parsed.r;
                               return `${label}: ${value.toFixed(1)}/10`;
@@ -464,7 +457,7 @@ export function Insights() {
             </div>
 
             <div className="glass-card p-6">
-              <div className="mb-6">
+              <div className="mb-4">
                 <h3 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide mb-1">
                   What Nourishes You
                 </h3>
@@ -480,11 +473,11 @@ export function Insights() {
                     return (
                       <div
                         key={index}
-                        className="p-5 bg-[#FDFBF7] border border-sage-200 rounded-xl hover:shadow-md transition-shadow"
+                        className="p-4 bg-[#FDFBF7] border border-sage-200 rounded-xl hover:shadow-md transition-shadow"
                       >
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-sage-100 flex items-center justify-center">
-                            <Leaf className="w-5 h-5 text-[#86A873]" />
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-9 h-9 rounded-full bg-sage-100 flex items-center justify-center">
+                            <Leaf className="w-4 h-4 text-[#86A873]" />
                           </div>
                           <div className="flex-1">
                             {index === 0 && (
@@ -492,12 +485,12 @@ export function Insights() {
                                 Your Strongest Lever
                               </div>
                             )}
-                            <h4 className="text-base font-serif font-semibold text-[#4A4A4A] mb-2">
+                            <h4 className="text-sm font-serif font-semibold text-[#4A4A4A] mb-1">
                               {factor.factor}
                             </h4>
-                            <p className="text-sm text-slate-700 font-serif leading-relaxed">
-                              Data shows that when you prioritize{' '}
-                              <span className="font-semibold text-[#86A873]">{factor.factor}</span>, your overall wellness lifts by{' '}
+                            <p className="text-xs text-slate-700 font-sans leading-relaxed">
+                              When you prioritize{' '}
+                              <span className="font-semibold text-[#86A873]">{factor.factor}</span>, your wellness lifts by{' '}
                               <span className="font-bold text-[#86A873]">{factor.impact}%</span>.
                             </p>
                           </div>
@@ -507,9 +500,9 @@ export function Insights() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <Leaf className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600 font-serif italic">
+                <div className="text-center py-8">
+                  <Leaf className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-600 font-serif italic text-sm">
                     Keep logging. We are listening for patterns.
                   </p>
                 </div>
