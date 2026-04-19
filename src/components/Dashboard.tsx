@@ -203,11 +203,6 @@ export function Dashboard() {
       {showLearn && <Education onClose={() => setShowLearn(false)} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
 
-      <footer className="max-w-7xl mx-auto px-4 py-6 mt-12 border-t border-slate-200">
-        <p className="text-xs text-slate-500 text-center leading-relaxed">
-          Your scores and insights are personal progress companions, not medical diagnoses. Always consult with your healthcare provider for medical advice and treatment decisions.
-        </p>
-      </footer>
     </div>
   );
 }

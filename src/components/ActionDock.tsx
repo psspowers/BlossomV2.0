@@ -27,7 +27,11 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
       aria-label="Primary actions"
     >
       <div className="mx-auto max-w-xl px-4 pb-3">
-        <div className="flex items-stretch gap-2 bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-2">
+        <div className="flex flex-col bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-2 gap-1.5">
+          <p className="text-[10px] text-center text-stone-400 px-2 pt-0.5 leading-snug">
+            For personal tracking only — not medical advice. Always consult your provider.
+          </p>
+          <div className="flex items-stretch gap-2">
           <button
             onClick={onLogDay}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-medium text-sm transition-all ${primary} ${
@@ -48,6 +52,7 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
             <MessageCircleHeart className="w-4 h-4" />
             <span>Ask Blossom</span>
           </button>
+          </div>
         </div>
       </div>
     </motion.nav>
