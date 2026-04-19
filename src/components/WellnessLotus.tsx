@@ -93,7 +93,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   }, [health, isReady, videoDuration]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-4 min-h-[55vh] overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center py-2 h-[35vh] min-h-[300px] overflow-hidden">
 
       {/* ATMOSPHERE */}
       <div
@@ -111,7 +111,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
       </motion.h2>
 
       {/* MAIN CONTAINER */}
-      <div className="relative w-[500px] h-[500px] md:w-[700px] md:h-[600px] flex items-center justify-center">
+      <div className="relative w-full max-w-[400px] h-full flex items-center justify-center">
 
         {/* LOADING PULSE */}
         {!isReady && (

@@ -104,10 +104,10 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
       <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-24 pb-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-28 pb-32 overflow-x-hidden">
         <ContextualPrompts
           onOpenChat={() => setCompanionOpen(true)}
           highSymptomTriggered={highSymptomTriggered}
@@ -171,13 +171,11 @@ export function Dashboard() {
 
       <button
         onClick={() => setShowDailyLog(true)}
-        className={`fixed bottom-24 right-6 w-14 h-14 rounded-full ${fabColors[themeState.mode]} transition-all shadow-lg hover:shadow-xl flex items-center justify-center group hover:scale-105 z-50`}
-        style={{
-          boxShadow: fabGlow[themeState.mode]
-        }}
+        className={`fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full ${fabColors[themeState.mode]} transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.16)] flex items-center justify-center group hover:-translate-y-1 z-50`}
+        style={{ boxShadow: fabGlow[themeState.mode] }}
         aria-label="Add daily log entry"
       >
-        <Plus className="w-7 h-7 text-white drop-shadow-lg group-hover:rotate-90 transition-transform duration-300" />
+        <Plus className="w-8 h-8 text-white drop-shadow-md group-hover:rotate-90 transition-transform duration-300" />
       </button>
 
       {demoPersona && (
