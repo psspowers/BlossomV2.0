@@ -1,31 +1,13 @@
 import { LogEntry, getLastNDays, getOrCreateSettings } from '../db';
-import { normalizeSleep, normalizeMood, normalizeSymptom, normalizeExercise, normalizeStress, normalizeAnxiety } from './conversions';
-
-function convertLifestyleToNumber(value: string | undefined, field: string): number {
-  if (!value) return 0;
-
-  if (field === 'sleep') {
-    if (value === '<6h') return 5;
-    if (value === '6-7h') return 6.5;
-    if (value === '7-8h') return 7.5;
-    if (value === '>8h') return 8.5;
-  }
-  if (field === 'exercise') {
-    if (value === 'rest') return 1;
-    if (value === 'light') return 3;
-    if (value === 'moderate') return 6;
-    if (value === 'intense') return 9;
-  }
-  return 0;
-}
-
-function convertAnxietyToNumber(value: string | undefined): number {
-  if (!value) return 5;
-  if (value === 'none') return 0;
-  if (value === 'low') return 3;
-  if (value === 'high') return 8;
-  return 5;
-}
+import {
+  normalizeSleep,
+  normalizeMood,
+  normalizeSymptom,
+  normalizeExercise,
+  normalizeStress,
+  normalizeAnxiety,
+  calculateChange
+} from './conversions';
 
 function calculateAverage(values: number[]): number {
   if (values.length === 0) return 0;
@@ -36,8 +18,8 @@ function getEnergyScore(log: LogEntry): number {
   if (log.customValues?.energy !== undefined) {
     return log.customValues.energy;
   }
-  const sleepHours = convertLifestyleToNumber(log.lifestyle.sleep, 'sleep');
-  return Math.min(10, sleepHours);
+  const sleepScore = normalizeSleep(log.lifestyle.sleep);
+  return (sleepScore / 10) * 5;
 }
 
 const MONASH_TIPS = [
@@ -60,6 +42,7 @@ export interface PatternStory {
   sampleSize?: number;
   badge?: string;
   priorityScore?: number;
+  source?: 'personal' | 'guideline';
 }
 
 export async function generatePatternStories(logs?: LogEntry[]): Promise<PatternStory[]> {
@@ -69,7 +52,8 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
     return [{
       story: "Keep logging daily to discover personalized insights about your body's patterns.",
       category: 'education',
-      confidence: 'low'
+      confidence: 'low',
+      source: 'guideline'
     }];
   }
 
@@ -80,7 +64,7 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
   function calculatePriorityScore(relatedPriorities: string[]): number {
     let score = 0;
     for (const priority of relatedPriorities) {
-      if (priorities.includes(priority)) {
+      if (priorities.includes(priority as never)) {
         score += (happinessWeights[priority] || 5);
       }
     }
@@ -89,84 +73,74 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
 
   const stories: PatternStory[] = [];
 
-  const goodSleepLogs = allLogs.filter(log => {
-    const sleepHours = convertLifestyleToNumber(log.lifestyle.sleep, 'sleep');
-    return sleepHours >= 7;
-  });
-
-  const badSleepLogs = allLogs.filter(log => {
-    const sleepHours = convertLifestyleToNumber(log.lifestyle.sleep, 'sleep');
-    return sleepHours < 6;
-  });
+  const goodSleepLogs = allLogs.filter(log => normalizeSleep(log.lifestyle.sleep) >= 8);
+  const badSleepLogs = allLogs.filter(log => normalizeSleep(log.lifestyle.sleep) <= 6);
 
   if (goodSleepLogs.length >= 3 && badSleepLogs.length >= 3) {
     const goodSleepAnxiety = calculateAverage(
-      goodSleepLogs.map(log => convertAnxietyToNumber(log.psych.anxiety))
+      goodSleepLogs.map(log => normalizeAnxiety(log.psych.anxiety))
     );
     const badSleepAnxiety = calculateAverage(
-      badSleepLogs.map(log => convertAnxietyToNumber(log.psych.anxiety))
+      badSleepLogs.map(log => normalizeAnxiety(log.psych.anxiety))
     );
 
-    const anxietyDifference = ((badSleepAnxiety - goodSleepAnxiety) / badSleepAnxiety) * 100;
+    const anxietyChange = calculateChange(goodSleepAnxiety, badSleepAnxiety);
 
-    if (anxietyDifference > 15) {
+    if (anxietyChange > 10) {
       const sampleSize = goodSleepLogs.length + badSleepLogs.length;
       stories.push({
-        story: `On nights you sleep 7h+, your anxiety is noticeably lower. Rest is your medicine.`,
+        story: `On nights you sleep 7h+, your calm is ${Math.round(anxietyChange)}% stronger. Rest is your medicine.`,
         category: 'sleep',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
         badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
-        priorityScore: calculatePriorityScore(['sleep', 'mood', 'energy'])
+        priorityScore: calculatePriorityScore(['sleep_fatigue', 'mood_energy', 'anxiety']),
+        source: 'personal'
       });
-    } else if (anxietyDifference < -15) {
+    } else if (anxietyChange < -10) {
       const sampleSize = goodSleepLogs.length + badSleepLogs.length;
       stories.push({
-        story: `Interestingly, your anxiety patterns don't seem strongly linked to sleep duration. Let's explore other factors.`,
+        story: `Your anxiety doesn't seem tied to sleep length. Other rhythms may be shaping it, let's keep listening.`,
         category: 'sleep',
         confidence: 'medium',
         sampleSize,
         badge: `based on ${sampleSize} days`,
-        priorityScore: calculatePriorityScore(['sleep', 'mood'])
+        priorityScore: calculatePriorityScore(['sleep_fatigue', 'mood_energy']),
+        source: 'personal'
       });
     }
   }
 
-  const movementLogs = allLogs.filter(log => {
-    const exercise = convertLifestyleToNumber(log.lifestyle.exercise, 'exercise');
-    return exercise >= 3;
-  });
-
-  const restLogs = allLogs.filter(log => {
-    const exercise = convertLifestyleToNumber(log.lifestyle.exercise, 'exercise');
-    return exercise < 3;
-  });
+  const movementLogs = allLogs.filter(log => normalizeExercise(log.lifestyle.exercise) >= 7);
+  const restLogs = allLogs.filter(log => normalizeExercise(log.lifestyle.exercise) <= 5);
 
   if (movementLogs.length >= 3 && restLogs.length >= 3) {
     const movementEnergy = calculateAverage(movementLogs.map(getEnergyScore));
     const restEnergy = calculateAverage(restLogs.map(getEnergyScore));
 
-    const energyDifference = ((movementEnergy - restEnergy) / restEnergy) * 100;
+    const energyChange = restEnergy > 0 ? ((movementEnergy - restEnergy) / 5) * 100 : 0;
 
-    if (energyDifference > 15) {
+    if (energyChange > 10) {
       const sampleSize = movementLogs.length + restLogs.length;
       stories.push({
-        story: `Movement fuels you. You reported ${Math.round(energyDifference)}% more energy on active days.`,
+        story: `Movement creates energy. You log ${Math.round(energyChange)}% more vitality on active days.`,
         category: 'movement',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
         badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
-        priorityScore: calculatePriorityScore(['energy', 'mood', 'weight'])
+        priorityScore: calculatePriorityScore(['mood_energy', 'weight_metabolic', 'sleep_fatigue']),
+        source: 'personal'
       });
-    } else if (energyDifference < -15) {
+    } else if (energyChange < -10) {
       const sampleSize = movementLogs.length + restLogs.length;
       stories.push({
-        story: `Your body is telling you it needs more rest. Energy levels are higher on lighter activity days.`,
+        story: `Your body is asking for rest, energy runs ${Math.abs(Math.round(energyChange))}% higher on gentler days.`,
         category: 'movement',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
         badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
-        priorityScore: calculatePriorityScore(['energy', 'sleep'])
+        priorityScore: calculatePriorityScore(['mood_energy', 'sleep_fatigue']),
+        source: 'personal'
       });
     }
   }
@@ -176,75 +150,72 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
 
   if (balancedDietLogs.length >= 3 && cravingsDietLogs.length >= 3) {
     const balancedMood = calculateAverage(
-      balancedDietLogs.map(log => (typeof log.psych.mood === 'number' ? log.psych.mood : 50))
+      balancedDietLogs.map(log => normalizeMood(typeof log.psych.mood === 'number' ? log.psych.mood : undefined))
     );
     const cravingsMood = calculateAverage(
-      cravingsDietLogs.map(log => (typeof log.psych.mood === 'number' ? log.psych.mood : 50))
+      cravingsDietLogs.map(log => normalizeMood(typeof log.psych.mood === 'number' ? log.psych.mood : undefined))
     );
 
-    const moodDifference = ((balancedMood - cravingsMood) / cravingsMood) * 100;
+    const moodChange = calculateChange(balancedMood, cravingsMood);
 
-    if (moodDifference > 10) {
+    if (moodChange > 10) {
       const sampleSize = balancedDietLogs.length + cravingsDietLogs.length;
       stories.push({
-        story: `Balanced nutrition stabilizes your mood. You feel ${Math.round(moodDifference)}% better on those days.`,
+        story: `Balanced nutrition steadies your mood, you feel ${Math.round(moodChange)}% brighter on those days.`,
         category: 'diet',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
         badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
-        priorityScore: calculatePriorityScore(['mood', 'energy', 'bloating', 'cravings'])
+        priorityScore: calculatePriorityScore(['mood_energy', 'weight_metabolic']),
+        source: 'personal'
       });
     }
   }
 
-  const lowStressLogs = allLogs.filter(log => log.psych.stress === 'low');
-  const highStressLogs = allLogs.filter(log => log.psych.stress === 'high' || log.psych.stress === 'medium');
+  const lowStressLogs = allLogs.filter(log => normalizeStress(log.psych.stress) >= 8);
+  const highStressLogs = allLogs.filter(log => normalizeStress(log.psych.stress) <= 5);
 
   if (lowStressLogs.length >= 3 && highStressLogs.length >= 3) {
     const lowStressSymptoms = calculateAverage(
-      lowStressLogs.map(log => {
-        const symptoms = [
-          log.symptoms.acne || 0,
-          log.symptoms.bloat || 0,
-          log.symptoms.cramps || 0
-        ];
-        return calculateAverage(symptoms);
-      })
+      lowStressLogs.map(log => calculateAverage([
+        normalizeSymptom(log.symptoms.acne),
+        normalizeSymptom(log.symptoms.bloat),
+        normalizeSymptom(log.symptoms.cramps)
+      ]))
     );
 
     const highStressSymptoms = calculateAverage(
-      highStressLogs.map(log => {
-        const symptoms = [
-          log.symptoms.acne || 0,
-          log.symptoms.bloat || 0,
-          log.symptoms.cramps || 0
-        ];
-        return calculateAverage(symptoms);
-      })
+      highStressLogs.map(log => calculateAverage([
+        normalizeSymptom(log.symptoms.acne),
+        normalizeSymptom(log.symptoms.bloat),
+        normalizeSymptom(log.symptoms.cramps)
+      ]))
     );
 
-    const symptomDifference = ((highStressSymptoms - lowStressSymptoms) / highStressSymptoms) * 100;
+    const symptomChange = calculateChange(lowStressSymptoms, highStressSymptoms);
 
-    if (symptomDifference > 15) {
+    if (symptomChange > 10) {
       const sampleSize = lowStressLogs.length + highStressLogs.length;
       stories.push({
-        story: `Lower stress days correlate with fewer physical symptoms. Your mind-body connection is strong.`,
+        story: `Calmer days ease your body, symptoms soften by ${Math.round(symptomChange)}% when stress is low.`,
         category: 'stress',
         confidence: sampleSize >= 12 ? 'high' : 'medium',
         sampleSize,
         badge: sampleSize >= 12 ? `based on ${sampleSize} days` : 'early pattern',
-        priorityScore: calculatePriorityScore(['mood', 'acne', 'bloating', 'cramps'])
+        priorityScore: calculatePriorityScore(['mood_energy', 'skin_hair', 'pain_cramps', 'anxiety']),
+        source: 'personal'
       });
     }
   }
 
   if (stories.length === 0) {
-    const randomTip = MONASH_TIPS[Math.floor(Math.random() * MONASH_TIPS.length)];
+    const dayIndex = new Date().getDate() % MONASH_TIPS.length;
     stories.push({
-      story: randomTip,
+      story: MONASH_TIPS[dayIndex],
       category: 'education',
       confidence: 'low',
-      priorityScore: 0
+      priorityScore: 0,
+      source: 'guideline'
     });
   }
 
@@ -257,13 +228,13 @@ export async function generatePatternStories(logs?: LogEntry[]): Promise<Pattern
   return stories;
 }
 
-export async function generatePrimaryStory(logs?: LogEntry[]): Promise<string> {
+export async function generatePrimaryStory(logs?: LogEntry[]): Promise<PatternStory> {
   const stories = await generatePatternStories(logs);
   const highConfidenceStories = stories.filter(s => s.confidence === 'high');
 
   if (highConfidenceStories.length > 0) {
-    return highConfidenceStories[0].story;
+    return highConfidenceStories[0];
   }
 
-  return stories[0].story;
+  return stories[0];
 }

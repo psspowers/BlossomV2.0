@@ -4,7 +4,6 @@ import { WellnessLotus } from './WellnessLotus';
 import { WellnessRadar } from './WellnessRadar';
 import { CycleContext } from './CycleContext';
 import { Insights } from './Insights';
-import { DailyWisdom } from './DailyWisdom';
 import { SettingsModal } from './SettingsModal';
 import { Education } from './Education';
 import { Navbar } from './Navbar';
@@ -14,13 +13,12 @@ import { BlossomCompanion } from './BlossomCompanion';
 import { NotificationConsentCard } from './NotificationConsentCard';
 import { TodayHero } from './TodayHero';
 import { ActionDock } from './ActionDock';
-import { Lightbulb } from 'lucide-react';
+import { TodaysInsight } from './TodaysInsight';
 import { useState, useEffect, useCallback } from 'react';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
-import { generateDailyWisdom, DailyWisdom as WisdomType } from '../lib/logic/narratives';
 import { analyzeHistory } from '../lib/logic/cycle';
 import { db, DEMO_PREVIEW_KEY } from '../lib/db';
 import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
@@ -50,11 +48,6 @@ export function Dashboard() {
     message: 'Loading your season...',
     icon: '🌱'
   });
-  const [wisdom, setWisdom] = useState<WisdomType>({
-    message: 'Listening to your body...',
-    category: 'affirmation',
-    hasData: false
-  });
   const { prefs, update: updatePrefs } = useDashboardPreferences();
 
   const handleSaveSuccess = useCallback((result: {
@@ -83,9 +76,6 @@ export function Dashboard() {
 
       const seasonState = await calculateSeason(scoreResult.score);
       setSeason(seasonState);
-
-      const dailyWisdom = await generateDailyWisdom();
-      setWisdom(dailyWisdom);
 
       const allLogs = await db.logs.orderBy('date').toArray();
       const today = new Date().toISOString().slice(0, 10);
@@ -171,36 +161,7 @@ export function Dashboard() {
             <WellnessRadar />
           </div>
 
-          {/* WHISPERS CARD (Internal Data Only) */}
-          <div className="glass-card bg-stone-50 border border-stone-200 shadow-sm">
-            <div className="p-4 border-b border-stone-100 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-sage-600" />
-              <h2 className="text-sm font-serif font-medium text-sage-700 uppercase tracking-wide">
-                {t('dashboard.whispers')}
-              </h2>
-            </div>
-
-            <div className="p-6 flex flex-col">
-              {/* Category Badge */}
-              <div className="mb-4">
-                <span className="inline-block px-3 py-1 bg-sage-50 border border-sage-200 rounded-full text-xs font-medium text-sage-700">
-                  {wisdom.category}
-                </span>
-              </div>
-
-              {/* The Message (Strictly Narrative) */}
-              <p className="text-slate-800 text-lg leading-relaxed italic font-serif">
-                "{wisdom.message}"
-              </p>
-
-              {/* The Source (Strictly Internal) */}
-              <p className="text-xs text-slate-500 mt-4 font-medium">
-                Source: {wisdom.hasData ? "Your Pattern Data" : "Blossom Engine"}
-              </p>
-            </div>
-          </div>
-
-          <DailyWisdom />
+          <TodaysInsight />
         </div>
 
         <Insights />

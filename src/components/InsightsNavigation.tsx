@@ -1,5 +1,4 @@
 import { Activity, Zap, Sparkles, Droplet, Video as LucideIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export type InsightView = 'physical' | 'emotional' | 'metabolic' | 'cycle';
 
@@ -78,7 +77,7 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
               key={viewKey}
               onClick={(e) => handleClick(viewKey, e)}
               className={`
-                relative flex flex-col items-center justify-center w-16 h-12 rounded-full gap-0.5
+                relative flex flex-col items-center justify-center w-16 h-14 rounded-full gap-1
                 transition-all duration-300 ease-out focus:outline-none
                 ${isActive
                   ? `${config.activeClass} scale-105`
@@ -91,18 +90,13 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
                 strokeWidth={isActive ? 2.5 : 2}
                 className="transition-transform duration-200"
               />
-              <AnimatePresence>
-                {isActive && (
-                  <motion.span
-                    initial={{ opacity: 0, y: 2 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 2 }}
-                    className="text-[9px] font-semibold tracking-wide leading-none"
-                  >
-                    {config.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <span
+                className={`text-[9px] font-bold tracking-widest uppercase leading-none transition-colors duration-200 ${
+                  isActive ? 'text-rose-600' : 'text-stone-400'
+                }`}
+              >
+                {config.label}
+              </span>
             </button>
           );
         })}
