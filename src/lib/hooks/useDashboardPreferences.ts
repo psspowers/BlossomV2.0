@@ -6,6 +6,7 @@ export interface DashboardPreferences {
   density: 'comfortable' | 'compact';
   disclaimerAcknowledged: boolean;
   lastAction: 'log' | 'ask';
+  hapticsEnabled: boolean;
 }
 
 const DEFAULTS: DashboardPreferences = {
@@ -13,6 +14,7 @@ const DEFAULTS: DashboardPreferences = {
   density: 'comfortable',
   disclaimerAcknowledged: false,
   lastAction: 'log',
+  hapticsEnabled: true,
 };
 
 export function useDashboardPreferences() {
@@ -32,7 +34,7 @@ export function useDashboardPreferences() {
 
       const { data } = await supabase
         .from('user_dashboard_preferences')
-        .select('dock_collapsed, density, disclaimer_acknowledged, last_action')
+        .select('dock_collapsed, density, disclaimer_acknowledged, last_action, haptics_enabled')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -44,6 +46,7 @@ export function useDashboardPreferences() {
           density: (data.density as 'comfortable' | 'compact') ?? 'comfortable',
           disclaimerAcknowledged: data.disclaimer_acknowledged,
           lastAction: (data.last_action as 'log' | 'ask') ?? 'log',
+          hapticsEnabled: data.haptics_enabled ?? true,
         });
       }
       setLoading(false);
@@ -69,6 +72,7 @@ export function useDashboardPreferences() {
         density: next.density,
         disclaimer_acknowledged: next.disclaimerAcknowledged,
         last_action: next.lastAction,
+        haptics_enabled: next.hapticsEnabled,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' }

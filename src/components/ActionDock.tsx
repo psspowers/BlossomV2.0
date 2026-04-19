@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Plus, MessageCircleHeart } from 'lucide-react';
+import { useHaptics } from '../lib/hooks/useHaptics';
 
 interface ActionDockProps {
   mode: 'nurture' | 'steady' | 'thrive';
@@ -16,6 +17,7 @@ const modeAccent: Record<'nurture' | 'steady' | 'thrive', string> = {
 
 export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionDockProps) {
   const primary = modeAccent[mode];
+  const { trigger: haptic } = useHaptics();
 
   return (
     <motion.nav
@@ -33,7 +35,7 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
           </p>
           <div className="flex items-stretch gap-2">
           <button
-            onClick={onLogDay}
+            onClick={() => { haptic('medium'); onLogDay(); }}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-white font-medium text-sm transition-all ${primary} ${
               lastAction === 'log' ? 'ring-2 ring-offset-2 ring-offset-white ring-sage-200' : ''
             }`}
@@ -43,7 +45,7 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
             <span>Log Today</span>
           </button>
           <button
-            onClick={onAskBlossom}
+            onClick={() => { haptic('light'); onAskBlossom(); }}
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium text-sm border border-rose-200 transition-all ${
               lastAction === 'ask' ? 'ring-2 ring-offset-2 ring-offset-white ring-rose-200' : ''
             }`}

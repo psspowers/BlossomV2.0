@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe, TriangleAlert as AlertTriangle } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe, TriangleAlert as AlertTriangle, Vibrate } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
@@ -13,6 +13,7 @@ import { calculateSeason } from '../lib/logic/seasons';
 import { supabase } from '../lib/supabase';
 import { jsPDF } from 'jspdf';
 import { exportClinicalPDF } from '../lib/utils/exportPDF';
+import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -22,6 +23,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { plantState } = usePlantState();
+  const { prefs: dashPrefs, update: updateDashPrefs } = useDashboardPreferences();
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'th' : 'en';
@@ -373,7 +375,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <div className="bg-white border border-stone-200 rounded-xl overflow-hidden mb-6">
                 <button
                   onClick={toggleLanguage}
-                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-stone-50 transition-colors border-b border-stone-100"
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
@@ -389,6 +391,31 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   <span className="text-xs font-medium text-stone-400">
                     {i18n.language === 'en' ? 'Switch to ไทย' : 'Switch to English'}
                   </span>
+                </button>
+                <button
+                  onClick={() => updateDashPrefs({ hapticsEnabled: !dashPrefs.hapticsEnabled })}
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-stone-50 text-stone-600 rounded-lg">
+                      <Vibrate size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-stone-800">Haptic Feedback</p>
+                      <p className="text-xs text-stone-500">Gentle vibrations on interactions</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      dashPrefs.hapticsEnabled ? 'bg-sage-500' : 'bg-stone-200'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
+                        dashPrefs.hapticsEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </div>
                 </button>
               </div>
             </section>

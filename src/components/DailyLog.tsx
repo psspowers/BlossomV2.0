@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Shield, Quote } from 'lucide-react';
+import { useHaptics } from '../lib/hooks/useHaptics';
 import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 import { calculatePlantHealth } from '../lib/logic/plant';
@@ -32,6 +33,7 @@ const GRACE_AFFIRMATIONS = [
 ];
 
 export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
+  const { trigger: haptic } = useHaptics();
   const [cyclePhase, setCyclePhase] = useState<CyclePhase>('unknown');
   const [flow, setFlow] = useState<Flow>('none');
   const [symptoms, setSymptoms] = useState({
@@ -90,6 +92,7 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
 
     await db.logs.add(entry);
 
+    haptic('heavy');
     const randomAffirmation = GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)];
     setRitualAffirmation(randomAffirmation);
     setIsSubmitted(true);
