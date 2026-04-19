@@ -37,11 +37,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
             whileTap={{ scale: 0.95 }}
             className="cursor-pointer"
           >
-            <span className="text-4xl filter drop-shadow-md">🌸</span>
+            <span className="text-3xl sm:text-4xl filter drop-shadow-md">🌸</span>
           </motion.div>
 
           <div className="flex flex-col">
-            <h1 className="font-serif text-2xl font-bold bg-gradient-to-r from-[#E07A9A] to-[#D96B8A] bg-clip-text text-transparent leading-tight tracking-tight">
+            <h1 className="font-serif text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#E07A9A] to-[#D96B8A] bg-clip-text text-transparent leading-tight tracking-tight">
               Blossom
             </h1>
             <span className="hidden sm:block text-[10px] font-sans text-stone-500 font-medium tracking-wide uppercase">
@@ -70,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
           </motion.button>
 
           {/* Icons Group */}
-          <div className="flex items-center gap-3 border-l border-stone-200 pl-3 sm:pl-5" ref={dropdownRef}>
+          <div className="relative flex items-center gap-3 border-l border-stone-200 pl-3 sm:pl-5" ref={dropdownRef}>
 
             {/* Clinical Guide */}
             <button

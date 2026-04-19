@@ -210,7 +210,7 @@ export function BlossomCompanion({
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 w-14 h-14 rounded-full z-50 flex items-center justify-center shadow-lg focus:outline-none"
+            className="fixed bottom-24 right-5 w-14 h-14 rounded-full z-50 flex items-center justify-center shadow-lg focus:outline-none"
             style={{
               background: 'linear-gradient(135deg, rgb(236,72,153), rgb(244,114,182))',
               boxShadow: '0 4px 20px rgba(236,72,153,0.45)',

@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SeasonState } from '../lib/logic/seasons';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
-import { Info } from 'lucide-react';
 
 interface WellnessLotusProps {
   health: number;
@@ -93,46 +92,46 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   }, [health, isReady, videoDuration]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center py-2 h-[35vh] min-h-[300px] overflow-hidden">
+    <div className="flex flex-col items-center py-2">
 
-      {/* ATMOSPHERE */}
+      {/* Atmosphere glow */}
       <div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40 transition-colors duration-1000"
+        className="absolute w-[600px] h-[600px] rounded-full blur-[100px] -z-10 pointer-events-none opacity-40"
         style={{ background: 'radial-gradient(circle, rgba(255,182,193,0.4) 0%, transparent 70%)' }}
       />
 
-      {/* HEADER */}
+      {/* Header label */}
       <motion.h2
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.85 }}
-        className="absolute top-4 left-0 w-full text-center text-xs font-sans font-semibold text-slate-600 tracking-[0.2em] uppercase"
+        className="text-xs font-sans font-semibold text-slate-600 tracking-[0.2em] uppercase mb-3"
       >
         {name}
       </motion.h2>
 
-      {/* MAIN CONTAINER */}
-      <div className="relative w-full max-w-[400px] h-full flex items-center justify-center">
+      {/* Video zone — portrait aspect ratio, no overflow-hidden, no fixed viewport height */}
+      <div className="relative w-full max-w-[300px] sm:max-w-[360px] aspect-[3/4] mx-auto">
 
-        {/* LOADING PULSE */}
+        {/* Loading pulse */}
         {!isReady && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-20">
             <motion.div
               animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.3, 0.6, 0.3] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="w-40 h-40 rounded-full bg-gradient-to-tr from-rose-200 to-sage-200 blur-2xl"
+              className="w-40 h-40 rounded-full bg-gradient-to-tr from-rose-200 to-slate-200 blur-2xl"
             />
-            <p className="text-sage-600 font-serif italic text-sm animate-pulse tracking-wide">
+            <p className="text-slate-500 font-serif italic text-sm animate-pulse tracking-wide">
               Preparing bloom...
             </p>
           </div>
         )}
 
-        {/* THE VIDEO */}
+        {/* Video */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: isReady ? 1 : 0 }}
           transition={{ duration: 1.5 }}
-          className="relative w-full h-full flex items-center justify-center"
+          className="w-full h-full"
         >
           <video
             ref={videoRef}
@@ -142,48 +141,48 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             playsInline
             disablePictureInPicture
           />
-
-          {/* Score Dewdrop - Floating on lotus */}
-          {isReady && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="absolute bottom-0 z-20"
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-md border border-white/40 rounded-full shadow-lg cursor-help"
-                      style={{
-                        boxShadow: '0 4px 16px rgba(224, 122, 154, 0.25), 0 0 0 1px rgba(255,255,255,0.4) inset'
-                      }}
-                      aria-label={`Your current Healing Blossom Score: ${health}`}
-                    >
-                      <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
-                      <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs bg-white border-slate-200 shadow-xl">
-                    <p className="text-xs text-slate-700 leading-relaxed">
-                      Your Healing Blossom Score is a personal progress companion, not a medical diagnosis. Use these insights to talk with your doctor.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </motion.div>
-          )}
         </motion.div>
+
+        {/* Score badge — sits just below the video bottom edge, not overlapping petals */}
+        {isReady && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20"
+          >
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="flex flex-col items-center justify-center w-16 h-16 bg-white/50 backdrop-blur-md border border-white/50 rounded-full shadow-lg cursor-help"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(224, 122, 154, 0.25), 0 0 0 1px rgba(255,255,255,0.4) inset'
+                    }}
+                    aria-label={`Your current Healing Blossom Score: ${health}`}
+                  >
+                    <span className="text-xl font-serif font-bold text-slate-700">{health}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-600 opacity-80">Score</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs bg-white border-slate-200 shadow-xl">
+                  <p className="text-xs text-slate-700 leading-relaxed">
+                    Your Healing Blossom Score is a personal progress companion, not a medical diagnosis. Use these insights to talk with your doctor.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </motion.div>
+        )}
       </div>
 
-      {/* NARRATIVE BELOW LOTUS */}
+      {/* Narrative zone — completely outside the video container, flows naturally below */}
       {isReady && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-8 text-center px-4"
+          className="mt-14 text-center px-4 w-full"
         >
           <div className="flex items-center justify-center gap-3 text-slate-600 text-sm font-medium uppercase tracking-widest mb-3">
             <motion.span
@@ -195,10 +194,10 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             </motion.span>
             <span className="font-serif">Season of {season.currentSeason}</span>
           </div>
-          <p className="font-serif italic text-slate-700 text-lg max-w-lg mx-auto leading-relaxed">
+          <p className="font-serif italic text-slate-700 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
             "{season.message}"
           </p>
-          <p className="text-xs text-slate-500 mt-4 font-medium tracking-wide">
+          <p className="text-xs text-slate-400 mt-3 font-medium tracking-wide">
             Your journey, seen and supported
           </p>
         </motion.div>
