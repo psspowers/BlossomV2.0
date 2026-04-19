@@ -86,7 +86,7 @@ export function Insights() {
         <SeasonTimeline season={seasonData.season} score={seasonData.score} />
       )}
 
-      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-stone-100/60 -mx-4 px-4 pt-3 pb-2 mb-3">
+      <div className="sticky top-[calc(3.5rem_+_env(safe-area-inset-top))] z-40 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-stone-100/60 -mx-4 px-4 pt-3 pb-2 mb-3">
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-sm font-serif font-medium text-stone-700 uppercase tracking-wide">Pattern Explorer</h2>

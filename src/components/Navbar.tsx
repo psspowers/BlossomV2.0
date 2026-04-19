@@ -26,7 +26,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
   }, [showNotifications]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[60] w-full bg-gradient-to-r from-[#FDFBF7]/95 via-[#FFF8F5]/95 to-[#FFF0F0]/95 backdrop-blur-md border-b border-stone-100/50 shadow-sm transition-all duration-300 pt-[max(env(safe-area-inset-top),0.75rem)]">
+    <header
+      className="fixed top-0 left-0 right-0 z-[60] w-full bg-gradient-to-r from-[#FDFBF7]/95 via-[#FFF8F5]/95 to-[#FFF0F0]/95 backdrop-blur-md border-b border-stone-100/50 shadow-sm transition-all duration-300"
+      style={{ paddingTop: 'max(env(safe-area-inset-top), 0.75rem)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
 
         {/* LEFT: Brand Identity */}

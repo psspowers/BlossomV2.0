@@ -121,7 +121,7 @@ export function Dashboard() {
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
       <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(10rem+env(safe-area-inset-bottom))] overflow-x-hidden">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 pt-[calc(5rem_+_env(safe-area-inset-top))] pb-[calc(10rem_+_env(safe-area-inset-bottom))] overflow-x-hidden">
         <ContextualPrompts
           onOpenChat={() => setCompanionOpen(true)}
           highSymptomTriggered={highSymptomTriggered}
