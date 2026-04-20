@@ -161,7 +161,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const showCorners = revealStage === 'corners';
 
   return (
-    <div className="flex flex-col items-center py-2">
+    <div className="flex flex-col items-center py-2 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-6">
 
       {/* Atmosphere glow */}
       <div
