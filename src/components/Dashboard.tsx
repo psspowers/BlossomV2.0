@@ -13,6 +13,7 @@ import { BlossomCompanion } from './BlossomCompanion';
 import { NotificationConsentCard } from './NotificationConsentCard';
 import { TodayHero } from './TodayHero';
 import { ActionDock } from './ActionDock';
+import { InfoPopover } from './ui/InfoPopover';
 import { TodaysInsight } from './TodaysInsight';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +39,12 @@ export function Dashboard() {
   const [companionOpen, setCompanionOpen] = useState(false);
   const [highSymptomTriggered, setHighSymptomTriggered] = useState(false);
   const [showNotificationConsent, setShowNotificationConsent] = useState(false);
+  const [educationSection, setEducationSection] = useState<string>('how-blossom-works');
+
+  const handleOpenEducation = (sectionId: string) => {
+    setEducationSection(sectionId);
+    setShowLearn(true);
+  };
 
   useEffect(() => {
     setDemoPersona(localStorage.getItem(DEMO_PREVIEW_KEY));
@@ -151,23 +158,26 @@ export function Dashboard() {
           streak={plantState.streak}
           hasLoggedToday={hasLoggedToday}
           onLogToday={handleLogDay}
+          onOpenEducation={handleOpenEducation}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 mb-8">
           <div className="glass-card min-h-80">
-            <div className="p-4 border-b border-slate-100">
+            <div className="p-4 border-b border-slate-100 flex items-center gap-1">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                 {t('dashboard.cycle_context')}
               </h2>
+              <InfoPopover termKey="cycle_context" onOpenEducation={handleOpenEducation} />
             </div>
             <CycleContext />
           </div>
 
           <div className="glass-card min-h-80">
-            <div className="p-4 border-b border-slate-100">
+            <div className="p-4 border-b border-slate-100 flex items-center gap-1">
               <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
                 {t('dashboard.todays_balance')}
               </h2>
+              <InfoPopover termKey="todays_balance" onOpenEducation={handleOpenEducation} />
             </div>
             <WellnessRadar />
           </div>
@@ -266,7 +276,7 @@ export function Dashboard() {
         />
       )}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
-      {showLearn && <Education onClose={() => setShowLearn(false)} />}
+      {showLearn && <Education onClose={() => setShowLearn(false)} defaultSection={educationSection} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
 
     </div>

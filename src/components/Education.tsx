@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare, Sprout } from 'lucide-react';
+import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare, Sprout, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface EducationProps {
   onClose?: () => void;
+  defaultSection?: string;
 }
 
 const SECTIONS = [
@@ -134,6 +135,24 @@ const SECTIONS = [
     )
   },
   {
+    id: 'how-blossom-works',
+    title: 'Understanding Blossom',
+    icon: Sparkles,
+    content: (
+      <div className="space-y-3">
+        <p>
+          Blossom uses a compassionate algorithm to help you track your journey.
+        </p>
+        <ul className="list-disc pl-5 space-y-2 text-stone-600">
+          <li><strong>The Blossom Score (0–100):</strong> A holistic measure of your physical symptoms, metabolic consistency, and emotional balance.</li>
+          <li><strong>Seasons:</strong> We use Resting, Growing, and Blooming instead of streaks. Rest is productive.</li>
+          <li><strong>Today's Balance (Radar):</strong> The outer edge is optimal balance. If a point pulls toward the center, that area is asking for gentle care today.</li>
+          <li><strong>Cycle Context:</strong> We analyze your flow history to find your unique stability pattern, acknowledging that PCOS cycles are often irregular.</li>
+        </ul>
+      </div>
+    )
+  },
+  {
     id: 'about-root-renew',
     title: 'About Root & Renew',
     icon: Sprout,
@@ -173,8 +192,8 @@ const SECTIONS = [
   }
 ];
 
-export function Education({ onClose }: EducationProps) {
-  const [expanded, setExpanded] = useState<string | null>('pcos-101');
+export function Education({ onClose, defaultSection }: EducationProps) {
+  const [expanded, setExpanded] = useState<string | null>(defaultSection ?? 'pcos-101');
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">

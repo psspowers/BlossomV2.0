@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Flame, Leaf, Calendar, ArrowRight } from 'lucide-react';
 import { SeasonState } from '../lib/logic/seasons';
+import { InfoPopover } from './ui/InfoPopover';
 
 interface TodayHeroProps {
   cycleDay?: number;
@@ -8,6 +9,7 @@ interface TodayHeroProps {
   streak: number;
   hasLoggedToday: boolean;
   onLogToday: () => void;
+  onOpenEducation: (sectionId: string) => void;
 }
 
 const seasonColors: Record<string, { bg: string; border: string; text: string }> = {
@@ -22,6 +24,7 @@ export function TodayHero({
   streak,
   hasLoggedToday,
   onLogToday,
+  onOpenEducation,
 }: TodayHeroProps) {
   const seasonKey = season.currentSeason.toLowerCase();
   const colors = seasonColors[seasonKey] ?? seasonColors.resting;
@@ -46,6 +49,7 @@ export function TodayHero({
         <div className="p-5">
           <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 mb-1 flex items-center gap-1">
             <Calendar className="w-3 h-3" /> Cycle
+            <InfoPopover termKey="cycle" onOpenEducation={onOpenEducation} />
           </div>
           <div className="text-3xl font-serif font-semibold text-slate-800 leading-none">
             {cycleDay ? `Day ${cycleDay}` : '—'}
@@ -55,6 +59,7 @@ export function TodayHero({
         <div className={`p-5 ${colors.bg}`}>
           <div className={`text-[10px] font-medium uppercase tracking-[0.12em] ${colors.text} mb-1 flex items-center gap-1`}>
             <Leaf className="w-3 h-3" /> Season
+            <InfoPopover termKey="season" onOpenEducation={onOpenEducation} />
           </div>
           <div className={`text-lg font-serif font-semibold ${colors.text} leading-snug capitalize`}>
             {season.currentSeason}
@@ -64,6 +69,7 @@ export function TodayHero({
         <div className="p-5">
           <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 mb-1 flex items-center gap-1">
             <Flame className="w-3 h-3" /> Streak
+            <InfoPopover termKey="streak" onOpenEducation={onOpenEducation} />
           </div>
           <div className="text-3xl font-serif font-semibold text-slate-800 leading-none">
             {streak}
