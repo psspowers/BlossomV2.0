@@ -37,10 +37,13 @@ export function getRawStress(stress?: string): number {
 
 export function getRawAnxiety(anxiety?: string): number {
   if (!anxiety) return 0;
-  if (anxiety === 'none') return 0;
-  if (anxiety === 'low') return 3;
-  if (anxiety === 'high') return 8;
-  return 0;
+  switch (anxiety) {
+    case 'none': return 0;
+    case 'low': return 3;
+    case 'medium': return 5;
+    case 'high': return 8;
+    default: return 0;
+  }
 }
 
 export function getRawBodyImage(bodyImage?: string): number {
@@ -87,10 +90,13 @@ export function normalizeStress(stress?: string): number {
 
 export function normalizeAnxiety(anxiety?: string): number {
   if (!anxiety) return NEUTRAL;
-  if (anxiety === 'none') return 9;
-  if (anxiety === 'low') return 7;
-  if (anxiety === 'high') return 2;
-  return NEUTRAL;
+  switch (anxiety) {
+    case 'none': return 9;
+    case 'low': return 7;
+    case 'medium': return 5;
+    case 'high': return 2;
+    default: return NEUTRAL;
+  }
 }
 
 export function normalizeMood(mood?: number): number {

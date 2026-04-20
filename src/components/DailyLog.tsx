@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Shield, Quote } from 'lucide-react';
+import { X, Droplets, Activity, Leaf, Wind, Scissors, Waves } from 'lucide-react';
 import { useHaptics } from '../lib/hooks/useHaptics';
 import { db, LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 import { calculatePlantHealth } from '../lib/logic/plant';
-import { calculateSeason } from '../lib/logic/seasons';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
+import { calculateSeason } from '../lib/logic/seasons';
 
 interface SaveSuccessResult {
   symptoms: Record<string, number>;
@@ -20,8 +20,7 @@ interface DailyLogProps {
   onSaveSuccess?: (result: SaveSuccessResult) => void;
 }
 
-type CyclePhase = 'follicular' | 'ovulatory' | 'luteal' | 'menstrual' | 'unknown';
-type Flow = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
+type FlowValue = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
 
 const GRACE_AFFIRMATIONS = [
   "Rough days are valid. You are still blooming.",
@@ -29,530 +28,648 @@ const GRACE_AFFIRMATIONS = [
   "Rest is a productive action.",
   "Healing is non-linear. You are doing enough.",
   "Small steps create the biggest shifts.",
-  "You are safe in this season."
+  "You are safe in this season.",
+  "Consistency, not perfection, is the practice.",
+  "Being aware is already half the healing.",
 ];
+
+const TOTAL_STEPS = 5;
+
+const STEP_LABELS = ['Intention', 'My Cycle', 'My Body', 'My Habits', 'My Mind'];
+
+function Pill({
+  label,
+  selected,
+  onClick,
+  selectedClass = 'bg-emerald-600 text-white shadow-sm',
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  selectedClass?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+        selected
+          ? selectedClass
+          : 'bg-white/70 text-stone-600 border border-stone-200 hover:border-stone-300 active:scale-95'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function SymptomSlider({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+}: {
+  label: string;
+  icon: React.ElementType;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const badgeColor =
+    value === 0
+      ? 'bg-emerald-100 text-emerald-700'
+      : value <= 3
+      ? 'bg-amber-100 text-amber-700'
+      : value <= 6
+      ? 'bg-orange-100 text-orange-700'
+      : 'bg-rose-100 text-rose-700';
+
+  return (
+    <div className="mb-5 last:mb-0">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-rose-400" />
+          <span className="text-sm font-medium text-stone-700">{label}</span>
+        </div>
+        <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${badgeColor}`}>
+          {value}
+        </span>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="10"
+        step="1"
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full h-1.5 rounded-full cursor-pointer accent-rose-500"
+      />
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[10px] text-stone-400 uppercase tracking-wide">None</span>
+        <span className="text-[10px] text-stone-400 uppercase tracking-wide">Severe</span>
+      </div>
+    </div>
+  );
+}
+
+function MoodSlider({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const moodLabel =
+    value <= 2 ? 'Struggling' : value <= 4 ? 'Low' : value <= 6 ? 'Okay' : value <= 8 ? 'Good' : 'Thriving';
+
+  return (
+    <div className="mb-1">
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-sm font-medium text-stone-700">How are you feeling today?</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-stone-500">{moodLabel}</span>
+          <span className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">
+            {value}
+          </span>
+        </div>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="10"
+        step="1"
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full h-1.5 rounded-full cursor-pointer accent-emerald-500"
+      />
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[10px] text-stone-400 uppercase tracking-wide">Low</span>
+        <span className="text-[10px] text-stone-400 uppercase tracking-wide">High</span>
+      </div>
+    </div>
+  );
+}
+
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 56 : -56, opacity: 0 }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] as number[] },
+  },
+  exit: (dir: number) => ({
+    x: dir > 0 ? -56 : 56,
+    opacity: 0,
+    transition: { duration: 0.18 },
+  }),
+};
 
 export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
   const { trigger: haptic } = useHaptics();
-  const [cyclePhase, setCyclePhase] = useState<CyclePhase>('unknown');
-  const [flow, setFlow] = useState<Flow>('none');
-  const [symptoms, setSymptoms] = useState({
-    acne: 0,
-    hirsutism: 0,
-    hairLoss: 0,
-    bloat: 0,
-    cramps: 0
-  });
-  const [psych, setPsych] = useState({
-    stress: 'low',
-    bodyImage: 'neutral',
-    mood: 5,
-    anxiety: 'none'
-  });
-  const [lifestyle, setLifestyle] = useState({
-    sleep: '7-8h',
-    waterIntake: 8,
-    exercise: 'moderate',
-    diet: 'balanced'
-  });
-  const [customValues, setCustomValues] = useState<Record<string, number>>({});
-  const [newTag, setNewTag] = useState('');
-  const [newTagScore, setNewTagScore] = useState<number>(5);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [ritualAffirmation, setRitualAffirmation] = useState('');
-  const [intention, setIntention] = useState('');
-  const [affirmation, setAffirmation] = useState('');
+  const [streak, setStreak] = useState(0);
+  const [affirmation] = useState(
+    () => GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)]
+  );
 
-  useEffect(() => {
-    setAffirmation(GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)]);
-  }, []);
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : 'Good evening.';
+
+  const [formData, setFormData] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    flow: 'none' as FlowValue,
+    symptoms: { acne: 0, hirsutism: 0, hairLoss: 0, bloat: 0, cramps: 0 },
+    psych: { stress: 'low', anxiety: 'none', mood: 5, bodyImage: 'neutral' },
+    lifestyle: { sleep: '7-8h', exercise: 'rest', diet: 'balanced' },
+    intention: '',
+  });
 
   useEffect(() => {
     if (isSubmitted) {
       const timer = setTimeout(() => {
         onClose();
         window.location.reload();
-      }, 3000);
-
+      }, 3800);
       return () => clearTimeout(timer);
     }
   }, [isSubmitted, onClose]);
 
+  const goNext = () => {
+    setDirection(1);
+    setCurrentStep(s => Math.min(s + 1, TOTAL_STEPS - 1));
+    haptic('light');
+  };
+
+  const goBack = () => {
+    setDirection(-1);
+    setCurrentStep(s => Math.max(s - 1, 0));
+    haptic('light');
+  };
+
   const handleSave = async () => {
     const entry: LogEntry = {
-      date: format(new Date(), 'yyyy-MM-dd'),
-      cyclePhase,
-      flow,
-      symptoms,
-      psych,
-      lifestyle,
-      customValues: Object.keys(customValues).length > 0 ? customValues : undefined,
-      intention: intention.trim() || undefined
+      date: formData.date,
+      cyclePhase: 'unknown',
+      flow: formData.flow,
+      symptoms: formData.symptoms,
+      psych: formData.psych,
+      lifestyle: formData.lifestyle,
+      intention: formData.intention.trim() || undefined,
     };
 
     await db.logs.add(entry);
-
     haptic('heavy');
-    const randomAffirmation = GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)];
-    setRitualAffirmation(randomAffirmation);
+
+    const plantState = await calculatePlantHealth();
+    setStreak(plantState.streak);
     setIsSubmitted(true);
 
     if (onSaveSuccess) {
       try {
         const allLogs = await db.logs.count();
-        const plantState = await calculatePlantHealth();
         const scoreResult = await calculateBlossomScore();
         const seasonState = await calculateSeason(scoreResult.score);
         onSaveSuccess({
-          symptoms,
+          symptoms: formData.symptoms,
           isFirstLog: allLogs === 1,
           streak: plantState.streak,
           season: seasonState.currentSeason,
         });
       } catch {
+        /* non-critical */
       }
     }
   };
 
-  const handleRitualClose = () => {
-    onClose();
-    window.location.reload();
+  const updateSymptom = (key: keyof typeof formData.symptoms, value: number) => {
+    setFormData(d => ({ ...d, symptoms: { ...d.symptoms, [key]: value } }));
+    haptic('light');
   };
 
-  const CompactNumberSelector = ({
-    label,
-    value,
-    onChange
-  }: {
-    label: string;
-    value: number;
-    onChange: (val: number) => void;
-  }) => {
-    const ranges = [
-      { label: '0', value: 0 },
-      { label: '1-3', value: 2 },
-      { label: '4-6', value: 5 },
-      { label: '7-10', value: 8 }
-    ];
-
-    return (
-      <div className="mb-4">
-        <label className="block text-sm text-text-main font-medium mb-2">{label}</label>
-        <div className="flex gap-2">
-          {ranges.map(range => (
-            <button
-              key={range.label}
-              onClick={() => onChange(range.value)}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                value >= (range.value === 0 ? 0 : range.value - 1) && value <= (range.value === 0 ? 0 : range.value + 2)
-                  ? 'bg-secondary text-white shadow-md'
-                  : 'bg-sage-50 text-sage-700 hover:bg-sage-100 border border-border'
-              }`}
-            >
-              {range.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+  const updatePsych = (key: keyof typeof formData.psych, value: string | number) => {
+    setFormData(d => ({ ...d, psych: { ...d.psych, [key]: value } }));
+    haptic('light');
   };
 
-  const SegmentedPills = ({
-    label,
-    options,
-    value,
-    onChange,
-    color = 'sage'
-  }: {
-    label: string;
-    options: { label: string; value: string }[];
-    value: string;
-    onChange: (val: string) => void;
-    color?: string;
-  }) => {
-    const colorClasses = {
-      sage: 'bg-primary text-white',
-      rose: 'bg-secondary text-white',
-      amber: 'bg-sage-500 text-white',
-      violet: 'bg-sage-600 text-white'
-    };
-
-    return (
-      <div className="mb-4">
-        <label className="block text-sm text-text-main font-medium mb-2">{label}</label>
-        <div className="flex flex-wrap gap-2">
-          {options.map(option => (
-            <button
-              key={option.value}
-              onClick={() => onChange(option.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all ${
-                value === option.value
-                  ? `${colorClasses[color as keyof typeof colorClasses]} shadow-md`
-                  : 'bg-surface text-sage-700 hover:bg-sage-50 border border-border'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+  const updateLifestyle = (key: keyof typeof formData.lifestyle, value: string) => {
+    setFormData(d => ({ ...d, lifestyle: { ...d.lifestyle, [key]: value } }));
+    haptic('light');
   };
 
-  const addCustomTag = () => {
-    if (newTag.trim() && Object.keys(customValues).length < 3 && !customValues[newTag.trim()]) {
-      setCustomValues({ ...customValues, [newTag.trim()]: newTagScore });
-      setNewTag('');
-      setNewTagScore(5);
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    const updatedValues = { ...customValues };
-    delete updatedValues[tag];
-    setCustomValues(updatedValues);
-  };
-
-  const updateTagScore = (tag: string, score: number) => {
-    setCustomValues({ ...customValues, [tag]: score });
-  };
+  const progress = ((currentStep + 1) / TOTAL_STEPS) * 100;
 
   if (isSubmitted) {
     return (
-      <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 bg-[#FAF8F3] z-50 flex flex-col items-center justify-center px-8"
+        onClick={() => { onClose(); window.location.reload(); }}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center"
-          onClick={handleRitualClose}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="text-center max-w-xs"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="w-full max-w-md mx-4 bg-[#FAF8F3] rounded-2xl p-12 shadow-2xl"
-            onClick={e => e.stopPropagation()}
+            animate={{ scale: [1, 1.12, 1] }}
+            transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+            className="w-20 h-20 rounded-full bg-emerald-100 border-2 border-emerald-200 mx-auto mb-10 flex items-center justify-center"
           >
-            <div className="text-center">
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-2xl font-serif text-sage-800 leading-relaxed"
-              >
-                {ritualAffirmation}
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="mt-8 text-sm text-sage-500"
-              >
-                Tap to continue
-              </motion.p>
-            </div>
+            <div className="w-8 h-8 rounded-full bg-emerald-400 opacity-70" />
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="font-serif text-2xl text-stone-800 leading-relaxed mb-6"
+          >
+            {affirmation}
+          </motion.p>
+
+          {formData.intention.trim() && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="italic text-stone-500 text-base mb-6 leading-relaxed"
+            >
+              &ldquo;{formData.intention}&rdquo;
+            </motion.p>
+          )}
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+            className="text-sm font-semibold text-emerald-600 tracking-wide"
+          >
+            {streak > 1
+              ? `Logged ${streak} days in a row`
+              : streak === 1
+              ? 'Day 1 — the hardest step.'
+              : 'Your first log is saved.'}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.4 }}
+            className="text-xs text-stone-400 mt-10 uppercase tracking-widest"
+          >
+            Tap to continue
+          </motion.p>
         </motion.div>
-      </AnimatePresence>
+      </motion.div>
     );
   }
 
   return (
-    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/25 backdrop-blur-sm z-50 flex items-end"
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end"
-        onClick={onClose}
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+        className="w-full max-h-[92vh] bg-[#FAF8F3] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col"
+        onClick={e => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="w-full max-h-[85vh] bg-surface rounded-t-3xl border-t-2 border-border overflow-hidden shadow-2xl"
-          onClick={e => e.stopPropagation()}
-        >
-          <div className="sticky top-0 bg-surface/95 backdrop-blur-xl border-b-2 border-border p-6 flex items-center justify-between z-10">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-serif font-bold text-text-main">Daily Check-in</h2>
-              <div className="px-3 py-1 rounded-full bg-sage-50 border border-sage-200 flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-sage-600" />
-                <span className="text-xs font-medium text-sage-700">100% Private</span>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-sage-500 hover:text-text-main transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+        {/* Header */}
+        <div className="flex items-center gap-3 px-5 pt-5 pb-4 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-emerald-400 rounded-full"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            />
           </div>
 
-          <div className="overflow-y-auto p-6 pb-32 bg-background" style={{ maxHeight: 'calc(85vh - 80px)' }}>
+          <div className="w-20 flex justify-end">
+            {currentStep > 0 && (
+              <motion.button
+                type="button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={handleSave}
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+              >
+                Save & Close
+              </motion.button>
+            )}
+          </div>
+        </div>
 
-            <section className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100/50 mb-8">
-              <div className="flex items-start gap-3 mb-4">
-                <Quote size={18} className="text-emerald-600 shrink-0 mt-1" />
-                <p className="font-serif italic text-base text-emerald-800/80 leading-relaxed">
-                  "{affirmation}"
-                </p>
-              </div>
+        {/* Step label */}
+        <div className="px-6 pb-3 shrink-0">
+          <p className="text-[10px] text-stone-400 uppercase tracking-widest mb-0.5">
+            Step {currentStep + 1} of {TOTAL_STEPS}
+          </p>
+          <h2 className="font-serif text-xl font-semibold text-stone-800">
+            {STEP_LABELS[currentStep]}
+          </h2>
+        </div>
 
-              <div className="pt-4 border-t border-emerald-100">
-                <label className="block text-xs font-bold text-emerald-700/60 uppercase tracking-widest mb-3">
-                  Daily Intention
-                </label>
-                <input
-                  type="text"
-                  placeholder="Today I choose..."
-                  value={intention}
-                  onChange={(e) => setIntention(e.target.value)}
-                  className="w-full bg-white/80 border-b-2 border-emerald-200 focus:border-emerald-500 outline-none text-center py-3 text-stone-700 placeholder:text-stone-400 placeholder:italic transition-colors rounded-t-lg px-4"
-                  maxLength={80}
-                />
-                <p className="text-[10px] text-emerald-600/60 text-center mt-2 uppercase tracking-wider">
-                  Optional • Set your intention for today
-                </p>
-              </div>
-            </section>
-
-            <section className="mb-8">
-              <h3 className="text-sm font-serif font-semibold text-primary uppercase tracking-wide mb-4">
-                1. Cycle
-              </h3>
-              <SegmentedPills
-                label="Phase"
-                options={[
-                  { label: 'menstrual', value: 'menstrual' },
-                  { label: 'follicular', value: 'follicular' },
-                  { label: 'ovulatory', value: 'ovulatory' },
-                  { label: 'luteal', value: 'luteal' },
-                  { label: 'unknown', value: 'unknown' }
-                ]}
-                value={cyclePhase}
-                onChange={(val) => setCyclePhase(val as CyclePhase)}
-                color="sage"
-              />
-              <SegmentedPills
-                label="Flow"
-                options={[
-                  { label: 'none', value: 'none' },
-                  { label: 'spotting', value: 'spotting' },
-                  { label: 'light', value: 'light' },
-                  { label: 'medium', value: 'medium' },
-                  { label: 'heavy', value: 'heavy' }
-                ]}
-                value={flow}
-                onChange={(val) => setFlow(val as Flow)}
-                color="sage"
-              />
-            </section>
-
-            <section className="mb-8">
-              <h3 className="text-sm font-serif font-semibold text-secondary uppercase tracking-wide mb-4">
-                2. Physical (Hyperandrogenism)
-              </h3>
-              <CompactNumberSelector
-                label="Acne Severity"
-                value={symptoms.acne}
-                onChange={val => setSymptoms({ ...symptoms, acne: val })}
-              />
-              <CompactNumberSelector
-                label="Hirsutism (Excess Hair)"
-                value={symptoms.hirsutism}
-                onChange={val => setSymptoms({ ...symptoms, hirsutism: val })}
-              />
-              <CompactNumberSelector
-                label="Hair Loss"
-                value={symptoms.hairLoss}
-                onChange={val => setSymptoms({ ...symptoms, hairLoss: val })}
-              />
-              <CompactNumberSelector
-                label="Bloating"
-                value={symptoms.bloat}
-                onChange={val => setSymptoms({ ...symptoms, bloat: val })}
-              />
-              <CompactNumberSelector
-                label="Cramps"
-                value={symptoms.cramps}
-                onChange={val => setSymptoms({ ...symptoms, cramps: val })}
-              />
-            </section>
-
-            <section className="mb-8">
-              <h3 className="text-sm font-serif font-semibold text-sage-600 uppercase tracking-wide mb-4">
-                3. Metabolic & Lifestyle
-              </h3>
-              <SegmentedPills
-                label="Sleep"
-                options={[
-                  { label: '<6h', value: '<6h' },
-                  { label: '6-7h', value: '6-7h' },
-                  { label: '7-8h', value: '7-8h' },
-                  { label: '>8h', value: '>8h' }
-                ]}
-                value={lifestyle.sleep}
-                onChange={(val) => setLifestyle({ ...lifestyle, sleep: val })}
-                color="amber"
-              />
-              <SegmentedPills
-                label="Exercise"
-                options={[
-                  { label: 'rest', value: 'rest' },
-                  { label: 'light', value: 'light' },
-                  { label: 'moderate', value: 'moderate' },
-                  { label: 'intense', value: 'intense' }
-                ]}
-                value={lifestyle.exercise}
-                onChange={(val) => setLifestyle({ ...lifestyle, exercise: val })}
-                color="amber"
-              />
-              <SegmentedPills
-                label="Diet"
-                options={[
-                  { label: 'balanced', value: 'balanced' },
-                  { label: 'cravings', value: 'cravings' },
-                  { label: 'restrictive', value: 'restrictive' }
-                ]}
-                value={lifestyle.diet}
-                onChange={(val) => setLifestyle({ ...lifestyle, diet: val })}
-                color="amber"
-              />
-            </section>
-
-            <section className="mb-8">
-              <h3 className="text-sm font-serif font-semibold text-sage-700 uppercase tracking-wide mb-4">
-                4. Psychological
-              </h3>
-              <SegmentedPills
-                label="Stress"
-                options={[
-                  { label: 'low', value: 'low' },
-                  { label: 'medium', value: 'medium' },
-                  { label: 'high', value: 'high' }
-                ]}
-                value={psych.stress}
-                onChange={(val) => setPsych({ ...psych, stress: val })}
-                color="violet"
-              />
-              <SegmentedPills
-                label="Body Image"
-                options={[
-                  { label: 'positive', value: 'positive' },
-                  { label: 'neutral', value: 'neutral' },
-                  { label: 'negative', value: 'negative' }
-                ]}
-                value={psych.bodyImage}
-                onChange={(val) => setPsych({ ...psych, bodyImage: val })}
-                color="violet"
-              />
-              <SegmentedPills
-                label="Anxiety"
-                options={[
-                  { label: 'none', value: 'none' },
-                  { label: 'low', value: 'low' },
-                  { label: 'high', value: 'high' }
-                ]}
-                value={psych.anxiety}
-                onChange={(val) => setPsych({ ...psych, anxiety: val })}
-                color="violet"
-              />
-            </section>
-
-            <section className="mb-8">
-              <h3 className="text-sm font-serif font-semibold text-sage-500 uppercase tracking-wide mb-4">
-                5. Custom Symptoms (Optional)
-              </h3>
-              <p className="text-xs text-sage-600 mb-3">Track custom symptoms with intensity (0-10)</p>
-
-              {Object.keys(customValues).length < 3 && (
-                <div className="mb-4 p-4 bg-surface rounded-lg border border-border shadow-sm">
+        {/* Scrollable step content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="px-6 pb-6"
+            >
+              {/* ── Step 0: Intention ── */}
+              {currentStep === 0 && (
+                <div>
+                  <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-6 mb-6">
+                    <p className="font-serif text-2xl text-stone-800 mb-1">{greeting}</p>
+                    <p className="font-serif italic text-stone-500 text-base leading-relaxed">
+                      &ldquo;{affirmation}&rdquo;
+                    </p>
+                  </div>
+                  <label className="block text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">
+                    Daily Intention
+                  </label>
                   <input
                     type="text"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addCustomTag()}
-                    placeholder="Symptom name (e.g., Headache, Fatigue)"
-                    className="w-full px-4 py-2 bg-background border border-border rounded-lg text-text-main placeholder-sage-400 focus:outline-none focus:border-primary mb-3"
-                    maxLength={20}
+                    placeholder="Today I choose..."
+                    value={formData.intention}
+                    onChange={e => setFormData(d => ({ ...d, intention: e.target.value }))}
+                    maxLength={80}
+                    className="w-full bg-white/80 border-b-2 border-stone-200 focus:border-emerald-400 outline-none py-3 px-1 text-stone-700 placeholder:text-stone-400 placeholder:italic transition-colors text-base"
                   />
-                  <label className="block text-xs text-sage-600 font-medium mb-2">Intensity (0-10)</label>
-                  <div className="flex gap-1 mb-3">
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => (
-                      <button
-                        key={score}
-                        onClick={() => setNewTagScore(score)}
-                        className={`flex-1 px-2 py-2 rounded text-sm font-medium transition-all ${
-                          newTagScore === score
-                            ? 'bg-primary text-white shadow-md'
-                            : 'bg-sage-50 text-sage-600 hover:bg-sage-100 border border-border'
-                        }`}
-                      >
-                        {score}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={addCustomTag}
-                    disabled={!newTag.trim()}
-                    className="w-full px-4 py-2 bg-sage-100 hover:bg-sage-200 disabled:bg-sage-50 disabled:text-sage-400 text-primary rounded-lg transition-colors flex items-center justify-center gap-2 font-medium"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Custom Symptom
-                  </button>
+                  <p className="text-[10px] text-stone-400 mt-2 uppercase tracking-wider">
+                    Optional — set your intention for today
+                  </p>
                 </div>
               )}
 
-              <div className="space-y-3">
-                {Object.entries(customValues).map(([tag, score]) => (
-                  <div
-                    key={tag}
-                    className="p-4 bg-surface rounded-lg border border-border shadow-sm"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-text-main">{tag}</span>
-                      <button
-                        onClick={() => removeTag(tag)}
-                        className="text-sage-500 hover:text-text-main transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+              {/* ── Step 1: My Cycle ── */}
+              {currentStep === 1 && (
+                <div>
+                  <div className="bg-rose-50/50 border border-rose-100/60 rounded-2xl p-5 mb-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Droplets className="w-4 h-4 text-rose-400" />
+                      <span className="text-xs font-semibold text-rose-600 uppercase tracking-widest">Flow</span>
                     </div>
-                    <div className="flex gap-1">
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
-                        <button
-                          key={s}
-                          onClick={() => updateTagScore(tag, s)}
-                          className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all ${
-                            score === s
-                              ? 'bg-primary text-white shadow-md'
-                              : 'bg-sage-50 text-sage-600 hover:bg-sage-100 border border-border'
-                          }`}
-                        >
-                          {s}
-                        </button>
+                    <p className="text-sm text-stone-500 leading-relaxed">
+                      How would you describe your flow today?
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {([
+                      { label: 'None', value: 'none' },
+                      { label: 'Spotting', value: 'spotting' },
+                      { label: 'Light', value: 'light' },
+                      { label: 'Medium', value: 'medium' },
+                      { label: 'Heavy', value: 'heavy' },
+                    ] as { label: string; value: FlowValue }[]).map(opt => (
+                      <Pill
+                        key={opt.value}
+                        label={opt.label}
+                        selected={formData.flow === opt.value}
+                        onClick={() => {
+                          setFormData(d => ({ ...d, flow: opt.value }));
+                          haptic('light');
+                        }}
+                        selectedClass="bg-rose-500 text-white shadow-sm"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-stone-400 mt-5 leading-relaxed">
+                    No flow today? Select &ldquo;None&rdquo;. Your cycle phase is calculated automatically.
+                  </p>
+                </div>
+              )}
+
+              {/* ── Step 2: My Body ── */}
+              {currentStep === 2 && (
+                <div>
+                  <div className="bg-rose-50/40 border border-rose-100/50 rounded-2xl p-5 mb-6">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="w-4 h-4 text-rose-400" />
+                      <span className="text-xs font-semibold text-rose-600 uppercase tracking-widest">Physical Symptoms</span>
+                    </div>
+                    <p className="text-sm text-stone-500">Rate each symptom from 0 (none) to 10 (severe).</p>
+                  </div>
+                  <div className="space-y-1">
+                    <SymptomSlider
+                      label="Cramps"
+                      icon={Waves}
+                      value={formData.symptoms.cramps}
+                      onChange={v => updateSymptom('cramps', v)}
+                    />
+                    <SymptomSlider
+                      label="Acne"
+                      icon={Activity}
+                      value={formData.symptoms.acne}
+                      onChange={v => updateSymptom('acne', v)}
+                    />
+                    <SymptomSlider
+                      label="Hair Loss"
+                      icon={Wind}
+                      value={formData.symptoms.hairLoss}
+                      onChange={v => updateSymptom('hairLoss', v)}
+                    />
+                    <SymptomSlider
+                      label="Facial Hair"
+                      icon={Scissors}
+                      value={formData.symptoms.hirsutism}
+                      onChange={v => updateSymptom('hirsutism', v)}
+                    />
+                    <SymptomSlider
+                      label="Bloating"
+                      icon={Droplets}
+                      value={formData.symptoms.bloat}
+                      onChange={v => updateSymptom('bloat', v)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 3: My Habits ── */}
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  <div className="bg-amber-50/50 border border-amber-100/60 rounded-2xl p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Leaf className="w-4 h-4 text-amber-500" />
+                      <span className="text-xs font-semibold text-amber-600 uppercase tracking-widest">Daily Habits</span>
+                    </div>
+                    <p className="text-sm text-stone-500">Small consistent choices shape your season.</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Sleep</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Under 6h', value: '<6h' },
+                        { label: '6–7 hours', value: '6-7h' },
+                        { label: '7–8 hours', value: '7-8h' },
+                        { label: 'Over 8h', value: '>8h' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.lifestyle.sleep === opt.value}
+                          onClick={() => updateLifestyle('sleep', opt.value)}
+                        />
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </section>
-          </div>
 
-          <div className="sticky bottom-0 bg-surface/95 backdrop-blur-xl border-t-2 border-border p-6">
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Movement</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Rest Day', value: 'rest' },
+                        { label: 'Light', value: 'light' },
+                        { label: 'Moderate', value: 'moderate' },
+                        { label: 'Intense', value: 'intense' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.lifestyle.exercise === opt.value}
+                          onClick={() => updateLifestyle('exercise', opt.value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Nourishment</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Nourished', value: 'balanced' },
+                        { label: 'Skipped Meals', value: 'restrictive' },
+                        { label: 'Struggled / Cravings', value: 'cravings' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.lifestyle.diet === opt.value}
+                          onClick={() => updateLifestyle('diet', opt.value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step 4: My Mind ── */}
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div className="bg-stone-50/80 border border-stone-100 rounded-2xl p-5">
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-1">Mood</p>
+                    <MoodSlider
+                      value={formData.psych.mood}
+                      onChange={v => {
+                        updatePsych('mood', v);
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Stress</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Low', value: 'low' },
+                        { label: 'Medium', value: 'medium' },
+                        { label: 'High', value: 'high' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.psych.stress === opt.value}
+                          onClick={() => updatePsych('stress', opt.value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Anxiety</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'None', value: 'none' },
+                        { label: 'Low', value: 'low' },
+                        { label: 'Medium', value: 'medium' },
+                        { label: 'High', value: 'high' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.psych.anxiety === opt.value}
+                          onClick={() => updatePsych('anxiety', opt.value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Body Image</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Good', value: 'positive' },
+                        { label: 'Okay', value: 'neutral' },
+                        { label: 'Hard Today', value: 'negative' },
+                      ].map(opt => (
+                        <Pill
+                          key={opt.value}
+                          label={opt.label}
+                          selected={formData.psych.bodyImage === opt.value}
+                          onClick={() => updatePsych('bodyImage', opt.value)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Bottom navigation */}
+        <div className="px-6 pt-4 pb-8 border-t border-stone-100 bg-[#FAF8F3] shrink-0">
+          <button
+            type="button"
+            onClick={currentStep === TOTAL_STEPS - 1 ? handleSave : goNext}
+            className="w-full py-4 bg-stone-800 hover:bg-stone-700 active:bg-stone-900 text-white font-semibold rounded-2xl transition-colors text-base shadow-sm"
+          >
+            {currentStep === TOTAL_STEPS - 1 ? 'Save Today' : 'Continue'}
+          </button>
+          {currentStep > 0 && (
             <button
-              onClick={handleSave}
-              className="w-full py-4 bg-primary hover:opacity-90 text-white font-semibold rounded-full transition-all shadow-md hover:shadow-lg"
+              type="button"
+              onClick={goBack}
+              className="w-full mt-3 text-sm text-stone-400 hover:text-stone-600 transition-colors text-center"
             >
-              Save Today's Log
+              Back
             </button>
-          </div>
-        </motion.div>
+          )}
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }
