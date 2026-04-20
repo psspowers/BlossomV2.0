@@ -15,12 +15,13 @@ import { TodayHero } from './TodayHero';
 import { ActionDock } from './ActionDock';
 import { TodaysInsight } from './TodaysInsight';
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { calculateSeason, SeasonState } from '../lib/logic/seasons';
 import { analyzeHistory } from '../lib/logic/cycle';
-import { db, DEMO_PREVIEW_KEY } from '../lib/db';
+import { db, DEMO_PREVIEW_KEY, LogEntry } from '../lib/db';
 import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
 
 export function Dashboard() {
@@ -28,6 +29,8 @@ export function Dashboard() {
   const { plantState, loading: plantLoading } = usePlantState();
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
+  const [existingTodayLog, setExistingTodayLog] = useState<LogEntry | null>(null);
+  const [showDuplicateSheet, setShowDuplicateSheet] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [showClinicalGuide, setShowClinicalGuide] = useState(false);
@@ -107,8 +110,16 @@ export function Dashboard() {
     );
   }
 
-  const handleLogDay = () => {
-    setShowDailyLog(true);
+  const handleLogDay = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayLogs = await db.logs.where('date').equals(today).toArray();
+    if (todayLogs.length > 0) {
+      setExistingTodayLog(todayLogs[todayLogs.length - 1]);
+      setShowDuplicateSheet(true);
+    } else {
+      setExistingTodayLog(null);
+      setShowDailyLog(true);
+    }
     updatePrefs({ lastAction: 'log' });
   };
 
@@ -193,10 +204,65 @@ export function Dashboard() {
         <NotificationConsentCard onDismiss={() => setShowNotificationConsent(false)} />
       )}
 
+      <AnimatePresence>
+        {showDuplicateSheet && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/25 backdrop-blur-sm z-50 flex items-end"
+            onClick={() => setShowDuplicateSheet(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+              className="w-full bg-[#FAF8F3] rounded-t-3xl shadow-2xl px-6 pt-6 pb-10"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-6" />
+              <p className="font-serif text-xl text-stone-800 mb-1">Already logged today</p>
+              <p className="text-sm text-stone-500 mb-6 leading-relaxed">
+                You have an entry for today. Would you like to update it, or log again as a separate entry?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowDuplicateSheet(false);
+                    setShowDailyLog(true);
+                  }}
+                  className="w-full py-4 bg-stone-800 hover:bg-stone-700 text-white font-semibold rounded-2xl transition-colors text-base"
+                >
+                  Update today's log
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDuplicateSheet(false);
+                    setExistingTodayLog(null);
+                    setShowDailyLog(true);
+                  }}
+                  className="w-full py-3.5 bg-white border border-stone-200 hover:border-stone-300 text-stone-600 font-medium rounded-2xl transition-colors text-sm"
+                >
+                  Add a separate entry
+                </button>
+                <button
+                  onClick={() => setShowDuplicateSheet(false)}
+                  className="w-full py-3 text-stone-400 hover:text-stone-600 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {showDailyLog && (
         <DailyLog
-          onClose={() => setShowDailyLog(false)}
+          onClose={() => { setShowDailyLog(false); setExistingTodayLog(null); }}
           onSaveSuccess={handleSaveSuccess}
+          existingLog={existingTodayLog ?? undefined}
         />
       )}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Droplets, Activity, Leaf, Wind, Scissors, Waves } from 'lucide-react';
 import { useHaptics } from '../lib/hooks/useHaptics';
-import { db, LogEntry } from '../lib/db';
+import { db } from '../lib/db';
+import type { LogEntry } from '../lib/db';
 import { format } from 'date-fns';
 import { calculatePlantHealth } from '../lib/logic/plant';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -18,6 +19,7 @@ interface SaveSuccessResult {
 interface DailyLogProps {
   onClose: () => void;
   onSaveSuccess?: (result: SaveSuccessResult) => void;
+  existingLog?: LogEntry;
 }
 
 type FlowValue = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
@@ -163,7 +165,7 @@ const slideVariants = {
   }),
 };
 
-export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
+export function DailyLog({ onClose, onSaveSuccess, existingLog }: DailyLogProps) {
   const { trigger: haptic } = useHaptics();
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -173,17 +175,34 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
     () => GRACE_AFFIRMATIONS[Math.floor(Math.random() * GRACE_AFFIRMATIONS.length)]
   );
 
+  const isEditing = !!existingLog?.id;
+
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : 'Good evening.';
 
   const [formData, setFormData] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    flow: 'none' as FlowValue,
-    symptoms: { acne: 0, hirsutism: 0, hairLoss: 0, bloat: 0, cramps: 0 },
-    psych: { stress: 'low', anxiety: 'none', mood: 5, bodyImage: 'neutral' },
-    lifestyle: { sleep: '7-8h', exercise: 'rest', diet: 'balanced' },
-    intention: '',
+    date: existingLog?.date ?? format(new Date(), 'yyyy-MM-dd'),
+    flow: (existingLog?.flow ?? 'none') as FlowValue,
+    symptoms: {
+      acne: existingLog?.symptoms?.acne ?? 0,
+      hirsutism: existingLog?.symptoms?.hirsutism ?? 0,
+      hairLoss: existingLog?.symptoms?.hairLoss ?? 0,
+      bloat: existingLog?.symptoms?.bloat ?? 0,
+      cramps: existingLog?.symptoms?.cramps ?? 0,
+    },
+    psych: {
+      stress: existingLog?.psych?.stress ?? 'low',
+      anxiety: existingLog?.psych?.anxiety ?? 'none',
+      mood: existingLog?.psych?.mood ?? 5,
+      bodyImage: existingLog?.psych?.bodyImage ?? 'neutral',
+    },
+    lifestyle: {
+      sleep: existingLog?.lifestyle?.sleep ?? '7-8h',
+      exercise: existingLog?.lifestyle?.exercise ?? 'rest',
+      diet: existingLog?.lifestyle?.diet ?? 'balanced',
+    },
+    intention: existingLog?.intention ?? '',
   });
 
   useEffect(() => {
@@ -219,7 +238,11 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
       intention: formData.intention.trim() || undefined,
     };
 
-    await db.logs.add(entry);
+    if (isEditing && existingLog?.id !== undefined) {
+      await db.logs.put({ ...entry, id: existingLog.id });
+    } else {
+      await db.logs.add(entry);
+    }
     haptic('heavy');
 
     const plantState = await calculatePlantHealth();
@@ -308,7 +331,9 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
             transition={{ delay: 0.8, duration: 0.4 }}
             className="text-sm font-semibold text-emerald-600 tracking-wide"
           >
-            {streak > 1
+            {isEditing
+              ? "Today's log updated."
+              : streak > 1
               ? `Logged ${streak} days in a row`
               : streak === 1
               ? 'Day 1 — the hardest step.'
@@ -380,7 +405,7 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
         {/* Step label */}
         <div className="px-6 pb-3 shrink-0">
           <p className="text-[10px] text-stone-400 uppercase tracking-widest mb-0.5">
-            Step {currentStep + 1} of {TOTAL_STEPS}
+            {isEditing ? 'Updating' : 'Step'} {currentStep + 1} of {TOTAL_STEPS}
           </p>
           <h2 className="font-serif text-xl font-semibold text-stone-800">
             {STEP_LABELS[currentStep]}
@@ -657,7 +682,7 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
             onClick={currentStep === TOTAL_STEPS - 1 ? handleSave : goNext}
             className="w-full py-4 bg-stone-800 hover:bg-stone-700 active:bg-stone-900 text-white font-semibold rounded-2xl transition-colors text-base shadow-sm"
           >
-            {currentStep === TOTAL_STEPS - 1 ? 'Save Today' : 'Continue'}
+            {currentStep === TOTAL_STEPS - 1 ? (isEditing ? 'Update Today' : 'Save Today') : 'Continue'}
           </button>
           {currentStep > 0 && (
             <button
