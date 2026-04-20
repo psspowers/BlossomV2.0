@@ -7,6 +7,7 @@ interface ViewConfig {
   icon: LucideIcon;
   activeClass: string;
   inactiveClass: string;
+  labelClass: string;
   color: string;
   borderColor: string;
   glowClass: string;
@@ -18,6 +19,7 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     icon: Activity,
     activeClass: 'bg-rose-100 text-rose-600 shadow-inner',
     inactiveClass: 'text-stone-400 hover:text-rose-400 hover:bg-white',
+    labelClass: 'text-rose-600',
     color: 'rgba(232, 174, 178, 0.8)',
     borderColor: 'rgb(232, 174, 178)',
     glowClass: 'bg-rose-500/10'
@@ -27,6 +29,7 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     icon: Zap,
     activeClass: 'bg-amber-100 text-amber-600 shadow-inner',
     inactiveClass: 'text-stone-400 hover:text-amber-400 hover:bg-white',
+    labelClass: 'text-amber-600',
     color: 'rgba(134, 168, 115, 0.8)',
     borderColor: 'rgb(134, 168, 115)',
     glowClass: 'bg-amber-500/10'
@@ -36,6 +39,7 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
     icon: Sparkles,
     activeClass: 'bg-emerald-100 text-emerald-600 shadow-inner',
     inactiveClass: 'text-stone-400 hover:text-emerald-400 hover:bg-white',
+    labelClass: 'text-emerald-600',
     color: 'rgba(107, 143, 78, 0.8)',
     borderColor: 'rgb(107, 143, 78)',
     glowClass: 'bg-emerald-500/10'
@@ -43,11 +47,12 @@ export const viewConfig: Record<InsightView, ViewConfig> = {
   cycle: {
     label: 'Cycle',
     icon: Droplet,
-    activeClass: 'bg-violet-100 text-violet-600 shadow-inner',
-    inactiveClass: 'text-stone-400 hover:text-violet-400 hover:bg-white',
+    activeClass: 'bg-teal-100 text-teal-600 shadow-inner',
+    inactiveClass: 'text-stone-400 hover:text-teal-400 hover:bg-white',
+    labelClass: 'text-teal-600',
     color: 'rgba(197, 179, 223, 0.8)',
     borderColor: 'rgb(197, 179, 223)',
-    glowClass: 'bg-violet-500/10'
+    glowClass: 'bg-teal-500/10'
   }
 };
 
@@ -91,8 +96,8 @@ export function InsightsNavigation({ view, onViewChange }: InsightsNavigationPro
                 className="transition-transform duration-200"
               />
               <span
-                className={`text-[9px] font-bold tracking-widest uppercase leading-none transition-colors duration-200 ${
-                  isActive ? 'text-rose-600' : 'text-stone-400'
+                className={`text-[9px] font-bold tracking-widest uppercase leading-none transition-opacity duration-200 ${
+                  isActive ? `opacity-100 ${config.labelClass}` : 'opacity-0'
                 }`}
               >
                 {config.label}
