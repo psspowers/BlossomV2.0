@@ -561,7 +561,7 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
                     <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Nourishment</p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Nourished', value: 'balanced' },
+                        { label: 'Ate Well', value: 'balanced' },
                         { label: 'Skipped Meals', value: 'restrictive' },
                         { label: 'Struggled / Cravings', value: 'cravings' },
                       ].map(opt => (
@@ -594,9 +594,9 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
                     <p className="text-xs font-semibold text-stone-500 uppercase tracking-widest mb-3">Stress</p>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Low', value: 'low' },
-                        { label: 'Medium', value: 'medium' },
-                        { label: 'High', value: 'high' },
+                        { label: 'Calm', value: 'low' },
+                        { label: 'Tense', value: 'medium' },
+                        { label: 'Overwhelmed', value: 'high' },
                       ].map(opt => (
                         <Pill
                           key={opt.value}
@@ -613,9 +613,9 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
                     <div className="flex flex-wrap gap-2">
                       {[
                         { label: 'None', value: 'none' },
-                        { label: 'Low', value: 'low' },
-                        { label: 'Medium', value: 'medium' },
-                        { label: 'High', value: 'high' },
+                        { label: 'A little', value: 'low' },
+                        { label: 'Moderate', value: 'medium' },
+                        { label: 'A lot', value: 'high' },
                       ].map(opt => (
                         <Pill
                           key={opt.value}
@@ -633,7 +633,7 @@ export function DailyLog({ onClose, onSaveSuccess }: DailyLogProps) {
                       {[
                         { label: 'Good', value: 'positive' },
                         { label: 'Okay', value: 'neutral' },
-                        { label: 'Hard Today', value: 'negative' },
+                        { label: 'Hard', value: 'negative' },
                       ].map(opt => (
                         <Pill
                           key={opt.value}
