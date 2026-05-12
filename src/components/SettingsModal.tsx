@@ -315,7 +315,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
       >
         <div className="bg-white rounded-2xl p-8 text-center shadow-xl max-w-sm">
           <RotateCcw className="w-8 h-8 text-sage-600 animate-spin mx-auto mb-4" />
@@ -332,7 +332,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-stone-900/20 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div

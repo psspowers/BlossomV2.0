@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, FileText, BarChart3, Users, Shield, AlertTriangle } from 'lucide-react';
+import { X, ChevronRight, FileText, ChartBar as BarChart3, Users, Shield, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { ScoringPipeline } from './ScoringPipeline';
 import { PatientScenarios } from './PatientScenarios';
 import { ChartGuide } from './ChartGuide';
@@ -23,7 +23,7 @@ export function ClinicalGuide({ onClose }: ClinicalGuideProps) {
   const [activeSection, setActiveSection] = useState<Section>('pipeline');
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] flex items-center justify-center p-2 sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
