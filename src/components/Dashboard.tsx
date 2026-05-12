@@ -137,7 +137,17 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
-      <Navbar onOpenSettings={() => setShowSettings(true)} onOpenClinicalGuide={() => setShowClinicalGuide(true)} onOpenEducation={() => setShowLearn(true)} />
+      <Navbar
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenClinicalGuide={() => setShowClinicalGuide(true)}
+        onOpenEducation={() => setShowLearn(true)}
+        onGoHome={() => {
+          setShowSettings(false);
+          setShowClinicalGuide(false);
+          setShowLearn(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-[calc(5rem_+_env(safe-area-inset-top))] pb-[calc(10rem_+_env(safe-area-inset-bottom))] overflow-x-hidden">
         <ContextualPrompts

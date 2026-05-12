@@ -7,9 +7,10 @@ interface NavbarProps {
   onOpenSettings: () => void;
   onOpenClinicalGuide: () => void;
   onOpenEducation: () => void;
+  onGoHome: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation, onGoHome }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -40,6 +41,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             className="cursor-pointer"
+            onClick={onGoHome}
+            role="button"
+            aria-label="Go to dashboard"
           >
             <span className="text-3xl sm:text-4xl filter drop-shadow-md">🌸</span>
           </motion.div>
