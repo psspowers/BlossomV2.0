@@ -138,9 +138,9 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 relative">
       <Navbar
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenClinicalGuide={() => setShowClinicalGuide(true)}
-        onOpenEducation={() => setShowLearn(true)}
+        onOpenSettings={() => setShowSettings(v => !v)}
+        onOpenClinicalGuide={() => setShowClinicalGuide(v => !v)}
+        onOpenEducation={() => setShowLearn(v => !v)}
         onGoHome={() => {
           setShowSettings(false);
           setShowClinicalGuide(false);
