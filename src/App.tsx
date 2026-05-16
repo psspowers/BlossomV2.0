@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
@@ -19,7 +19,10 @@ const queryClient = new QueryClient();
 
 type OnboardingStep = 'welcome' | 'auth' | 'priorities';
 
-const App = () => {
+const PUBLIC_PATHS = ['/privacy', '/terms', '/reset-password'];
+
+const AppInner = () => {
+  const location = useLocation();
   const [seeded, setSeeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
@@ -29,6 +32,8 @@ const App = () => {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
+  const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -64,17 +69,13 @@ const App = () => {
 
   useEffect(() => {
     if (!session) {
-      console.log('[App] No session, clearing onboarding state');
       setOnboardingComplete(null);
       return;
     }
 
     const checkOnboarding = async () => {
-      console.log('[App] Checking onboarding status...');
       const settings = await db.settings.toCollection().first();
-      console.log('[App] Settings from DB:', settings);
       const hasCompletedOnboarding = !!(settings?.priorities && settings.priorities.length > 0);
-      console.log('[App] Has completed onboarding:', hasCompletedOnboarding);
       setOnboardingComplete(hasCompletedOnboarding);
     };
 
@@ -131,6 +132,17 @@ const App = () => {
 
     return () => clearTimeout(troubleshootingTimer);
   }, []);
+
+  // Public routes are always accessible regardless of auth state
+  if (isPublicPath) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Routes>
+    );
+  }
 
   if (isPasswordRecovery) {
     return <ResetPassword />;
@@ -189,10 +201,8 @@ const App = () => {
     return (
       <PrioritySelector
         onNext={() => {
-          console.log('[App] onNext() called from PrioritySelector');
           localStorage.removeItem(USER_DELETED_KEY);
           setOnboardingComplete(true);
-          console.log('[App] Onboarding marked as complete');
           requestNotificationPermission();
         }}
         onBack={async () => {
@@ -206,17 +216,21 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfUse />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-          </Routes>
-        </BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
       </ThemeProvider>
     </QueryClientProvider>
   );
 };
+
+const App = () => (
+  <BrowserRouter>
+    <AppInner />
+  </BrowserRouter>
+);
 
 export default App;
