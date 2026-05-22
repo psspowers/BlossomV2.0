@@ -255,3 +255,31 @@ a:focus-visible,
 [data-theme="lotus"] h3 {
   font-family: var(--theme-font-heading);
 }
+
+/* Native Mobile WebView Resets (Capacitor iOS/Android) */
+html, body {
+  overscroll-behavior: none; /* Disables WKWebView root rubber-band elastic bouncing */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Eliminate the default gray tap highlight container on iOS touch devices */
+button, a, input, select, textarea, [role="button"] {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Disable accidental UI text selection magnifiers on buttons and layout structural tags */
+body, nav, button, [role="button"] {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure data inputs, textareas, and interactive copy text remain editable and copy-friendly */
+input, textarea, [contenteditable="true"], .selectable-text {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Force standard tap speeds by bypassing the 300ms double-tap delay on interactive items */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}

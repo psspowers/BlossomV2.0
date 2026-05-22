@@ -13,6 +13,7 @@ import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfUse } from "./components/TermsOfUse";
 import { ResetPassword } from "./components/onboarding/ResetPassword";
 import { Sources } from "./components/Sources";
+import { DisclaimerGate } from "./components/DisclaimerGate";
 import type { Session } from "@supabase/supabase-js";
 import { requestNotificationPermission, checkAndFireReminder } from "./lib/services/notificationService";
 
@@ -219,7 +220,7 @@ const AppInner = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<DisclaimerGate><Dashboard /></DisclaimerGate>} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/reset-password" element={<ResetPassword />} />

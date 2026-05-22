@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '../supabase';
 
 export interface DashboardPreferences {
@@ -12,7 +12,8 @@ export interface DashboardPreferences {
 const DEFAULTS: DashboardPreferences = {
   dockCollapsed: false,
   density: 'comfortable',
-  disclaimerAcknowledged: false,
+  // Offline shield read: default to cached local value if database is unreachable
+  disclaimerAcknowledged: typeof window !== 'undefined' && localStorage.getItem('blossom_disclaimer_acknowledged') === 'true',
   lastAction: 'log',
   hapticsEnabled: true,
 };
@@ -20,6 +21,12 @@ const DEFAULTS: DashboardPreferences = {
 export function useDashboardPreferences() {
   const [prefs, setPrefs] = useState<DashboardPreferences>(DEFAULTS);
   const [loading, setLoading] = useState(true);
+
+  const prefsRef = useRef<DashboardPreferences>(DEFAULTS);
+
+  useEffect(() => {
+    prefsRef.current = prefs;
+  }, [prefs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,13 +81,21 @@ export function useDashboardPreferences() {
   }, []);
 
   const update = useCallback(async (patch: Partial<DashboardPreferences>) => {
+    // 1. Optimistically update local state
     setPrefs((prev) => ({ ...prev, ...patch }));
+
+    // 2. Offline shield write: cache consent locally immediately
+    if (patch.disclaimerAcknowledged !== undefined) {
+      localStorage.setItem('blossom_disclaimer_acknowledged', String(patch.disclaimerAcknowledged));
+    }
+
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData.session?.user?.id) return;
       const userId = sessionData.session.user.id;
 
-      const next = { ...prefs, ...patch };
+      // Construct 'next' state using stable Ref bridge to avoid stale closure
+      const next = { ...prefsRef.current, ...patch };
       const { error } = await supabase.from('user_dashboard_preferences').upsert(
         {
           user_id: userId,
@@ -99,7 +114,7 @@ export function useDashboardPreferences() {
     } catch {
       console.warn('[DashboardPrefs] Network error persisting preferences');
     }
-  }, [prefs]);
+  }, []); // Empty dependency array: stable callback reference
 
   return { prefs, loading, update };
 }
