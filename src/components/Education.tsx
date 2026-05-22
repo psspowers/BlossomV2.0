@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare, Sprout, Sparkles } from 'lucide-react';
+import { ChevronDown, BookOpen, CircleAlert as AlertCircle, Heart, X, Brain, Baby, MessageSquare, Sprout, Sparkles, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface EducationProps {
@@ -19,7 +19,11 @@ const SECTIONS = [
           Polycystic Ovary Syndrome (PCOS) is a complex hormonal, reproductive, and metabolic condition. It is <strong>not</strong> just a fertility issue, and you did not cause it.
         </p>
         <p>
-          According to the 2023 Monash International Guidelines, it is typically diagnosed using the Rotterdam Criteria (you must have 2 of these 3):
+          According to the{' '}
+          <a href="https://www.monash.edu/medicine/sphpm/mchri/pcos/guideline" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900">
+            2023 International PCOS Guideline (Teede et al., Monash University)
+          </a>
+          , it is typically diagnosed using the Rotterdam Criteria (you must have 2 of these 3):
         </p>
         <ul className="list-disc pl-5 space-y-1 text-stone-600">
           <li><strong>Irregular or absent periods</strong> (Ovulatory dysfunction).</li>
@@ -42,7 +46,8 @@ const SECTIONS = [
           "You are not broken. The emotional weight of PCOS is biologically real."
         </p>
         <p>
-          If you feel anxious, depressed, or frustrated with your body, it is not in your head. Women with PCOS experience anxiety and depression at <strong>3 to 5 times the rate</strong> of women without it.
+          If you feel anxious, depressed, or frustrated with your body, it is not in your head. Women with PCOS experience anxiety and depression at <strong>3 to 5 times the rate</strong> of women without it.{' '}
+          <a href="https://www.monash.edu/medicine/sphpm/mchri/pcos/guideline" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-sm">[Source]</a>
         </p>
         <p>
           This is driven by a mix of hormonal fluctuations, insulin resistance (which impacts brain energy), and the profound exhaustion of dealing with chronic symptoms.
@@ -50,7 +55,11 @@ const SECTIONS = [
         <ul className="list-disc pl-5 space-y-1 text-stone-600">
           <li><strong>Give yourself grace:</strong> A low mood day is a symptom, just like a cramp.</li>
           <li><strong>Protect your peace:</strong> Unfollow social media accounts that make you feel you need to "fix" your body overnight.</li>
-          <li><strong>Seek support:</strong> The 2023 Guidelines explicitly recommend mental health screening for all PCOS patients. Therapy is a valid and necessary part of treatment.</li>
+          <li><strong>Seek support:</strong> The{' '}
+            <a href="https://www.monash.edu/medicine/sphpm/mchri/pcos/guideline" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900">
+              2023 International PCOS Guidelines
+            </a>{' '}
+            explicitly recommend mental health screening for all PCOS patients. Therapy is a valid and necessary part of treatment.</li>
         </ul>
       </div>
     )
@@ -68,9 +77,15 @@ const SECTIONS = [
           Because PCOS affects metabolism, how you treat your body day-to-day has a profound impact:
         </p>
         <ul className="list-disc pl-5 space-y-2 text-stone-600">
-          <li><strong>Movement:</strong> Moderate activity (walking, yoga, strength training) improves insulin sensitivity. You don't need exhausting workouts to see benefits.</li>
-          <li><strong>Sleep:</strong> 7–9 hours is foundational. Sleep deprivation spikes cortisol and worsens insulin resistance. Rest is a highly productive action.</li>
-          <li><strong>Nutrition:</strong> Focus on balanced, low-GI foods to stabilize blood sugar. You do not need to starve—nourishment is healing.</li>
+          <li><strong>Movement:</strong> Moderate activity (walking, yoga, strength training) improves insulin sensitivity. You don't need exhausting workouts to see benefits.{' '}
+            <a href="https://www.acsm.org/education-resources/trending-topics-resources/physical-activity-guidelines" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-xs">[ACSM]</a>
+          </li>
+          <li><strong>Sleep:</strong> 7–9 hours is foundational. Sleep deprivation spikes cortisol and worsens insulin resistance. Rest is a highly productive action.{' '}
+            <a href="https://www.sleepfoundation.org/sleep-deprivation/sleep-deprivation-and-diabetes" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-xs">[Sleep Foundation]</a>
+          </li>
+          <li><strong>Nutrition:</strong> Focus on balanced, low-GI foods to stabilize blood sugar. You do not need to starve—nourishment is healing.{' '}
+            <a href="https://www.hsph.harvard.edu/nutritionsource/carbohydrates/carbohydrates-and-blood-sugar/" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-xs">[Harvard School of Public Health]</a>
+          </li>
         </ul>
       </div>
     )
@@ -88,8 +103,12 @@ const SECTIONS = [
           While irregular ovulation can make getting pregnant take a little longer or require more planning, the vast majority of women with PCOS who want to have children are able to do so.
         </p>
         <ul className="list-disc pl-5 space-y-2 text-stone-600">
-          <li><strong>Natural conception:</strong> Many women conceive naturally once their metabolic health and cycle regularity improve through lifestyle changes.</li>
-          <li><strong>Medical support:</strong> If ovulation needs a boost, there are highly effective, inexpensive medications (like Letrozole or Letrozole/Clomid) that your doctor can prescribe.</li>
+          <li><strong>Natural conception:</strong> Many women conceive naturally once their metabolic health and cycle regularity improve through lifestyle changes. With appropriate management, the majority of women with PCOS who wish to conceive are able to do so.{' '}
+            <a href="https://www.rcog.org.uk/for-the-public/browse-all-patient-information-leaflets/polycystic-ovary-syndrome-patient-information-leaflet/" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-xs">[RCOG]</a>
+          </li>
+          <li><strong>Medical support:</strong> If ovulation needs a boost, there are highly effective, inexpensive medications (like Letrozole or Clomid) that your doctor can prescribe.{' '}
+            <a href="https://www.acog.org/clinical/clinical-guidance/practice-bulletin/articles/2018/05/polycystic-ovary-syndrome" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline underline-offset-2 hover:text-emerald-900 text-xs">[ACOG]</a>
+          </li>
         </ul>
         <p className="text-sm font-medium text-stone-700 mt-2">
           Your diagnosis is not a life sentence on your family planning.
@@ -280,9 +299,28 @@ export function Education({ onClose, defaultSection }: EducationProps) {
             </p>
           </div>
 
-          <div className="text-center mt-8 px-8 flex flex-col items-center gap-3">
+          <div className="mt-8 p-5 bg-stone-50 rounded-xl border border-stone-200">
+            <div className="flex items-start gap-3">
+              <ExternalLink className="w-4 h-4 text-stone-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-stone-700 mb-1">Sources & References</p>
+                <p className="text-xs text-stone-500 leading-relaxed mb-2">
+                  All health information in Blossom is based on peer-reviewed research and clinical guidelines. This is general information only and is not a substitute for professional medical advice.
+                </p>
+                <Link
+                  to="/sources"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 hover:text-emerald-900 underline underline-offset-2 transition-colors"
+                >
+                  View all citations and references
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mt-6 px-8 flex flex-col items-center gap-3">
             <p className="text-[10px] text-stone-400">
-              General information only. Not medical advice. Source: Monash International Guidelines (2023).
+              General information only. Not medical advice. Primary source: 2023 International PCOS Guidelines (Teede et al., Monash University).
             </p>
             <div className="flex items-center gap-4 text-xs font-medium">
               <Link to="/privacy" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-4">
@@ -291,6 +329,10 @@ export function Education({ onClose, defaultSection }: EducationProps) {
               <span className="text-stone-300">•</span>
               <Link to="/terms" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-4">
                 Terms of Use
+              </Link>
+              <span className="text-stone-300">•</span>
+              <Link to="/sources" className="text-emerald-600 hover:text-emerald-700 underline underline-offset-4">
+                Sources
               </Link>
             </div>
           </div>

@@ -12,6 +12,7 @@ import { PrioritySelector } from "./components/onboarding/PrioritySelector";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfUse } from "./components/TermsOfUse";
 import { ResetPassword } from "./components/onboarding/ResetPassword";
+import { Sources } from "./components/Sources";
 import type { Session } from "@supabase/supabase-js";
 import { requestNotificationPermission, checkAndFireReminder } from "./lib/services/notificationService";
 
@@ -19,7 +20,7 @@ const queryClient = new QueryClient();
 
 type OnboardingStep = 'welcome' | 'auth' | 'priorities';
 
-const PUBLIC_PATHS = ['/privacy', '/terms', '/reset-password'];
+const PUBLIC_PATHS = ['/privacy', '/terms', '/reset-password', '/sources'];
 
 const AppInner = () => {
   const location = useLocation();
@@ -140,6 +141,7 @@ const AppInner = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfUse />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/sources" element={<Sources />} />
       </Routes>
     );
   }
@@ -221,6 +223,7 @@ const AppInner = () => {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/sources" element={<Sources />} />
         </Routes>
       </ThemeProvider>
     </QueryClientProvider>

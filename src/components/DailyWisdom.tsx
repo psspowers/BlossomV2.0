@@ -55,9 +55,14 @@ export function DailyWisdom() {
           {wisdomCard.text}
         </p>
 
-        <p className="text-xs text-sage-600 italic">
+        <a
+          href={wisdomCard.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-sage-600 italic hover:text-sage-800 underline underline-offset-2 transition-colors"
+        >
           Source: {wisdomCard.source}
-        </p>
+        </a>
       </div>
 
       <div className="p-4 border-t border-border">
