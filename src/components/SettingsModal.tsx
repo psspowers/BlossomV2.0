@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe, TriangleAlert as AlertTriangle, Vibrate } from 'lucide-react';
+import { X, Download, Trash2, FileText, Beaker, RotateCcw, UserX, Heart, CreditCard as Edit3, ShieldCheck, Scale, Globe, TriangleAlert as AlertTriangle, Vibrate, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { usePlantState } from '../lib/hooks/useInsights';
@@ -50,6 +50,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [pendingPriorities, setPendingPriorities] = useState<Array<{ id: string; label: string; happiness: number }>>([]);
   const [maxPrioritiesMessage, setMaxPrioritiesMessage] = useState(false);
   const [showExportWarning, setShowExportWarning] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
@@ -259,6 +260,31 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       toast.error('Failed to delete data. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLogOut = async () => {
+    try {
+      setIsLoggingOut(true);
+
+      try {
+        await supabase.auth.signOut();
+      } catch (supabaseError) {
+        console.warn('[Logout] Supabase remote sign-out failed or device is offline. Proceeding to clear local state.', supabaseError);
+      }
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      onClose();
+      window.location.reload();
+
+      toast.success('Logged out successfully.');
+    } catch (error) {
+      console.error('[Logout] Fatal logout error:', error);
+      toast.error('Failed to log out. Please try again.');
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -513,6 +539,23 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                       {isExporting ? 'Exporting...' : 'Export Data (JSON)'}
                     </p>
                     <p className="text-xs text-stone-500">Download all your tracking data</p>
+                  </div>
+                </button>
+
+                {/* LOG OUT BUTTON (Guideline 2.1(a) Compliance) */}
+                <button
+                  onClick={handleLogOut}
+                  disabled={isLoggingOut}
+                  className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:border-stone-300 hover:shadow-md transition-all group disabled:opacity-50"
+                >
+                  <div className="p-2 bg-stone-50 rounded-lg text-stone-600 shadow-sm">
+                    <LogOut size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-serif text-stone-800 font-medium">
+                      {isLoggingOut ? 'Logging Out...' : 'Log Out'}
+                    </p>
+                    <p className="text-xs text-stone-500">Sign out of your active session on this device</p>
                   </div>
                 </button>
 

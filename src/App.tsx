@@ -60,9 +60,15 @@ const AppInner = () => {
         setSession(newSession);
         return;
       }
+
       setSession(newSession);
-      if (newSession && event !== 'PASSWORD_RECOVERY') {
-        setOnboardingStep('priorities');
+
+      if (newSession) {
+        if (event !== 'PASSWORD_RECOVERY') {
+          setOnboardingStep('priorities');
+        }
+      } else {
+        setOnboardingStep('welcome');
       }
     });
 
