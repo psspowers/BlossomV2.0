@@ -10,6 +10,7 @@ interface WellnessLotusProps {
   season: SeasonState;
   mode: 'nurture' | 'steady' | 'thrive';
   name?: string;
+  hasLoggedToday?: boolean;
 }
 
 type RevealStage = 'centered' | 'centered-with-delta' | 'corners';
@@ -18,7 +19,8 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   health,
   scoreDelta = 0,
   season,
-  name = 'Your Journey'
+  name = 'Your Journey',
+  hasLoggedToday = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -125,8 +127,11 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
     };
   }, [health, isReady, videoDuration]);
 
-  // When scoreDelta changes after initial reveal, briefly re-surface the delta
+  // When scoreDelta changes after initial reveal, briefly re-surface the delta.
+  // Guard: only trigger if the user has actually logged today to prevent
+  // phantom animation on zero-log days.
   useEffect(() => {
+    if (!hasLoggedToday) return;
     if (revealStage !== 'corners') return;
     if (prefersReducedMotion.current) return;
     setRevealStage('centered-with-delta');
@@ -149,13 +154,15 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
       <Minus className="w-4 h-4" strokeWidth={2.5} />
     );
 
-  const ariaLabel = `Your current Healing Blossom Score: ${health}. ${
-    scoreDelta > 0
-      ? `Up ${scoreDelta} from yesterday`
-      : scoreDelta < 0
-        ? `Down ${Math.abs(scoreDelta)} from yesterday`
-        : 'Unchanged from yesterday'
-  }.`;
+  const ariaLabel = hasLoggedToday
+    ? `Your current Healing Blossom Score: ${health}. ${
+        scoreDelta > 0
+          ? `Up ${scoreDelta} from yesterday`
+          : scoreDelta < 0
+            ? `Down ${Math.abs(scoreDelta)} from yesterday`
+            : 'Unchanged from yesterday'
+      }.`
+    : `Your current Healing Blossom Score: ${health}.`;
 
   const showCentered = revealStage === 'centered' || revealStage === 'centered-with-delta';
   const showCorners = revealStage === 'corners';
@@ -250,7 +257,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                         {health}
                       </span>
                       <AnimatePresence>
-                        {revealStage === 'centered-with-delta' && (
+                        {hasLoggedToday && scoreDelta !== 0 && revealStage === 'centered-with-delta' && (
                           <motion.div
                             key="delta-row"
                             initial={{ opacity: 0, scale: 0.7, y: 4 }}
@@ -260,11 +267,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                             className={`mt-1 flex items-center gap-1 text-xs font-semibold ${deltaColor}`}
                           >
                             <DeltaIcon />
-                            <span>
-                              {scoreDelta === 0
-                                ? 'same as yesterday'
-                                : `${scoreDelta > 0 ? '+' : ''}${scoreDelta} vs yesterday`}
-                            </span>
+                            <span>{`${scoreDelta > 0 ? '+' : ''}${scoreDelta} vs yesterday`}</span>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -326,36 +329,36 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
                 </TooltipProvider>
               </motion.div>
 
-              {/* Delta chip — bottom right */}
-              <motion.div
-                key="corner-delta"
-                initial={{ opacity: 0, scale: 1.4, x: '-50%', y: '-60%' }}
-                animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.05 }}
-                className="absolute bottom-2 right-2 z-20"
-              >
-                <div
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold ${deltaColor}`}
-                  style={{
-                    background: 'rgba(255,255,255,0.72)',
-                    backdropFilter: 'blur(6px)',
-                    WebkitBackdropFilter: 'blur(6px)',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
-                  }}
-                  aria-label={
-                    scoreDelta > 0
-                      ? `Up ${scoreDelta} from yesterday`
-                      : scoreDelta < 0
-                        ? `Down ${Math.abs(scoreDelta)} from yesterday`
-                        : 'Unchanged from yesterday'
-                  }
+              {/* Delta chip — bottom right (only shown when user has logged today with a non-zero delta) */}
+              {hasLoggedToday && scoreDelta !== 0 && (
+                <motion.div
+                  key="corner-delta"
+                  initial={{ opacity: 0, scale: 1.4, x: '-50%', y: '-60%' }}
+                  animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 180, damping: 22, delay: 0.05 }}
+                  className="absolute bottom-2 right-2 z-20"
                 >
-                  <DeltaIcon />
-                  <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>
-                    {scoreDelta === 0 ? '0' : `${scoreDelta > 0 ? '+' : ''}${scoreDelta}`}
-                  </span>
-                </div>
-              </motion.div>
+                  <div
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold ${deltaColor}`}
+                    style={{
+                      background: 'rgba(255,255,255,0.72)',
+                      backdropFilter: 'blur(6px)',
+                      WebkitBackdropFilter: 'blur(6px)',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+                    }}
+                    aria-label={
+                      scoreDelta > 0
+                        ? `Up ${scoreDelta} from yesterday`
+                        : `Down ${Math.abs(scoreDelta)} from yesterday`
+                    }
+                  >
+                    <DeltaIcon />
+                    <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>
+                      {`${scoreDelta > 0 ? '+' : ''}${scoreDelta}`}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
             </React.Fragment>
           )}
         </AnimatePresence>

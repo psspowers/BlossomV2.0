@@ -96,14 +96,27 @@ export function Dashboard() {
         setCycleDay(analysis.currentDay);
       }
 
-      if (allLogs.length >= 2) {
-        const sorted = [...allLogs].sort((a, b) => a.date.localeCompare(b.date));
-        const priorLogs = sorted.slice(0, -1);
-        if (priorLogs.length > 0) {
-          const yesterdayResult = await calculateBlossomScore(priorLogs);
-          setScoreDelta(scoreResult.score - yesterdayResult.score);
+      // Only compute an honest delta if the user has logged today.
+      // Use a true date-based yesterday window instead of slice(0,-1)
+      // which produced phantom improvements when old bad days aged out.
+      if (allLogs.some((log) => log.date === today)) {
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+
+        const yesterdayLogs = await db.logs
+          .where('date')
+          .belowOrEqual(yesterdayStr)
+          .toArray();
+
+        if (yesterdayLogs.length > 0) {
+          const yesterdayScoreResult = await calculateBlossomScore(yesterdayLogs);
+          const delta = Math.round(scoreResult.score - yesterdayScoreResult.score);
+          setScoreDelta(delta);
         }
+        // New user with only today's log: leave scoreDelta at 0
       }
+      // No log today: leave scoreDelta at 0 — no badge will show
     };
     loadCompassionateData();
   }, []);
@@ -160,6 +173,7 @@ export function Dashboard() {
           scoreDelta={scoreDelta}
           season={season}
           mode={themeState.mode}
+          hasLoggedToday={hasLoggedToday}
         />
 
         <TodayHero
