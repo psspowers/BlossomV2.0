@@ -2,7 +2,7 @@
 
 **Complete breakdown of pages, features, and True North alignment**
 
-**Last Updated**: April 18, 2026 (v3.6 — In-App Blossom Companion, Telegram/Discord purge)
+**Last Updated**: May 26, 2026 (v3.7 — Dashboard honest-state guards, WellnessRadar refactor, Navbar fix, iOS App Store submission)
 
 ---
 
@@ -184,9 +184,20 @@ After onboarding completion, user enters the main app with:
 - **Files**: `src/components/CycleContext.tsx`
 
 #### Wellness Radar Chart
-- **What it does**: Spider chart of symptom categories (last 7 days)
-- **True North tie**: **Seen** - Visual snapshot of symptom patterns
-- **Categories**: Acne, hirsutism, hair loss, bloating, cramps
+- **What it does**: Five-axis spider chart showing the most recent logged day's wellness balance
+- **True North tie**: **Seen** - Honest visual snapshot — shows only what was actually logged
+- **Five axes**:
+  - Physical: cramps, acne, bloating, hirsutism
+  - Metabolic: sleep, diet, energy
+  - Emotional: mood, stress, anxiety
+  - Cycle: menstrual regularity stability score
+  - Lifestyle: exercise, hydration
+- **Honest state design**:
+  - Unlogged fields render as null (axis collapses) rather than a false 5/10
+  - If today has no log, an invitation card appears in place of the chart
+  - Dashed ring = neutral reference at 5/10 (not a goal or population average)
+  - Freshness caption shows source date when viewing data from a previous day
+  - Card header reads "TODAY'S BALANCE" or "LAST BALANCE" accordingly
 - **Files**: `src/components/WellnessRadar.tsx`
 
 #### Floating Action Button (FAB)
@@ -480,10 +491,35 @@ All messages are classified locally before any network call via `companionRouter
 | Clinical Snapshot | `SettingsModal.tsx` | Aggregation logic | Reads all `user_logs` |
 | Theme Switch | `SettingsModal.tsx` | `ThemeContext.tsx` | `user_settings` |
 | Cycle Ring | `CycleRing.tsx` | `cycle.ts` | Reads `user_logs.cyclePhase` |
-| Wellness Radar | `WellnessRadar.tsx` | Aggregation | Last 7 days avg |
+| Wellness Radar | `WellnessRadar.tsx` | Null-safe per-field normalization | Most recent logged day (props from Dashboard) |
 | Account Deletion | `SettingsModal.tsx` | Supabase + IndexedDB cleanup | Deletes from all tables |
 | Blossom Companion (Chat) | `BlossomCompanion.tsx` | `blossomChatService.ts`, `companionRouter.ts` | Supabase Edge Function (`blossom-chat`) |
 | Crisis Escalation | `CrisisSupport.tsx` | `escalationService.ts` | Supabase Edge Function (`crisis-alert`) |
+
+---
+
+## iOS / Apple App Store Distribution (v3.7)
+
+Blossom is packaged as a native iOS app using **Capacitor 8** on top of the Vite/React PWA build.
+
+### Build Command
+```bash
+npm run build:ios
+# Runs: tsc && CAPACITOR_BUILD=true vite build && npx cap sync ios
+```
+
+### Key Files
+- `capacitor.config.ts` — App ID, server URL, Capacitor plugin config
+- `ios/App/` — Xcode project (open with Xcode to archive and submit)
+- `ios/App/App/capacitor.config.json` — Runtime config synced from root
+- `ios/App/App/Info.plist` — iOS permissions, bundle identifier
+- `ios/App/App/Assets.xcassets/` — App icon and splash screen assets
+
+### App Store Submission Notes
+- Bundle ID: configured in `capacitor.config.ts`
+- Privacy usage strings required in `Info.plist` for any device capabilities
+- No tracking, no analytics, no ATT prompt required (privacy-first architecture)
+- Minimum iOS target: as configured in Xcode project settings
 
 ---
 

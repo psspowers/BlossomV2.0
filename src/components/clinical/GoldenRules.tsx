@@ -79,9 +79,10 @@ function ExceptionsSection() {
     {
       title: 'Symptom Absence Assumption',
       items: [
-        'Unreported symptom = normalizeSymptom(undefined) = 10 (maximum wellness)',
-        'Assumes absent report means absent symptom',
-        'Clinically reasonable for longitudinal self-tracking, not for acute assessment',
+        'Score engine: unreported symptom = normalizeSymptom(undefined) = 10 (maximum wellness). Assumes absent report means absent symptom.',
+        'Radar chart: unreported dimension renders as null (no data point plotted), not 10. The polygon deflates or collapses rather than showing a false high.',
+        'Both behaviours are intentional: the score rewards absence of reported symptoms; the radar shows only what the user actually logged.',
+        'Clinically reasonable for longitudinal self-tracking, not for acute assessment.',
       ],
     },
     {

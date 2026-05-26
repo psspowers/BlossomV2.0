@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               className="group p-2 rounded-full hover:bg-stone-100 transition-colors"
               aria-label="Clinical Guide"
             >
-              <Stethoscope size={22} className="text-stone-500 group-hover:text-stone-800 transition-colors" />
+              <Stethoscope size={22} className="text-stone-700 group-hover:text-stone-900 transition-colors" />
             </button>
 
             {/* Education / Library */}
@@ -95,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               className="group p-2 rounded-full hover:bg-emerald-50 transition-colors"
               aria-label="Education Library"
             >
-              <BookOpen size={22} className="text-stone-500 group-hover:text-emerald-700 transition-colors" />
+              <BookOpen size={22} className="text-stone-700 group-hover:text-emerald-700 transition-colors" />
             </button>
 
             {/* Notifications */}
@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               className="relative group p-2 rounded-full hover:bg-rose-50 transition-colors"
               aria-label="Notifications"
             >
-              <Bell size={22} className="text-stone-500 group-hover:text-[#E07A9A] transition-colors" />
+              <Bell size={22} className="text-stone-700 group-hover:text-[#E07A9A] transition-colors" />
               {/* Notification Dot with Pulse */}
               <motion.span
                 animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
@@ -217,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
               className="group p-2 rounded-full hover:bg-rose-50 transition-colors"
               aria-label="Settings"
             >
-              <Settings size={22} className="text-stone-500 group-hover:text-[#E07A9A] transition-colors" />
+              <Settings size={22} className="text-stone-700 group-hover:text-[#E07A9A] transition-colors" />
             </button>
           </div>
         </div>

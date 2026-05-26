@@ -1,7 +1,7 @@
 # Blossom - Technical Manual
 
-**Version**: 3.6 (In-App Blossom Companion, Telegram/Discord purge)
-**Last Updated**: April 18, 2026
+**Version**: 3.7 (Dashboard honest-state guards, WellnessRadar props-driven refactor, Navbar visibility fix, iOS App Store submission)
+**Last Updated**: May 26, 2026
 **Target Audience**: Developers, DevOps, Technical Operators, Documentation Architects
 
 ---
@@ -535,9 +535,29 @@ interface FormData {
 
 #### 6. WellnessRadar (`WellnessRadar.tsx`)
 
-**Purpose**: Radar chart showing symptom balance
+**Purpose**: Radar chart showing the most recent logged day's wellness balance across five axes
 
-**Data Source**: Last 7 days average for each symptom category
+**Props** (v3.7 — props-driven, no internal DB fetch):
+```typescript
+interface WellnessRadarProps {
+  logs: LogEntry[];          // Passed from Dashboard (no duplicate DB query)
+  hasLoggedToday: boolean;   // Controls card header text
+  mostRecentLogDate: string | null;  // Drives freshness caption
+}
+```
+
+**Five axes and their source fields**:
+- **Physical**: cramps, acne, bloating, hirsutism — `normalizeSymptom()` per field
+- **Metabolic**: energy (customValues), sleep — `normalizeSleep()`, diet — `normalizeDiet()`
+- **Emotional**: mood — `normalizeMood()`, stress — `normalizeStress()`, anxiety — `normalizeAnxiety()`
+- **Cycle**: `cycleState.stabilityScore / 10`
+- **Lifestyle**: exercise — `normalizeExercise()`, waterIntake — `normalizeWater()`
+
+**Null handling**: Fields not logged produce `null` (not a default 5). `calculateAverage()` skips nulls. An axis with all-null inputs collapses the polygon on that vertex rather than showing a false reading.
+
+**Freshness caption**: When `mostRecentLogDate !== today`, a caption below the chart shows the source date ("Based on your last log · May 24").
+
+**Empty state**: When `hasLoggedToday` is false, `Dashboard.tsx` renders an invitation card in place of the radar. The radar is only mounted when `hasLoggedToday` is true, ensuring the chart always reflects the current day.
 
 #### 7. CycleContext (`CycleContext.tsx`)
 
@@ -1771,10 +1791,32 @@ window.addEventListener('error', (event) => {
 
 ## Version History
 
-### v1.0.0 (Current)
+### v3.7.0 (May 2026 — Current)
+- **Dashboard honest-state guards**: WellnessLotus hides delta arrow until today is logged; radar shows invitation empty state when no log today; card header switches between "TODAY'S BALANCE" and "LAST BALANCE"
+- **WellnessRadar refactor**: Removed internal DB fetch; component is now fully props-driven (`logs`, `hasLoggedToday`, `mostRecentLogDate`); null-fill replaces false default 5 for unlogged fields; freshness caption added
+- **Navbar icon visibility**: All four icon buttons raised from `text-stone-500` to `text-stone-700` for sufficient contrast against the cream gradient header
+- **Clinical Guide accuracy fixes**: Overview corrected to five factors; Symptom Absence Assumption entry now distinguishes score engine (default 10) from radar (null / no point)
+- **iOS / Apple App Store**: App packaged with Capacitor 8 for iOS; `npm run build:ios` builds and syncs to Xcode; `capacitor.config.ts` and `ios/` directory present
+
+### v3.6.0 (April 2026)
+- In-app Blossom Companion (Supabase Edge Function `blossom-chat` proxy)
+- Crisis escalation overlay (`CrisisSupport.tsx`, `crisis-alert` Edge Function)
+- Telegram/Discord external chat integration removed
+- Dashboard preferences table (`user_dashboard_preferences`) added
+- Haptics support (`useHaptics.ts`)
+
+### v3.0.0 (March 2026)
+- Supabase cloud database integration
+- Email/password authentication via Supabase Auth
+- Onboarding flow (Welcome, Auth, Priority Selector)
+- `user_priorities`, `user_logs`, `user_settings` cloud tables
+- Row Level Security across all tables
+- Delete account feature (full cloud + local wipe)
+- Demo profiles (5 clinical personas)
+
+### v1.0.0
 - Initial release
 - Theme system (Tesla-Apple, Lotus Garden)
-- Achievement system
 - PWA support
 - Full TypeScript
 - Comprehensive insights

@@ -1,9 +1,9 @@
 # Clinical System Report: The Blossom Wellness Engine
 
 **Subject**: Algorithm Methodology, Scoring Logic, and Interpretation Guide
-**Version**: 1.0 (MVP)
+**Version**: 1.2
 **Target Pathology**: Polycystic Ovary Syndrome (PCOS) & Comorbidities
-**Last Updated**: March 2026
+**Last Updated**: May 2026
 
 ---
 
@@ -17,9 +17,11 @@ The system operates on a **"Normalize-First" architecture**: heterogeneous input
 
 ## 2. Scoring Methodology
 
-The composite score is derived from four orthogonal factors, calculated over a **7-day rolling window**.
+The composite score is derived from four orthogonal factors, calculated over a **7-day rolling window** (sourced from a 14-day data pull).
 
-### 2.1 The Four Factors
+> **Note on the Wellness Radar vs the Blossom Score**: The Wellness Radar chart uses five display axes (Physical, Metabolic, Emotional, Cycle, Lifestyle), which map onto but do not precisely align with the four score factors below. The Metabolic score factor combines sleep, diet, and energy; the Lifestyle axis on the radar shows exercise and hydration. See Section 3.1 for radar-specific interpretation.
+
+### 2.1 The Four Score Factors
 
 | Factor | Base Weight | Clinical Definition |
 |--------|-------------|---------------------|
@@ -52,14 +54,24 @@ To prevent the system from rewarding "burnout" behavior, the Self-Care algorithm
 
 ### 3.1 The Wellness Radar (5-Axis Spider Chart)
 
-A snapshot of the patient's balance **today**.
+A snapshot of the patient's balance **based on the most recent logged day**.
 
 - **Axes**: Physical, Metabolic, Emotional, Cycle, Lifestyle.
+- **Dimension breakdown**:
+  - **Physical**: cramps, acne, bloating, hirsutism (inverted severity)
+  - **Metabolic**: energy, sleep quality, diet quality
+  - **Emotional**: mood, inverse-stress, inverse-anxiety
+  - **Cycle**: menstrual regularity stability score (derived from full cycle history)
+  - **Lifestyle**: exercise regularity, hydration
 - **Scale**: 0 (Critical) to 10 (Optimal).
-- **Baseline**: The chart includes a dashed "Neutral" line at 5.0.
+- **Baseline**: Dashed ring at 5.0 (neutral reference — not a target or average).
+- **Null handling**: If a dimension has no data logged (e.g., all symptom fields left blank), that axis renders as null — the polygon deflates rather than showing a false value. This differs from the score engine, which defaults absent symptoms to 10 (maximum wellness, assumes symptom absent).
+- **Freshness**: When the most recent log is not from today, a caption below the chart identifies the source date. The card header reads "LAST BALANCE" instead of "TODAY'S BALANCE".
+- **Empty state**: If no log has been recorded today, an invitation card is shown in place of the radar.
 
 **Interpretation**:
 - **Asymmetry**: A chart expanding toward "Metabolic" but collapsing on "Emotional" indicates the patient is adhering to lifestyle protocols but suffering psychological distress.
+- **Collapsed axis**: An axis with no data point indicates the patient did not log that dimension on their most recent entry — it is not a zero score.
 
 ### 3.2 Trend Velocity (Longitudinal Analysis)
 
@@ -91,7 +103,9 @@ A **"Rest Day"** (No exercise) is scored as **Neutral (5/10)**, not Failure (0/1
 
 ### Rule 2: Missing Data Strategy (Passive Logging)
 
-**Numeric Symptoms**: Undefined = **10 (Perfect)**. If a patient does not touch the "Acne" slider, the system assumes the symptom is absent.
+**Numeric Symptoms (Blossom Score engine)**: Undefined = **10 (Perfect)**. If a patient does not touch the "Acne" slider, the score engine assumes the symptom is absent.
+
+**Wellness Radar chart**: Undefined dimension = **null (no point plotted)**. The radar does not substitute a default — only logged fields contribute to the radar shape. This ensures the visual accurately reflects what was actually recorded, rather than implying absent symptoms are optimal.
 
 **Categorical Lifestyle**: Undefined = **5 (Neutral)**. If a patient skips the "Diet" question, the system assumes average behavior, avoiding penalties for administrative fatigue.
 
@@ -413,6 +427,8 @@ For developers implementing or auditing this system:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | May 2026 | Radar chart null-fill behaviour documented; Score vs Radar distinction clarified; Wellness Radar axis breakdown expanded; missing data section updated; freshness/empty-state behaviour added; iOS/Apple App Store deployment noted |
+| 1.1 | April 2026 | In-app Blossom Companion architecture; iOS Capacitor build added; Telegram/Discord external chat removed |
 | 1.0 | March 2026 | Initial clinical system report (MVP scope) |
 
 ---

@@ -130,9 +130,10 @@ function PipelineContent() {
         </h3>
         <p className="text-sm text-slate-600 leading-relaxed">
           The Blossom Score is a 0-100 point weighted composite wellness index designed for
-          individuals managing PCOS. It integrates self-reported data across four orthogonal
-          factors -- physical symptoms, self-care consistency, emotional wellness, and menstrual
-          cycle stability -- into a single longitudinal tracking metric.
+          individuals managing PCOS. It integrates self-reported data across <strong>five orthogonal
+          factors</strong> -- Physical (symptom severity), Metabolic (sleep, energy, diet),
+          Emotional (mood, stress, anxiety), Cycle (menstrual regularity), and Lifestyle
+          (exercise, hydration) -- into a single longitudinal tracking metric.
         </p>
       </div>
 
