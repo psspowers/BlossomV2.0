@@ -11,7 +11,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'production' && VitePWA({
+    VitePWA({
+      disable: process.env.CAPACITOR_BUILD === 'true' || mode !== 'production',
       registerType: 'autoUpdate',
       includeAssets: ['logo.png'],
       manifest: {
@@ -58,8 +59,8 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       }
-    })
-  ].filter(Boolean),
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

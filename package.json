@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "build:ios": "tsc && vite build && npx cap sync ios",
+    "build:ios": "tsc && CAPACITOR_BUILD=true vite build && npx cap sync ios",
     "generate-assets": "capacitor-assets generate",
     "lint": "eslint .",
     "preview": "vite preview"
