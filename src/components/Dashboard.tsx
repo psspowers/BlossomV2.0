@@ -17,6 +17,7 @@ import { InfoPopover } from './ui/InfoPopover';
 import { TodaysInsight } from './TodaysInsight';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 import { DailyLog } from './DailyLog';
 import { ClinicalGuide } from './clinical/ClinicalGuide';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
@@ -53,6 +54,8 @@ export function Dashboard() {
   const [scoreDelta, setScoreDelta] = useState<number>(0);
   const [cycleDay, setCycleDay] = useState<number | undefined>(undefined);
   const [hasLoggedToday, setHasLoggedToday] = useState<boolean>(false);
+  const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
+  const [mostRecentLogDate, setMostRecentLogDate] = useState<string | null>(null);
   const [season, setSeason] = useState<SeasonState>({
     currentSeason: 'resting',
     message: 'Loading your season...',
@@ -88,6 +91,9 @@ export function Dashboard() {
       setSeason(seasonState);
 
       const allLogs = await db.logs.orderBy('date').toArray();
+      setAllLogs(allLogs);
+      const sortedDesc = [...allLogs].sort((a, b) => b.date.localeCompare(a.date));
+      setMostRecentLogDate(sortedDesc[0]?.date || null);
       const today = new Date().toISOString().slice(0, 10);
       setHasLoggedToday(allLogs.some((log) => log.date === today));
 
@@ -196,14 +202,32 @@ export function Dashboard() {
             <CycleContext />
           </div>
 
-          <div className="glass-card min-h-80">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-1">
-              <h2 className="text-sm font-serif font-medium text-slate-700 uppercase tracking-wide">
-                {t('dashboard.todays_balance')}
+          <div className="glass-card min-h-[320px] flex flex-col">
+            <div className="p-4 border-b border-stone-100 flex items-center gap-1">
+              <h2 className="text-sm font-sans font-bold text-stone-400 uppercase tracking-widest">
+                {hasLoggedToday ? "TODAY'S BALANCE" : "LAST BALANCE"}
               </h2>
               <InfoPopover termKey="todays_balance" onOpenEducation={handleOpenEducation} />
             </div>
-            <WellnessRadar />
+
+            {!hasLoggedToday ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                <div className="p-4 bg-gradient-to-br from-sage-50 to-rose-50 rounded-2xl mb-6">
+                  <Sparkles className="w-10 h-10 text-sage-600" />
+                </div>
+                <h3 className="font-serif text-lg text-stone-800 mb-2">Ready for today?</h3>
+                <p className="text-stone-600 text-sm max-w-[240px]">
+                  No check-in recorded yet.<br />
+                  Tap the <span className="font-medium text-sage-700">+ button</span> below to log and see your balance.
+                </p>
+              </div>
+            ) : (
+              <WellnessRadar
+                logs={allLogs}
+                hasLoggedToday={hasLoggedToday}
+                mostRecentLogDate={mostRecentLogDate}
+              />
+            )}
           </div>
 
           <TodaysInsight />
