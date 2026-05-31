@@ -30,7 +30,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   const cornerTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const prefersReducedMotion = useRef<boolean>(
     typeof window !== 'undefined' &&
-      window.matchMedia &&
+      typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 

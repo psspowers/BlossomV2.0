@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { getLastNDays } from '../lib/db';
 import { calculateBlossomScore } from '../lib/logic/blossomScore';
 import { format, subDays } from 'date-fns';
+import { safeStorage } from '../lib/storage';
 
 interface ContextualPromptsProps {
   onOpenChat?: () => void;
@@ -29,11 +30,11 @@ function getTodayKey(promptId: string): string {
 }
 
 function wasShownToday(promptId: string): boolean {
-  return !!localStorage.getItem(getTodayKey(promptId));
+  return !!safeStorage.getItem(getTodayKey(promptId));
 }
 
 function markShownToday(promptId: string): void {
-  localStorage.setItem(getTodayKey(promptId), '1');
+  safeStorage.setItem(getTodayKey(promptId), '1');
 }
 
 async function evaluatePrompts(): Promise<Prompt | null> {
@@ -89,16 +90,16 @@ async function evaluatePrompts(): Promise<Prompt | null> {
   }
 
   const prevSeasonKey = 'prev_companion_season';
-  const prevSeason = localStorage.getItem(prevSeasonKey);
+  const prevSeason = safeStorage.getItem(prevSeasonKey);
   const bloomingCelebratedKey = 'blossom_blooming_celebrated';
   if (
     scoreResult.score >= 70 &&
     prevSeason !== 'blooming' &&
-    !localStorage.getItem(bloomingCelebratedKey) &&
+    !safeStorage.getItem(bloomingCelebratedKey) &&
     !wasShownToday('first_blooming')
   ) {
-    localStorage.setItem(prevSeasonKey, 'blooming');
-    localStorage.setItem(bloomingCelebratedKey, '1');
+    safeStorage.setItem(prevSeasonKey, 'blooming');
+    safeStorage.setItem(bloomingCelebratedKey, '1');
     return {
       id: 'first_blooming',
       message: "You're blooming! 🌸 Your consistency is showing up beautifully.",
@@ -108,15 +109,15 @@ async function evaluatePrompts(): Promise<Prompt | null> {
       ],
     };
   } else if (scoreResult.score < 70 && prevSeason === 'blooming') {
-    localStorage.removeItem(prevSeasonKey);
+    safeStorage.removeItem(prevSeasonKey);
   }
 
   if (logs.length >= 7) {
     const sevenDaysAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd');
     const streakLogs = logs.filter((l) => l.date >= sevenDaysAgo);
     const streakCelebratedKey = 'blossom_streak_7_celebrated';
-    if (streakLogs.length >= 7 && !localStorage.getItem(streakCelebratedKey) && !wasShownToday('seven_day_streak')) {
-      localStorage.setItem(streakCelebratedKey, '1');
+    if (streakLogs.length >= 7 && !safeStorage.getItem(streakCelebratedKey) && !wasShownToday('seven_day_streak')) {
+      safeStorage.setItem(streakCelebratedKey, '1');
       return {
         id: 'seven_day_streak',
         message: "Seven days of showing up for yourself 💛 That's real self-care.",

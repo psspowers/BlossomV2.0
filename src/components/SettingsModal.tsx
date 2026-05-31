@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabase';
 import { jsPDF } from 'jspdf';
 import { exportClinicalPDF } from '../lib/utils/exportPDF';
 import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
+import { safeStorage } from '../lib/storage';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -28,7 +29,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'th' : 'en';
     i18n.changeLanguage(newLang);
-    localStorage.setItem('blossom_language', newLang);
+    safeStorage.setItem('blossom_language', newLang);
   };
   const { generateHistory } = usePCOSSeeder();
   const [loadingPersona, setLoadingPersona] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
-    const preview = localStorage.getItem(DEMO_PREVIEW_KEY);
+    const preview = safeStorage.getItem(DEMO_PREVIEW_KEY);
     if (preview) {
       setDemoActive(preview);
       setIsRestoring(true);
@@ -250,8 +251,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       await db.logs.clear();
       await db.settings.clear();
       await db.backupLogs.clear();
-      localStorage.setItem(USER_DELETED_KEY, 'true');
-      localStorage.removeItem(DEMO_PREVIEW_KEY);
+      safeStorage.setItem(USER_DELETED_KEY, 'true');
+      safeStorage.removeItem(DEMO_PREVIEW_KEY);
 
       setShowDeleteConfirm(false);
       window.location.reload();
@@ -273,8 +274,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         console.warn('[Logout] Supabase remote sign-out failed or device is offline. Proceeding to clear local state.', supabaseError);
       }
 
-      localStorage.clear();
-      sessionStorage.clear();
+      safeStorage.clear();
+      try { sessionStorage.clear(); } catch { /* noop */ }
 
       onClose();
       window.location.reload();
@@ -299,26 +300,33 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`;
-        await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        try {
+          await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
       }
 
-      localStorage.clear();
+      safeStorage.clear();
       await supabase.auth.signOut();
 
       setShowDeleteAccountConfirm(false);
-      window.location.href = '/';
+      window.location.href = '/#/';
     } catch (error) {
       console.error('Account deletion failed:', error);
       toast.error('Local data cleared. If server deletion failed, please contact support at blossom@yamdagni.com');
-      localStorage.clear();
+      safeStorage.clear();
       await supabase.auth.signOut();
-      window.location.href = '/';
+      window.location.href = '/#/';
     } finally {
       setIsDeletingAccount(false);
     }
@@ -326,13 +334,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   const handleLoadPersona = async (name: 'Emma' | 'Sophia' | 'Olivia' | 'Ava' | 'Isabella') => {
     setLoadingPersona(name);
-    const isAlreadyPreviewing = !!localStorage.getItem(DEMO_PREVIEW_KEY);
+    const isAlreadyPreviewing = !!safeStorage.getItem(DEMO_PREVIEW_KEY);
     if (!isAlreadyPreviewing) {
       await backupUserLogs();
     }
     await generateHistory(name);
-    localStorage.setItem(DEMO_PREVIEW_KEY, name);
-    localStorage.removeItem(USER_DELETED_KEY);
+    safeStorage.setItem(DEMO_PREVIEW_KEY, name);
+    safeStorage.removeItem(USER_DELETED_KEY);
     window.location.reload();
   };
 

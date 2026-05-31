@@ -6,6 +6,7 @@ import { seedDatabase } from "./lib/seed";
 import { ThemeProvider } from "./lib/themes/ThemeContext";
 import { db, DEMO_PREVIEW_KEY, USER_DELETED_KEY } from "./lib/db";
 import { supabase } from "./lib/supabase";
+import { safeStorage } from "./lib/storage";
 import { WelcomeStep } from "./components/onboarding/WelcomeStep";
 import { AuthStep } from "./components/onboarding/AuthStep";
 import { PrioritySelector } from "./components/onboarding/PrioritySelector";
@@ -23,18 +24,6 @@ type OnboardingStep = 'welcome' | 'auth' | 'priorities';
 
 // HashRouter paths use the hash fragment, so public path detection checks hash
 const PUBLIC_HASH_PATHS = ['/privacy', '/terms', '/reset-password', '/sources'];
-
-const safeLocalStorage = {
-  getItem: (key: string): string | null => {
-    try { return localStorage.getItem(key); } catch { return null; }
-  },
-  removeItem: (key: string): void => {
-    try { localStorage.removeItem(key); } catch { /* noop */ }
-  },
-  clear: (): void => {
-    try { localStorage.clear(); } catch { /* noop */ }
-  },
-};
 
 const AppInner = () => {
   const location = useLocation();
@@ -125,18 +114,25 @@ const AppInner = () => {
 
       // Local DB is empty — this could be a reinstall or new device.
       // Check Supabase to see if the user already completed onboarding on another device.
+      // Race against a 5-second timeout so this never hangs the loading screen.
       try {
-        const { data, error } = await supabase
-          .from('user_priorities')
-          .select('priority_id')
-          .eq('user_id', session.user.id)
-          .limit(1);
+        const result = await Promise.race([
+          supabase
+            .from('user_priorities')
+            .select('priority_id')
+            .eq('user_id', session.user.id)
+            .limit(1),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
 
-        if (!error && data && data.length > 0) {
-          // User has priorities in the cloud — treat as onboarding complete.
-          // The PrioritySelector would overwrite their cloud priorities if shown.
-          setOnboardingComplete(true);
-          return;
+        if (result !== null) {
+          const { data, error } = result;
+          if (!error && data && data.length > 0) {
+            setOnboardingComplete(true);
+            return;
+          }
+        } else {
+          console.warn('[App] Cloud onboarding check timed out, proceeding to onboarding');
         }
       } catch (err) {
         console.warn('[App] Cloud onboarding check failed:', err);
@@ -152,7 +148,7 @@ const AppInner = () => {
     try {
       setIsResetting(true);
       await db.delete();
-      safeLocalStorage.clear();
+      safeStorage.clear();
       window.location.reload();
     } catch (err) {
       console.error('[App] Reset failed:', err);
@@ -176,7 +172,7 @@ const AppInner = () => {
       try {
         await db.open();
 
-        const isInDemo = !!safeLocalStorage.getItem(DEMO_PREVIEW_KEY);
+        const isInDemo = !!safeStorage.getItem(DEMO_PREVIEW_KEY);
         if (!isInDemo) {
           await seedDatabase();
         }
@@ -268,7 +264,7 @@ const AppInner = () => {
     return (
       <PrioritySelector
         onNext={() => {
-          safeLocalStorage.removeItem(USER_DELETED_KEY);
+          safeStorage.removeItem(USER_DELETED_KEY);
           setOnboardingComplete(true);
           requestNotificationPermission();
         }}

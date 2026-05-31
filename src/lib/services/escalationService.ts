@@ -1,16 +1,17 @@
 import { supabase } from '../supabase';
+import { safeStorage } from '../storage';
 
 const CRISIS_ALERT_RATE_KEY = 'blossom_crisis_alert_last';
 const CRISIS_ALERT_COOLDOWN_MS = 30 * 60 * 1000;
 
 function canFireCrisisAlert(): boolean {
-  const last = localStorage.getItem(CRISIS_ALERT_RATE_KEY);
+  const last = safeStorage.getItem(CRISIS_ALERT_RATE_KEY);
   if (!last) return true;
   return Date.now() - parseInt(last) > CRISIS_ALERT_COOLDOWN_MS;
 }
 
 function markCrisisAlertFired(): void {
-  localStorage.setItem(CRISIS_ALERT_RATE_KEY, String(Date.now()));
+  safeStorage.setItem(CRISIS_ALERT_RATE_KEY, String(Date.now()));
 }
 
 export async function triggerEscalation(message: string): Promise<void> {
@@ -19,12 +20,17 @@ export async function triggerEscalation(message: string): Promise<void> {
   markCrisisAlertFired();
 
   try {
-    await supabase.functions.invoke('crisis-alert', {
-      body: {
-        message: message.slice(0, 200),
-        timestamp: new Date().toISOString(),
-      },
-    });
+    await Promise.race([
+      supabase.functions.invoke('crisis-alert', {
+        body: {
+          message: message.slice(0, 200),
+          timestamp: new Date().toISOString(),
+        },
+      }),
+      new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error('Crisis alert timed out')), 10000)
+      ),
+    ]);
   } catch (error) {
     console.error('Crisis alert dispatch failed:', error);
   }

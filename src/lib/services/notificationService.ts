@@ -1,3 +1,5 @@
+import { safeStorage } from '../storage';
+
 export async function requestWithInAppConsent(): Promise<boolean> {
   if (!('Notification' in window)) return false;
   if (Notification.permission === 'granted') return true;
@@ -5,7 +7,7 @@ export async function requestWithInAppConsent(): Promise<boolean> {
 
   const permission = await Notification.requestPermission();
   if (permission === 'granted') {
-    localStorage.setItem('blossom_reminders_enabled', 'true');
+    safeStorage.setItem('blossom_reminders_enabled', 'true');
     return true;
   }
   return false;
@@ -20,7 +22,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export function checkAndFireReminder(): void {
-  const enabled = localStorage.getItem('blossom_reminders_enabled') === 'true';
+  const enabled = safeStorage.getItem('blossom_reminders_enabled') === 'true';
   if (!enabled || Notification.permission !== 'granted') return;
 
   const now = new Date();
@@ -50,7 +52,7 @@ export function checkAndFireReminder(): void {
 
   reminders.forEach((reminder) => {
     const storageKey = `blossom_reminder_${reminder.key}_${todayKey}`;
-    if (hour >= reminder.hour && !localStorage.getItem(storageKey)) {
+    if (hour >= reminder.hour && !safeStorage.getItem(storageKey)) {
       try {
         new Notification(reminder.title, {
           body: reminder.body,
@@ -58,7 +60,7 @@ export function checkAndFireReminder(): void {
           badge: '/logo-icon.png',
           tag: `blossom-${reminder.key}`,
         });
-        localStorage.setItem(storageKey, 'shown');
+        safeStorage.setItem(storageKey, 'shown');
       } catch {
       }
     }
@@ -67,7 +69,7 @@ export function checkAndFireReminder(): void {
 
 export function areRemindersEnabled(): boolean {
   return (
-    localStorage.getItem('blossom_reminders_enabled') === 'true' &&
+    safeStorage.getItem('blossom_reminders_enabled') === 'true' &&
     Notification.permission === 'granted'
   );
 }
@@ -77,6 +79,6 @@ export function scheduleProactiveReminder(): void {
 }
 
 export function cancelProactiveReminders(): void {
-  localStorage.removeItem('blossom_reminders_enabled');
-  localStorage.removeItem('last_proactive_reminder');
+  safeStorage.removeItem('blossom_reminders_enabled');
+  safeStorage.removeItem('last_proactive_reminder');
 }

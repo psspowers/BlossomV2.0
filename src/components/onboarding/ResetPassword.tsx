@@ -42,7 +42,7 @@ export function ResetPassword() {
       if (updateError) throw updateError;
       setSuccess(true);
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = '/#/';
       }, 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -75,7 +75,7 @@ export function ResetPassword() {
             This password reset link is invalid or has expired. Please request a new one.
           </p>
           <a
-            href="/"
+            href="/#/"
             className="inline-block px-6 py-3 bg-slate-800 text-white rounded-2xl text-sm font-medium hover:bg-slate-700 transition-colors"
           >
             Back to App

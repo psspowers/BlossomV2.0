@@ -11,6 +11,7 @@ import {
   normalizeMood, normalizeStress, normalizeAnxiety
 } from '../lib/logic/conversions';
 import { v4 as uuidv4 } from 'uuid';
+import { safeStorage } from '../lib/storage';
 
 interface BlossomCompanionProps {
   blossomScore: number;
@@ -40,13 +41,13 @@ const SESSION_COUNT_KEY = 'blossom_session_count';
 const SESSION_MAX = 3;
 
 function checkSessionLimit(): boolean {
-  const count = parseInt(sessionStorage.getItem(SESSION_COUNT_KEY) || '0');
+  const count = parseInt(safeStorage.sessionGet(SESSION_COUNT_KEY) || '0');
   return count < SESSION_MAX;
 }
 
 function incrementSessionCount(): void {
-  const count = parseInt(sessionStorage.getItem(SESSION_COUNT_KEY) || '0');
-  sessionStorage.setItem(SESSION_COUNT_KEY, String(count + 1));
+  const count = parseInt(safeStorage.sessionGet(SESSION_COUNT_KEY) || '0');
+  safeStorage.sessionSet(SESSION_COUNT_KEY, String(count + 1));
 }
 
 export function BlossomCompanion({
