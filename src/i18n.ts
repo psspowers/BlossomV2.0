@@ -64,11 +64,19 @@ const resources = {
   }
 };
 
+const getStoredLanguage = (): string => {
+  try {
+    return localStorage.getItem('blossom_language') || 'en';
+  } catch {
+    return 'en';
+  }
+};
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem('blossom_language') || 'en',
+    lng: getStoredLanguage(),
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false

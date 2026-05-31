@@ -9,11 +9,18 @@ export interface DashboardPreferences {
   hapticsEnabled: boolean;
 }
 
+const getLocalDisclaimer = (): boolean => {
+  try {
+    return localStorage.getItem('blossom_disclaimer_acknowledged') === 'true';
+  } catch {
+    return false;
+  }
+};
+
 const DEFAULTS: DashboardPreferences = {
   dockCollapsed: false,
   density: 'comfortable',
-  // Offline shield read: default to cached local value if database is unreachable
-  disclaimerAcknowledged: typeof window !== 'undefined' && localStorage.getItem('blossom_disclaimer_acknowledged') === 'true',
+  disclaimerAcknowledged: typeof window !== 'undefined' ? getLocalDisclaimer() : false,
   lastAction: 'log',
   hapticsEnabled: true,
 };
@@ -44,13 +51,27 @@ export function useDashboardPreferences() {
           return;
         }
 
-        const { data, error } = await supabase
-          .from('user_dashboard_preferences')
-          .select('dock_collapsed, density, disclaimer_acknowledged, last_action, haptics_enabled')
-          .eq('user_id', userId)
-          .maybeSingle();
+        // Race the Supabase query against a 5-second timeout so a stalled
+        // network call never leaves DisclaimerGate loading forever on iOS.
+        const result = await Promise.race([
+          supabase
+            .from('user_dashboard_preferences')
+            .select('dock_collapsed, density, disclaimer_acknowledged, last_action, haptics_enabled')
+            .eq('user_id', userId)
+            .maybeSingle(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
 
         if (cancelled) return;
+
+        if (result === null) {
+          // Timed out — fall back to local cached values and unblock the UI
+          console.warn('[DashboardPrefs] Query timed out, using local defaults');
+          setLoading(false);
+          return;
+        }
+
+        const { data, error } = result;
 
         if (error) {
           console.warn('[DashboardPrefs] Failed to load preferences, using defaults:', error.message);
@@ -86,7 +107,9 @@ export function useDashboardPreferences() {
 
     // 2. Offline shield write: cache consent locally immediately
     if (patch.disclaimerAcknowledged !== undefined) {
-      localStorage.setItem('blossom_disclaimer_acknowledged', String(patch.disclaimerAcknowledged));
+      try {
+        localStorage.setItem('blossom_disclaimer_acknowledged', String(patch.disclaimerAcknowledged));
+      } catch { /* noop */ }
     }
 
     try {

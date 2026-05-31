@@ -4,15 +4,25 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.warn('[Supabase] Missing environment variables — auth features will be unavailable.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Lazy accessor avoids touching window.localStorage at module evaluation time,
+// which can crash on WKWebView before the storage layer is ready.
+const getStorage = () => {
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
+};
+
+export const supabase = createClient(supabaseUrl ?? '', supabaseAnonKey ?? '', {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
-    storage: window.localStorage,
+    storage: getStorage(),
     storageKey: 'blossom-auth-token',
     flowType: 'pkce'
   }

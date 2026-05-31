@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Dashboard } from "./components/Dashboard";
 import { useEffect, useState } from "react";
 import { seedDatabase } from "./lib/seed";
@@ -21,7 +21,20 @@ const queryClient = new QueryClient();
 
 type OnboardingStep = 'welcome' | 'auth' | 'priorities';
 
-const PUBLIC_PATHS = ['/privacy', '/terms', '/reset-password', '/sources'];
+// HashRouter paths use the hash fragment, so public path detection checks hash
+const PUBLIC_HASH_PATHS = ['/privacy', '/terms', '/reset-password', '/sources'];
+
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try { return localStorage.getItem(key); } catch { return null; }
+  },
+  removeItem: (key: string): void => {
+    try { localStorage.removeItem(key); } catch { /* noop */ }
+  },
+  clear: (): void => {
+    try { localStorage.clear(); } catch { /* noop */ }
+  },
+};
 
 const AppInner = () => {
   const location = useLocation();
@@ -35,19 +48,37 @@ const AppInner = () => {
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
-  const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
+  // HashRouter stores path after #, e.g. /#/privacy → location.pathname = /privacy
+  const isPublicPath = PUBLIC_HASH_PATHS.includes(location.pathname);
 
   useEffect(() => {
+    let settled = false;
+
     const initAuth = async () => {
       try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('[Auth] Session retrieval error:', error);
+        // Race the Supabase session call against an 8-second timeout so a stalled
+        // network request on first launch never leaves authLoading=true forever.
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+        ]);
+
+        if (!settled) {
+          if (sessionResult && 'data' in sessionResult) {
+            if (sessionResult.error) {
+              console.error('[Auth] Session retrieval error:', sessionResult.error);
+            }
+            setSession(sessionResult.data.session);
+          } else {
+            // Timed out — treat as logged-out to unblock the UI
+            console.warn('[Auth] getSession timed out, proceeding as unauthenticated');
+            setSession(null);
+          }
         }
-        setSession(currentSession);
       } catch (err) {
         console.error('[Auth] Failed to get session:', err);
       } finally {
+        settled = true;
         setAuthLoading(false);
       }
     };
@@ -72,7 +103,10 @@ const AppInner = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      settled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -82,9 +116,33 @@ const AppInner = () => {
     }
 
     const checkOnboarding = async () => {
+      // Check local IndexedDB first (fast path)
       const settings = await db.settings.toCollection().first();
-      const hasCompletedOnboarding = !!(settings?.priorities && settings.priorities.length > 0);
-      setOnboardingComplete(hasCompletedOnboarding);
+      if (settings?.priorities && settings.priorities.length > 0) {
+        setOnboardingComplete(true);
+        return;
+      }
+
+      // Local DB is empty — this could be a reinstall or new device.
+      // Check Supabase to see if the user already completed onboarding on another device.
+      try {
+        const { data, error } = await supabase
+          .from('user_priorities')
+          .select('priority_id')
+          .eq('user_id', session.user.id)
+          .limit(1);
+
+        if (!error && data && data.length > 0) {
+          // User has priorities in the cloud — treat as onboarding complete.
+          // The PrioritySelector would overwrite their cloud priorities if shown.
+          setOnboardingComplete(true);
+          return;
+        }
+      } catch (err) {
+        console.warn('[App] Cloud onboarding check failed:', err);
+      }
+
+      setOnboardingComplete(false);
     };
 
     checkOnboarding();
@@ -94,7 +152,7 @@ const AppInner = () => {
     try {
       setIsResetting(true);
       await db.delete();
-      localStorage.clear();
+      safeLocalStorage.clear();
       window.location.reload();
     } catch (err) {
       console.error('[App] Reset failed:', err);
@@ -118,7 +176,7 @@ const AppInner = () => {
       try {
         await db.open();
 
-        const isInDemo = !!localStorage.getItem(DEMO_PREVIEW_KEY);
+        const isInDemo = !!safeLocalStorage.getItem(DEMO_PREVIEW_KEY);
         if (!isInDemo) {
           await seedDatabase();
         }
@@ -210,7 +268,7 @@ const AppInner = () => {
     return (
       <PrioritySelector
         onNext={() => {
-          localStorage.removeItem(USER_DELETED_KEY);
+          safeLocalStorage.removeItem(USER_DELETED_KEY);
           setOnboardingComplete(true);
           requestNotificationPermission();
         }}
@@ -238,9 +296,9 @@ const AppInner = () => {
 };
 
 const App = () => (
-  <BrowserRouter>
+  <HashRouter>
     <AppInner />
-  </BrowserRouter>
+  </HashRouter>
 );
 
 export default App;
