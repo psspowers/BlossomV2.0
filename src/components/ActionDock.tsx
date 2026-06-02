@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Plus, MessageCircleHeart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useHaptics } from '../lib/hooks/useHaptics';
 
 interface ActionDockProps {
@@ -18,6 +19,7 @@ const modeAccent: Record<'nurture' | 'steady' | 'thrive', string> = {
 export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionDockProps) {
   const primary = modeAccent[mode];
   const { trigger: haptic } = useHaptics();
+  const navigate = useNavigate();
 
   return (
     <motion.nav
@@ -30,9 +32,20 @@ export function ActionDock({ mode, onLogDay, onAskBlossom, lastAction }: ActionD
     >
       <div className="mx-auto max-w-xl px-4 pb-3">
         <div className="flex flex-col bg-white/95 backdrop-blur-md border border-stone-200 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] p-2 gap-1.5">
-          <p className="text-[10px] text-center text-stone-400 px-2 pt-0.5 leading-snug">
-            For personal tracking only — not medical advice. Always consult your provider.
-          </p>
+          <div className="text-center px-2 pt-0.5 space-y-0.5">
+            <p className="text-[10px] text-stone-400 leading-snug">
+              For personal tracking only — not medical advice. Always consult your provider.
+            </p>
+            <p className="text-[10px] text-stone-400 italic leading-snug">
+              Scoring methodology grounded in Rotterdam Criteria &amp; Teede et al. 2023 Guidelines.{' '}
+              <button
+                onClick={() => navigate('/sources')}
+                className="text-sage-600 hover:underline font-medium not-italic"
+              >
+                View Sources
+              </button>
+            </p>
+          </div>
           <div className="flex items-stretch gap-2">
           <button
             onClick={() => { haptic('medium'); onLogDay(); }}
