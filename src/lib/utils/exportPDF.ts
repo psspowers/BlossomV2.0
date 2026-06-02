@@ -367,8 +367,11 @@ const generateLifestylePage = (doc: jsPDF, logs: any[]) => {
     }
 
     if (water !== undefined && water !== null) {
-      totalHydration += water;
-      hydrationDays++;
+      const waterValue = Number(water);
+      if (!isNaN(waterValue) && waterValue > 0) {
+        totalHydration += waterValue;
+        hydrationDays++;
+      }
     }
 
     if (sleepStr !== undefined && sleepStr !== null) {
