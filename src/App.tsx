@@ -105,40 +105,14 @@ const AppInner = () => {
     }
 
     const checkOnboarding = async () => {
-      // Check local IndexedDB first (fast path)
-      const settings = await db.settings.toCollection().first();
-      if (settings?.priorities && settings.priorities.length > 0) {
-        setOnboardingComplete(true);
-        return;
-      }
-
-      // Local DB is empty — this could be a reinstall or new device.
-      // Check Supabase to see if the user already completed onboarding on another device.
-      // Race against a 5-second timeout so this never hangs the loading screen.
       try {
-        const result = await Promise.race([
-          supabase
-            .from('user_priorities')
-            .select('priority_id')
-            .eq('user_id', session.user.id)
-            .limit(1),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-        ]);
-
-        if (result !== null) {
-          const { data, error } = result;
-          if (!error && data && data.length > 0) {
-            setOnboardingComplete(true);
-            return;
-          }
-        } else {
-          console.warn('[App] Cloud onboarding check timed out, proceeding to onboarding');
-        }
+        const settings = await db.settings.toCollection().first();
+        const hasCompletedOnboarding = !!(settings?.priorities && settings.priorities.length > 0);
+        setOnboardingComplete(hasCompletedOnboarding);
       } catch (err) {
-        console.warn('[App] Cloud onboarding check failed:', err);
+        console.error('[App] Failed local onboarding evaluation:', err);
+        setOnboardingComplete(false);
       }
-
-      setOnboardingComplete(false);
     };
 
     checkOnboarding();
