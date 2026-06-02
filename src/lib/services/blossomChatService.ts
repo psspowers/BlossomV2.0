@@ -56,7 +56,7 @@ export async function sendMessage(
           anonymisedContext,
         },
       }),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000)),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 25000)),
     ]);
 
     if (result === null) {

@@ -503,6 +503,24 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <button
                   onClick={() => {
                     onClose();
+                    navigate('/sources');
+                  }}
+                  className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:border-stone-300 hover:shadow-md transition-all group"
+                >
+                  <div className="p-2 bg-sage-50 rounded-lg text-sage-600 shadow-sm group-hover:bg-sage-100 transition-colors">
+                    <Beaker size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-serif text-stone-800 font-medium group-hover:text-sage-800 transition-colors">
+                      Clinical Sources & References
+                    </p>
+                    <p className="text-xs text-stone-500">View the evidence-based medical guidelines behind Blossom</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onClose();
                     navigate('/privacy');
                   }}
                   className="flex items-center gap-4 p-4 bg-white border border-stone-200 rounded-xl text-left hover:bg-stone-50 transition-colors"

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { SeasonState } from '../lib/logic/seasons';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 
@@ -22,6 +23,7 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
   name = 'Your Journey',
   hasLoggedToday = false,
 }) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -362,6 +364,19 @@ export const WellnessLotus: React.FC<WellnessLotusProps> = ({
             </React.Fragment>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Scoring methodology citation — Guideline 1.4.1 compliance */}
+      <div className="mt-3 pt-3 border-t border-stone-100 w-full max-w-[300px] sm:max-w-[360px] flex items-center justify-between">
+        <p className="text-[10px] text-stone-400 italic">
+          Scoring grounded in Rotterdam Criteria &amp; Teede et al. 2023 Guidelines.
+        </p>
+        <button
+          onClick={() => navigate('/sources')}
+          className="text-[10px] font-medium text-sage-600 hover:underline flex items-center gap-0.5 ml-2 flex-shrink-0"
+        >
+          View Sources
+        </button>
       </div>
 
     </div>

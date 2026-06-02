@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, ShieldCheck } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useNavigate } from 'react-router-dom';
 import { sendMessage, isDataQuestion, ChatMessage } from '../lib/services/blossomChatService';
 import { isCrisisMessage, triggerEscalation } from '../lib/services/escalationService';
 import { CrisisSupport } from './CrisisSupport';
@@ -59,6 +60,7 @@ export function BlossomCompanion({
 }: BlossomCompanionProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
+  const navigate = useNavigate();
 
   const setIsOpen = (val: boolean) => {
     if (val && !checkSessionLimit()) return;
@@ -172,7 +174,7 @@ export function BlossomCompanion({
             resolve(
               "I'm here for you 🌸 It's taking a little longer than usual — please try again in a moment."
             ),
-          15000
+          25000
         )
       );
       const reply = await Promise.race([sendMessage(messageText, blossomScore, season), timeout]);
@@ -192,6 +194,27 @@ export function BlossomCompanion({
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const CITATION_RE = /(\[[^\]]+\d{4}[^\]]*\])/g;
+
+  const renderWithCitations = (text: string) => {
+    const parts = text.split(CITATION_RE);
+    return parts.map((part, i) =>
+      /^\[[^\]]+\d{4}[^\]]*\]$/.test(part) ? (
+        <button
+          key={i}
+          onClick={() => navigate('/sources')}
+          className="inline underline font-medium"
+          style={{ color: 'rgb(251,191,195)' }}
+          aria-label="View clinical sources"
+        >
+          {part}
+        </button>
+      ) : (
+        part
+      )
+    );
   };
 
   return (
@@ -286,7 +309,7 @@ export function BlossomCompanion({
                             }
                       }
                     >
-                      {msg.content}
+                      {msg.role === 'assistant' ? renderWithCitations(msg.content) : msg.content}
                     </div>
                   </motion.div>
                 ))}
