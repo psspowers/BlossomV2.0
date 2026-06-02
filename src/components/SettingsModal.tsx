@@ -363,6 +363,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   return (
     <AnimatePresence>
       <motion.div
+        key="settings-main-backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -678,6 +679,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showExportWarning && (
         <motion.div
+          key="settings-export-warning"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
@@ -722,6 +724,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showDeleteConfirm && (
         <motion.div
+          key="settings-delete-confirm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
@@ -758,6 +761,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showDeleteAccountConfirm && (
         <motion.div
+          key="settings-delete-account"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
@@ -809,6 +813,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showRecalibrateWarning && (
         <motion.div
+          key="settings-recalibrate-warning"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
@@ -864,6 +869,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
       {showPriorityEditor && (
         <motion.div
+          key="settings-priority-editor"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"

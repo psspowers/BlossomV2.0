@@ -255,15 +255,34 @@ const generateCycleDetailsPage = (doc: jsPDF, logs: any[]) => {
   yPos = addSectionHeader(doc, 'Menstrual Cycle Pattern', yPos);
 
   const analysis = analyzeHistory(logs);
+  const cycleHistory = analysis.cycleHistory || [];
+  const validLengths = cycleHistory
+    .map((event: any) => event.daysFromPrevious)
+    .filter((len: any): len is number => typeof len === 'number' && len > 0);
 
-  if (analysis.cycleLengths.length > 0) {
-    addText(doc, `Average Cycle Length: ${Math.round(analysis.avgCycleLength)} days`, 25, yPos);
+  if (validLengths.length > 0) {
+    const avgCycleLength = Math.round(validLengths.reduce((sum: number, len: number) => sum + len, 0) / validLengths.length);
+
+    let stabilityLabel = 'Stable';
+    if (analysis.variability !== undefined) {
+      if (analysis.variability > 7) stabilityLabel = 'Highly Variable';
+      else if (analysis.variability > 3) stabilityLabel = 'Moderate Variability';
+    }
+
+    let patternLabel = 'Regular Cycles';
+    if (analysis.isLongCycle) {
+      patternLabel = 'Extended Cycles (>35 days)';
+    } else if (analysis.variability !== undefined && analysis.variability > 7) {
+      patternLabel = 'Irregular Cycles';
+    }
+
+    addText(doc, `Average Cycle Length: ${avgCycleLength} days`, 25, yPos);
     yPos += 6;
-    addText(doc, `Total Cycles Tracked: ${analysis.cycleLengths.length}`, 25, yPos);
+    addText(doc, `Total Cycles Tracked: ${validLengths.length}`, 25, yPos);
     yPos += 6;
-    addText(doc, `Cycle Stability: ${analysis.stability}`, 25, yPos);
+    addText(doc, `Cycle Stability: ${stabilityLabel}`, 25, yPos);
     yPos += 6;
-    addText(doc, `Pattern: ${analysis.pattern}`, 25, yPos);
+    addText(doc, `Pattern: ${patternLabel}`, 25, yPos);
     yPos += 10;
   } else {
     addText(doc, 'Insufficient cycle data available.', 25, yPos, { color: COLORS.lightGray });
@@ -276,7 +295,7 @@ const generateCycleDetailsPage = (doc: jsPDF, logs: any[]) => {
   logs.forEach(log => {
     const symptoms = log.symptoms || {};
     Object.keys(symptoms).forEach(symptom => {
-      if (symptoms[symptom]) {
+      if (symptoms[symptom] !== undefined && symptoms[symptom] > 0) {
         symptomCounts[symptom] = (symptomCounts[symptom] || 0) + 1;
       }
     });
@@ -333,35 +352,59 @@ const generateLifestylePage = (doc: jsPDF, logs: any[]) => {
   let sleepDays = 0;
 
   logs.forEach(log => {
-    if (log.exercise !== undefined && log.exercise !== null) {
-      totalExercise += log.exercise;
+    const exercise = log.lifestyle?.exercise;
+    const water = log.lifestyle?.waterIntake;
+    const sleepStr = log.lifestyle?.sleep;
+
+    if (exercise !== undefined && exercise !== null) {
+      let exerciseScore = 0;
+      const exLower = String(exercise).toLowerCase();
+      if (exLower === 'light') exerciseScore = 3;
+      else if (exLower === 'moderate') exerciseScore = 6;
+      else if (exLower === 'intense') exerciseScore = 10;
+      totalExercise += exerciseScore;
       exerciseDays++;
     }
-    if (log.hydration !== undefined && log.hydration !== null) {
-      totalHydration += log.hydration;
+
+    if (water !== undefined && water !== null) {
+      totalHydration += water;
       hydrationDays++;
     }
-    if (log.sleep !== undefined && log.sleep !== null) {
-      totalSleep += log.sleep;
-      sleepDays++;
+
+    if (sleepStr !== undefined && sleepStr !== null) {
+      const match = String(sleepStr).match(/\d+/);
+      const sleepValue = match ? parseInt(match[0], 10) : 0;
+      if (sleepValue > 0) {
+        totalSleep += sleepValue;
+        sleepDays++;
+      }
     }
   });
 
   if (exerciseDays > 0) {
     const avgExercise = (totalExercise / exerciseDays).toFixed(1);
-    addText(doc, `Average Exercise: ${avgExercise}/10`, 25, yPos);
+    addText(doc, `Average Activity Index: ${avgExercise}/10`, 25, yPos);
+    yPos += 6;
+  } else {
+    addText(doc, 'Average Activity Index: No data recorded', 25, yPos, { color: COLORS.lightGray });
     yPos += 6;
   }
 
   if (hydrationDays > 0) {
     const avgHydration = (totalHydration / hydrationDays).toFixed(1);
-    addText(doc, `Average Hydration: ${avgHydration}/10`, 25, yPos);
+    addText(doc, `Average Water Intake: ${avgHydration} glasses/day`, 25, yPos);
+    yPos += 6;
+  } else {
+    addText(doc, 'Average Water Intake: No data recorded', 25, yPos, { color: COLORS.lightGray });
     yPos += 6;
   }
 
   if (sleepDays > 0) {
     const avgSleep = (totalSleep / sleepDays).toFixed(1);
-    addText(doc, `Average Sleep Quality: ${avgSleep}/10`, 25, yPos);
+    addText(doc, `Average Sleep: ${avgSleep} hours/night`, 25, yPos);
+    yPos += 10;
+  } else {
+    addText(doc, 'Average Sleep: No data recorded', 25, yPos, { color: COLORS.lightGray });
     yPos += 10;
   }
 
