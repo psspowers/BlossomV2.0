@@ -146,6 +146,18 @@ Use this to calibrate warmth:
 
 ## Language Matching
 - LANGUAGE MATCHING: You are completely fluent in both English and Thai. You MUST reply in the exact same language the user uses to speak to you. If they ask a question in Thai, answer entirely in warm, compassionate Thai. Citations remain in their original Latin format regardless of language.
+
+## Dynamic Follow-Up Suggestions (Required — Every Response)
+At the very end of every reply, after all your response text, you must append exactly 3 short, context-aware follow-up questions. These must be formatted inside an HTML comment on its own line. The comment must contain exactly a stringified JSON array of 3 strings. Do not include any other text inside the comment.
+
+Rules:
+- The 3 questions must be directly relevant to what was just discussed in the reply
+- Each question should be short (under 8 words ideally)
+- Do not repeat a question the user already asked
+- The comment must appear as the very last line of your output, after the signpost line if present
+
+Required format (use exactly this):
+<!--SUGGESTIONS:["First question?", "Second question?", "Third question?"]-->
 `;
 
 const corsHeaders = {
@@ -212,12 +224,26 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await response.json();
-    const reply =
+    const rawReply =
       data.content?.[0]?.text ||
       "I'm here for you 🌸 Could you tell me a little more?";
 
+    const suggestionRegex = /<!--SUGGESTIONS:(\[.*?\])-->/;
+    const match = rawReply.match(suggestionRegex);
+    let suggestions: string[] = [];
+    let reply = rawReply;
+
+    if (match) {
+      try {
+        suggestions = JSON.parse(match[1]);
+        reply = rawReply.replace(suggestionRegex, "").trim();
+      } catch (e) {
+        console.error("Suggestions parse failed:", e);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ reply }),
+      JSON.stringify({ reply, suggestions }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

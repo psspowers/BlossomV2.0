@@ -22,7 +22,7 @@ interface BlossomCompanionProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const SUGGESTED_PROMPTS = [
+const DEFAULT_PROMPTS = [
   "Why do I feel this way?",
   "Is this normal for PCOS?",
   "I'm struggling today 💛",
@@ -76,6 +76,7 @@ export function BlossomCompanion({
   const [loading, setLoading] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>(DEFAULT_PROMPTS);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -168,16 +169,17 @@ export function BlossomCompanion({
       }, 800);
       return;
     } else {
-      const timeout = new Promise<string>((resolve) =>
+      const timeout = new Promise<{ reply: string; suggestions: string[] }>((resolve) =>
         setTimeout(
           () =>
-            resolve(
-              "I'm here for you 🌸 It's taking a little longer than usual — please try again in a moment."
-            ),
+            resolve({
+              reply: "I'm here for you 🌸 It's taking a little longer than usual — please try again in a moment.",
+              suggestions: [],
+            }),
           25000
         )
       );
-      const reply = await Promise.race([sendMessage(messageText, blossomScore, season), timeout]);
+      const { reply, suggestions } = await Promise.race([sendMessage(messageText, blossomScore, season), timeout]);
       setLoading(false);
       const assistantMsg: ChatMessage = {
         id: uuidv4(),
@@ -186,6 +188,9 @@ export function BlossomCompanion({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      if (suggestions.length >= 3) {
+        setSuggestedPrompts(suggestions.slice(0, 5));
+      }
     }
   };
 
@@ -355,7 +360,7 @@ export function BlossomCompanion({
                 style={{ borderTop: '1px solid rgba(244,114,182,0.1)' }}
               >
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-                  {SUGGESTED_PROMPTS.map((prompt) => (
+                  {suggestedPrompts.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => handleSend(prompt)}

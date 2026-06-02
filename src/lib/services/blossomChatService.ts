@@ -37,13 +37,26 @@ function checkRateLimit(): boolean {
   return true;
 }
 
+export interface ChatResponse {
+  reply: string;
+  suggestions: string[];
+}
+
 export async function sendMessage(
   userMessage: string,
   blossomScore: number,
   season: string
-): Promise<string> {
+): Promise<ChatResponse> {
+  const fallback: ChatResponse = {
+    reply: "I'm here for you 🌸 There was a small hiccup — please try again in a moment.",
+    suggestions: [],
+  };
+
   if (!checkRateLimit()) {
-    return "You've been chatting a lot today 🌸 Take a moment to rest, and I'll be here when you're ready.";
+    return {
+      reply: "You've been chatting a lot today 🌸 Take a moment to rest, and I'll be here when you're ready.",
+      suggestions: [],
+    };
   }
 
   const anonymisedContext = buildAnonymisedContext(blossomScore, season);
@@ -60,19 +73,25 @@ export async function sendMessage(
     ]);
 
     if (result === null) {
-      return "I'm here for you 🌸 It's taking a moment — please try again shortly.";
+      return {
+        reply: "I'm here for you 🌸 It's taking a moment — please try again shortly.",
+        suggestions: [],
+      };
     }
 
     const { data, error } = result;
     if (error) {
       console.error('Chat error:', error);
-      return "I'm here for you 🌸 There was a small hiccup — please try again in a moment.";
+      return fallback;
     }
 
-    return data?.reply || "I'm here for you 🌸 Could you tell me a little more?";
+    return {
+      reply: data?.reply || "I'm here for you 🌸 Could you tell me a little more?",
+      suggestions: Array.isArray(data?.suggestions) ? data.suggestions : [],
+    };
   } catch (error) {
     console.error('Chat error:', error);
-    return "I'm here for you 🌸 There was a small hiccup — please try again in a moment.";
+    return fallback;
   }
 }
 
