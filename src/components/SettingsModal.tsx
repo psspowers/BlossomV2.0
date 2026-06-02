@@ -682,7 +682,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-export-warning"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setShowExportWarning(false)}
         >
           <motion.div
@@ -727,7 +727,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-delete-confirm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setShowDeleteConfirm(false)}
         >
           <motion.div
@@ -764,7 +764,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-delete-account"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setShowDeleteAccountConfirm(false)}
         >
           <motion.div
@@ -816,7 +816,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-recalibrate-warning"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setShowRecalibrateWarning(false)}
         >
           <motion.div
@@ -872,7 +872,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-priority-editor"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
           onClick={() => setShowPriorityEditor(false)}
         >
           <motion.div
