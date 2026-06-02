@@ -817,7 +817,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           key="settings-recalibrate-warning"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/20 z-[90] flex items-center justify-center p-4"
           onClick={() => setShowRecalibrateWarning(false)}
         >
           <motion.div
