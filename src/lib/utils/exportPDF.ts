@@ -1,5 +1,4 @@
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import { db } from '../db';
 import { format } from 'date-fns';
 import { analyzeHistory } from '../logic/cycle';
@@ -139,74 +138,49 @@ const generateOverviewPage = async (doc: jsPDF, logs: any[], priorities: any[]) 
   addText(doc, `Date Range: ${dateRange}`, 25, yPos);
   yPos += 6;
 
-  const latestLog = logs[logs.length - 1];
-  if (latestLog) {
-    const season = calculateSeason(latestLog);
-    addText(doc, `Current Season: ${season.name}`, 25, yPos);
-    yPos += 6;
+  // Calculate score and season using the real async API
+  const scoreResult = await calculateBlossomScore();
+  const season = await calculateSeason(scoreResult.score);
 
-    const blossomScore = calculateBlossomScore({
-      symptoms: latestLog.symptoms || {},
-      mood: latestLog.mood || 5,
-      energy: latestLog.energy || 5,
-      sleep: latestLog.sleep || 5,
-    });
-    addText(doc, `Current Wellness Score: ${blossomScore.total}/100`, 25, yPos);
-    yPos += 10;
-  }
+  addText(doc, `Current Season: ${season.currentSeason.charAt(0).toUpperCase() + season.currentSeason.slice(1)}`, 25, yPos);
+  yPos += 6;
+  addText(doc, `Current Wellness Score: ${Math.round(scoreResult.score)}/100`, 25, yPos);
+  yPos += 10;
 
   yPos = addSectionHeader(doc, 'Wellness Score Breakdown', yPos);
 
-  if (latestLog) {
-    const blossomScore = calculateBlossomScore({
-      symptoms: latestLog.symptoms || {},
-      mood: latestLog.mood || 5,
-      energy: latestLog.energy || 5,
-      sleep: latestLog.sleep || 5,
-    });
+  const categories = [
+    { name: 'Physical Health', score: scoreResult.symptomFactor },
+    { name: 'Mental Wellbeing', score: scoreResult.emotionalFactor },
+    { name: 'Self-Care Consistency', score: scoreResult.selfCareFactor },
+    { name: 'Cycle Stability', score: scoreResult.stabilityFactor },
+  ];
 
-    const categories = [
-      { name: 'Physical Health', score: blossomScore.physical },
-      { name: 'Mental Wellbeing', score: blossomScore.mental },
-      { name: 'Hormonal Balance', score: blossomScore.hormonal },
-      { name: 'Lifestyle Factors', score: blossomScore.lifestyle },
-    ];
+  categories.forEach((cat) => {
+    addText(doc, cat.name, 25, yPos);
 
-    categories.forEach((cat) => {
-      addText(doc, cat.name, 25, yPos);
+    doc.setFillColor(...COLORS.sage);
+    doc.rect(80, yPos - 3, (cat.score / 100) * 80, 4, 'F');
 
-      doc.setFillColor(...COLORS.sage);
-      doc.rect(80, yPos - 3, (cat.score / 25) * 80, 4, 'F');
+    doc.setDrawColor(...COLORS.lightGray);
+    doc.rect(80, yPos - 3, 80, 4);
 
-      doc.setDrawColor(...COLORS.lightGray);
-      doc.rect(80, yPos - 3, 80, 4);
+    addText(doc, `${Math.round(cat.score)}`, 165, yPos);
 
-      addText(doc, `${cat.score}/25`, 165, yPos);
-
-      yPos += 8;
-    });
-  }
+    yPos += 8;
+  });
 
   yPos += 5;
   yPos = addSectionHeader(doc, 'Current Bloom Status', yPos);
 
-  if (latestLog) {
-    const blossomScore = calculateBlossomScore({
-      symptoms: latestLog.symptoms || {},
-      mood: latestLog.mood || 5,
-      energy: latestLog.energy || 5,
-      sleep: latestLog.sleep || 5,
-    });
+  let bloomStatus = 'Budding';
+  if (scoreResult.score >= 75) bloomStatus = 'Full Bloom';
+  else if (scoreResult.score >= 50) bloomStatus = 'Blooming';
+  else if (scoreResult.score >= 25) bloomStatus = 'Growing';
 
-    let bloomStatus = 'Budding';
-    if (blossomScore.total >= 75) bloomStatus = 'Full Bloom';
-    else if (blossomScore.total >= 50) bloomStatus = 'Blooming';
-    else if (blossomScore.total >= 25) bloomStatus = 'Growing';
-
-    addText(doc, bloomStatus, 25, yPos, { fontSize: 12, bold: true, color: COLORS.sage });
-    yPos += 6;
-    addText(doc, `Overall wellness trajectory based on tracked symptoms and lifestyle factors.`, 25, yPos, { fontSize: 9, color: COLORS.lightGray });
-  }
+  addText(doc, bloomStatus, 25, yPos, { fontSize: 12, bold: true, color: COLORS.sage });
+  yPos += 6;
+  addText(doc, `Overall wellness trajectory based on tracked symptoms and lifestyle factors.`, 25, yPos, { fontSize: 9, color: COLORS.lightGray });
 
   addWatermark(doc, 2, 5);
 };
@@ -445,11 +419,18 @@ const generateLifestylePage = (doc: jsPDF, logs: any[]) => {
 export const exportClinicalPDF = async (options: PDFExportOptions = {}) => {
   try {
     const logs = await db.logs.orderBy('date').toArray();
-    const priorities = [];
 
     if (logs.length === 0) {
       throw new Error('No data available to export. Please track some symptoms first.');
     }
+
+    const settings = await db.settings.toCollection().first();
+    const priorityIds: string[] = settings?.priorities || [];
+    const happinessWeights: Record<string, number> = settings?.happinessWeights || {};
+    const priorities = priorityIds.map(id => ({
+      name: id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      happiness_impact: happinessWeights[id] ?? 5,
+    }));
 
     const doc = new jsPDF({
       orientation: 'portrait',
