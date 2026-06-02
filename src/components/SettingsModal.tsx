@@ -138,21 +138,22 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           setPendingPriorities(priorities);
           setShowRecalibrateWarning(true);
         } else {
-          handleUpdatePriorities();
+          handleUpdatePriorities(priorities);
         }
       }
     });
   };
 
-  const handleUpdatePriorities = async () => {
+  const handleUpdatePriorities = async (prioritiesToSave?: Array<{ id: string; label: string; happiness: number }>) => {
+    const list = prioritiesToSave ?? priorities;
     try {
       setIsSavingPriorities(true);
       const settings = await db.settings.toCollection().first();
       if (!settings) return;
 
-      const priorityIds = priorities.map(p => p.id);
+      const priorityIds = list.map(p => p.id);
       const happinessWeights: Record<string, number> = {};
-      priorities.forEach(p => {
+      list.forEach(p => {
         happinessWeights[p.id] = p.happiness;
       });
 
@@ -847,6 +848,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 onClick={() => {
                   setShowRecalibrateWarning(false);
                   setPendingPriorities([]);
+                  loadPriorities();
                 }}
                 className="flex-1 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors"
               >
@@ -854,8 +856,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               </button>
               <button
                 onClick={() => {
-                  setPriorities(pendingPriorities);
-                  handleUpdatePriorities();
+                  handleUpdatePriorities(pendingPriorities);
                 }}
                 disabled={isSavingPriorities}
                 className="flex-1 px-4 py-3 bg-sage-600 hover:bg-sage-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
