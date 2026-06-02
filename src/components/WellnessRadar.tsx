@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -38,6 +39,7 @@ function calculateAverage(values: (number | null)[]): number | null {
 
 export function WellnessRadar({ logs, mostRecentLogDate }: WellnessRadarProps) {
   const today = new Date().toISOString().split('T')[0];
+  const navigate = useNavigate();
 
   const chartData = useMemo(() => {
     if (logs.length === 0) return null;
@@ -178,6 +180,17 @@ export function WellnessRadar({ logs, mostRecentLogDate }: WellnessRadarProps) {
           {new Date(mostRecentLogDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </p>
       )}
+      <div className="flex items-center justify-center gap-1 mt-2">
+        <p className="text-[10px] text-stone-400 italic">
+          Indicators grounded in Rotterdam Criteria &amp; Teede et al. 2023.
+        </p>
+        <button
+          onClick={() => navigate('/sources')}
+          className="text-[10px] font-medium text-sage-600 hover:underline flex-shrink-0"
+        >
+          View Sources
+        </button>
+      </div>
     </div>
   );
 }

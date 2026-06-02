@@ -176,27 +176,36 @@ Deno.serve(async (req: Request) => {
       throw new Error("API key not configured");
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 1024,
-        system: BLOSSOM_SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: anonymisedContext
-              ? `Context: ${anonymisedContext}\n\n${trimmedMessage}`
-              : trimmedMessage,
-          },
-        ],
-      }),
-    });
+    const anthropicAbort = new AbortController();
+    const anthropicTimeout = setTimeout(() => anthropicAbort.abort(), 22000);
+
+    let response: Response;
+    try {
+      response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        signal: anthropicAbort.signal,
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5",
+          max_tokens: 512,
+          system: BLOSSOM_SYSTEM_PROMPT,
+          messages: [
+            {
+              role: "user",
+              content: anonymisedContext
+                ? `Context: ${anonymisedContext}\n\n${trimmedMessage}`
+                : trimmedMessage,
+            },
+          ],
+        }),
+      });
+    } finally {
+      clearTimeout(anthropicTimeout);
+    }
 
     if (!response.ok) {
       throw new Error(`Anthropic API error: ${response.status}`);
