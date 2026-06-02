@@ -16,6 +16,7 @@ import { ActionDock } from './ActionDock';
 import { InfoPopover } from './ui/InfoPopover';
 import { TodaysInsight } from './TodaysInsight';
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { DailyLog } from './DailyLog';
@@ -28,6 +29,7 @@ import { useDashboardPreferences } from '../lib/hooks/useDashboardPreferences';
 
 export function Dashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { plantState, loading: plantLoading } = usePlantState();
   const { themeState, loading: themeLoading } = useInterfaceMode();
   const [showDailyLog, setShowDailyLog] = useState(false);
@@ -234,6 +236,22 @@ export function Dashboard() {
         </div>
 
         <Insights />
+
+        {/* UNIFIED COMPLIANCE FOOTER (Guideline 1.4.1) */}
+        <div className="mt-5 mb-8 text-center space-y-0.5 px-2 bg-white/40 rounded-2xl py-3 border border-stone-100/50">
+          <p className="text-[9.5px] text-stone-400 tracking-wide leading-normal">
+            Personal tracking only; not medical advice. Consult your doctor before making medical decisions.
+          </p>
+          <p className="text-[9.5px] text-stone-400 italic tracking-wide leading-normal">
+            Grounded in Rotterdam Criteria &amp; Teede 2023 Guidelines.{' '}
+            <button
+              onClick={() => navigate('/sources')}
+              className="text-sage-600 hover:underline font-medium not-italic ml-0.5"
+            >
+              View Sources
+            </button>
+          </p>
+        </div>
       </div>
 
       <ActionDock
