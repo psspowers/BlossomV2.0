@@ -73,6 +73,26 @@ export function useWisdomEngine() {
         console.error('Error caching wisdom:', err);
       }
 
+      // Persist to Dexie whisper history (one entry per day, upsert by date)
+      try {
+        const existing = await db.whispers.where('date').equals(today).first();
+        if (!existing) {
+          await db.whispers.add({
+            date: today,
+            text: selectedCard.text,
+            category: selectedCard.category,
+            savedAt: Date.now(),
+          });
+          // Keep only last 90 days
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 90);
+          const cutoffStr = cutoff.toISOString().split('T')[0];
+          await db.whispers.where('date').below(cutoffStr).delete();
+        }
+      } catch (err) {
+        console.error('Error persisting whisper:', err);
+      }
+
       setLoading(false);
     } catch (err) {
       console.error('Error analyzing wisdom:', err);

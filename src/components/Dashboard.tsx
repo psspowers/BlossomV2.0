@@ -3,6 +3,7 @@ import { usePlantState, useInterfaceMode } from '../lib/hooks/useInsights';
 import { WellnessLotus } from './WellnessLotus';
 import { WellnessRadar } from './WellnessRadar';
 import { CycleContext } from './CycleContext';
+import { WhisperHistory } from './WhisperHistory';
 import { Insights } from './Insights';
 import { SettingsModal } from './SettingsModal';
 import { Education } from './Education';
@@ -38,6 +39,7 @@ export function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [showClinicalGuide, setShowClinicalGuide] = useState(false);
+  const [showWhisperHistory, setShowWhisperHistory] = useState(false);
   const [demoPersona, setDemoPersona] = useState<string | null>(null);
   const [companionOpen, setCompanionOpen] = useState(false);
   const [highSymptomTriggered, setHighSymptomTriggered] = useState(false);
@@ -168,6 +170,7 @@ export function Dashboard() {
           setShowLearn(false);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+        onViewWhisperHistory={() => setShowWhisperHistory(true)}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 pt-[calc(5rem_+_env(safe-area-inset-top))] pb-[calc(10rem_+_env(safe-area-inset-bottom))] overflow-x-hidden">
@@ -344,6 +347,7 @@ export function Dashboard() {
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showLearn && <Education onClose={() => setShowLearn(false)} defaultSection={educationSection} />}
       {showClinicalGuide && <ClinicalGuide onClose={() => setShowClinicalGuide(false)} />}
+      {showWhisperHistory && <WhisperHistory onClose={() => setShowWhisperHistory(false)} />}
 
     </div>
   );

@@ -62,10 +62,19 @@ export interface Settings {
   botToken?: string;
 }
 
+export interface WhisperEntry {
+  id?: number;
+  date: string;
+  text: string;
+  category: string;
+  savedAt: number;
+}
+
 export class BlossomDB extends Dexie {
   logs!: Table<LogEntry>;
   settings!: Table<Settings>;
   backupLogs!: Table<LogEntry>;
+  whispers!: Table<WhisperEntry>;
 
   constructor() {
     super('BlossomDB');
@@ -77,6 +86,12 @@ export class BlossomDB extends Dexie {
       logs: '++id, date',
       settings: '++id',
       backupLogs: '++id, date'
+    });
+    this.version(3).stores({
+      logs: '++id, date',
+      settings: '++id',
+      backupLogs: '++id, date',
+      whispers: '++id, date, savedAt'
     });
   }
 }

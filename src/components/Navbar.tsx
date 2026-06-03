@@ -8,9 +8,10 @@ interface NavbarProps {
   onOpenClinicalGuide: () => void;
   onOpenEducation: () => void;
   onGoHome: () => void;
+  onViewWhisperHistory: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation, onGoHome }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGuide, onOpenEducation, onGoHome, onViewWhisperHistory }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -203,7 +204,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
 
                   {/* Footer */}
                   <div className="p-3 bg-stone-50 text-center border-t border-stone-100">
-                    <button className="text-xs text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
+                    <button
+                      onClick={() => {
+                        setShowNotifications(false);
+                        onViewWhisperHistory();
+                      }}
+                      className="text-xs text-emerald-600 font-medium hover:text-emerald-700 transition-colors"
+                    >
                       View All History
                     </button>
                   </div>
