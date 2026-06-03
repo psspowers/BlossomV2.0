@@ -464,7 +464,8 @@ const generateLifestylePage = (doc: jsPDF, logs: any[]) => {
 
 export const exportClinicalPDF = async (options: PDFExportOptions = {}) => {
   try {
-    const logs = await db.logs.orderBy('date').toArray();
+    const rawLogs = await db.logs.toArray();
+    const logs = rawLogs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     if (logs.length === 0) {
       throw new Error('No data available to export. Please track some symptoms first.');

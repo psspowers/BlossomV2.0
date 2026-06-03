@@ -147,7 +147,9 @@ const AppInner = () => {
         await db.open();
 
         const isInDemo = !!safeStorage.getItem(DEMO_PREVIEW_KEY);
-        if (!isInDemo) {
+        const hasDeletedData = safeStorage.getItem(USER_DELETED_KEY) === 'true';
+
+        if (!isInDemo && !hasDeletedData) {
           await seedDatabase();
         }
 
