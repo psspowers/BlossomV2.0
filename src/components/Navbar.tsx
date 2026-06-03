@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Bell, Clock, MessageCircle, Stethoscope, ShieldCheck, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 
 interface NavbarProps {
   onOpenSettings: () => void;
@@ -15,6 +18,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
   const [showNotifications, setShowNotifications] = useState(false);
   const [dailyInvite, setDailyInvite] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const recentWhispers = useLiveQuery(
+    () => db.whispers.orderBy('savedAt').reverse().limit(3).toArray(),
+    []
+  );
+
+  function relativeDay(dateStr: string): string {
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    if (dateStr === today) return 'Today';
+    if (dateStr === yesterday) return 'Yesterday';
+    try {
+      return formatDistanceToNow(parseISO(dateStr), { addSuffix: true });
+    } catch {
+      return dateStr;
+    }
+  }
+
+  const ITEM_COLORS = [
+    { bg: 'bg-amber-50', text: 'text-amber-600' },
+    { bg: 'bg-rose-50', text: 'text-rose-500' },
+    { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -161,44 +187,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSettings, onOpenClinicalGu
                     <div className="mt-2 pt-2 border-t border-stone-100">
                       <p className="px-3 text-xs font-medium text-stone-400 uppercase tracking-wide mb-2">Recent Whispers</p>
 
-                      {/* History Item 1 */}
-                      <div className="flex items-start gap-3 p-3 hover:bg-stone-50 rounded-xl transition-colors">
-                        <div className="p-2 bg-amber-50 text-amber-600 rounded-lg mt-0.5">
-                          <MessageCircle className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-stone-400 mb-1">Yesterday</p>
-                          <p className="text-sm text-stone-700 leading-snug">
-                            "Rest is your superpower. Your mood lifts when you sleep 7h+."
-                          </p>
-                        </div>
-                      </div>
+                      {(!recentWhispers || recentWhispers.length === 0) && (
+                        <p className="px-3 py-2 text-xs text-stone-400 italic">No whispers yet — check back tomorrow.</p>
+                      )}
 
-                      {/* History Item 2 */}
-                      <div className="flex items-start gap-3 p-3 hover:bg-stone-50 rounded-xl transition-colors">
-                        <div className="p-2 bg-rose-50 text-rose-600 rounded-lg mt-0.5">
-                          <MessageCircle className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-stone-400 mb-1">2 days ago</p>
-                          <p className="text-sm text-stone-700 leading-snug">
-                            "Movement creates energy. Notice how your body responds."
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* History Item 3 */}
-                      <div className="flex items-start gap-3 p-3 hover:bg-stone-50 rounded-xl transition-colors">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg mt-0.5">
-                          <MessageCircle className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-stone-400 mb-1">3 days ago</p>
-                          <p className="text-sm text-stone-700 leading-snug">
-                            "Your cycle is wisdom. Each phase holds its own gifts."
-                          </p>
-                        </div>
-                      </div>
+                      {recentWhispers && recentWhispers.map((w, i) => {
+                        const color = ITEM_COLORS[i % ITEM_COLORS.length];
+                        return (
+                          <div key={w.id} className="flex items-start gap-3 p-3 hover:bg-stone-50 rounded-xl transition-colors">
+                            <div className={`p-2 ${color.bg} ${color.text} rounded-lg mt-0.5`}>
+                              <MessageCircle className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-stone-400 mb-1">{relativeDay(w.date)}</p>
+                              <p className="text-sm text-stone-700 leading-snug">"{w.text}"</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 

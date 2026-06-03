@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db } from '../db';
+import { db, WhisperEntry } from '../db';
 import { WisdomCard } from '../data/wisdom';
 import { getReactiveWisdom } from '../logic/reactiveWisdom';
 
@@ -17,6 +17,57 @@ interface CachedWisdom {
 }
 
 const STORAGE_KEY = 'blossom_daily_wisdom';
+const SEED_KEY = 'blossom_whispers_seeded';
+
+const SEED_WHISPERS: Omit<WhisperEntry, 'id'>[] = [
+  {
+    date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0],
+    text: 'Your cycle is wisdom. Each phase holds its own gifts.',
+    category: 'cycle',
+    savedAt: Date.now() - 86400000 * 3,
+  },
+  {
+    date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
+    text: 'Movement creates energy. Notice how your body responds.',
+    category: 'lifestyle',
+    savedAt: Date.now() - 86400000 * 2,
+  },
+  {
+    date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    text: 'Rest is your superpower. Your mood lifts when you sleep 7h+.',
+    category: 'sleep',
+    savedAt: Date.now() - 86400000,
+  },
+];
+
+async function seedWhispersIfNeeded() {
+  if (localStorage.getItem(SEED_KEY)) return;
+  const count = await db.whispers.count();
+  if (count === 0) {
+    for (const seed of SEED_WHISPERS) {
+      const exists = await db.whispers.where('date').equals(seed.date).first();
+      if (!exists) {
+        await db.whispers.add(seed);
+      }
+    }
+  }
+  localStorage.setItem(SEED_KEY, '1');
+}
+
+async function persistWhisperForDay(date: string, card: WisdomCard) {
+  const existing = await db.whispers.where('date').equals(date).first();
+  if (!existing) {
+    await db.whispers.add({
+      date,
+      text: card.text,
+      category: card.category,
+      savedAt: Date.now(),
+    });
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    await db.whispers.where('date').below(cutoff.toISOString().split('T')[0]).delete();
+  }
+}
 
 export function useWisdomEngine() {
   const [wisdomCard, setWisdomCard] = useState<WisdomCard | null>(null);
@@ -25,6 +76,8 @@ export function useWisdomEngine() {
 
   const loadWisdom = async (forceRefresh = false) => {
     const today = new Date().toISOString().split('T')[0];
+
+    await seedWhispersIfNeeded();
 
     if (!forceRefresh) {
       try {
@@ -35,6 +88,8 @@ export function useWisdomEngine() {
             setWisdomCard(parsed.data.card);
             setContext(parsed.data.context);
             setLoading(false);
+            // Still persist to Dexie — cache hit doesn't mean it was stored
+            persistWhisperForDay(today, parsed.data.card).catch(() => {});
             return;
           }
         }
@@ -73,25 +128,7 @@ export function useWisdomEngine() {
         console.error('Error caching wisdom:', err);
       }
 
-      // Persist to Dexie whisper history (one entry per day, upsert by date)
-      try {
-        const existing = await db.whispers.where('date').equals(today).first();
-        if (!existing) {
-          await db.whispers.add({
-            date: today,
-            text: selectedCard.text,
-            category: selectedCard.category,
-            savedAt: Date.now(),
-          });
-          // Keep only last 90 days
-          const cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - 90);
-          const cutoffStr = cutoff.toISOString().split('T')[0];
-          await db.whispers.where('date').below(cutoffStr).delete();
-        }
-      } catch (err) {
-        console.error('Error persisting whisper:', err);
-      }
+      await persistWhisperForDay(today, selectedCard);
 
       setLoading(false);
     } catch (err) {
@@ -122,3 +159,4 @@ export function useWisdomEngine() {
     refreshCard
   };
 }
+
